@@ -37,7 +37,6 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Modify Probs and Determine Kinship
   qtlprobs <- list()
   kinship_loco <- list()
-  message(n.cores)
   for(tissue in names(probs_list)){
     message(tissue)
     qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
@@ -87,20 +86,16 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     sample_details[,fact] <- as.factor(sample_details[,fact])
   }
 
-  message(paste0(head(colnames(expr_list[[1]])), sep = " "))
-  message(paste0(head(rownames(probs_list[[1]])), sep = " "))
-
-  message(length(colnames(expr_list[[1]])))
-  message(length(rownames(probs_list[[1]])))
-
-  message(length(intersect(colnames(expr_list[[1]]), rownames(probs_list[[1]]))))
-
   ## Reorganize and calculate rankZ for expression matrices
   exprZ_list <- list()
   for(tissue in names(expr_list)){
     message(tissue)
     samps_keep <- rownames(probs_list[[tissue]])[which(rownames(probs_list[[tissue]]) %notin% samp_excl)]
-    expr_list[[tissue]] <- expr_list[[tissue]][, rownames(probs_list[[tissue]])]
+    message(length(samp_excl))
+    message(length(samps_keep))
+    message(length(colnames(expr_list[[tissue]])))
+    message(length(intersect(colnames(expr_list[[tissue]]), samps_keep)))
+    expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
 
@@ -108,6 +103,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   expr_list <- std$expr
   exprZ_list <- std$exprZ
   tissue_samp <- std$tissue_samp
+
+  message("rankZ normalized")
 
   ## Calculate covariate matrices
   covar_list <- list()
@@ -122,11 +119,17 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     }
   }
 
+  message("covariates calculated")
+
   outfile <- paste0(outdir, "/", map_out)
+
   maps_list <- list(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, map_dat2,pmap, tissue_samp)
+  names(maps_list) <- c("qtlprobs", "covar_list", "expr_list", "exprZ_list", "kinship_loco", "gmap", "map_dat2", "pmap", "tissue_samp")
   saveRDS(maps_list, file = outfile)
 
   ## Run Batchmap
+
+  message("calculating peaks")
 
   ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
@@ -141,6 +144,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   outfile <- paste0(outdir,"/", peaks_out)
   saveRDS(peaks_list, file=outfile)
 
-  return(list(maps_list, peaks_list))
+  map_peaks <- list(maps_list, peaks_list)
+  names(map_peaks) <- c("maps_list", "peaks_list")
+  return(map_peaks)
 
 }

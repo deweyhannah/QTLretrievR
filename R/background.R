@@ -103,9 +103,11 @@ standardize <- function(expr, exprZ, details, tissues = c()){
   for(tissue in tissues){
     rownames(expr[[tissue]]) <- gsub("_.*","", rownames(expr[[tissue]]))
     colnames(exprZ[[tissue]]) <- gsub("_.*","", colnames(exprZ[[tissue]]))
-    tissue_samp[[tissue]] <- sample_details[which(sample_details$ID %in% colnames(expr[[tissue]])),]
+    tissue_samp[[tissue]] <- details[which(details$ID %in% colnames(expr[[tissue]])),]
   }
-  return(list(expr, exprZ, tissue_samp))
+  std <- list(expr, exprZ, tissue_samp)
+  names(std) <- c("expr","exprZ","tissue_samp")
+  return(std)
 }
 
 batchmediate <- function( n, z_thres = -2,  pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, ...){
