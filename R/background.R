@@ -103,7 +103,7 @@ standardize <- function(expr, exprZ, details, tissues = c()){
   for(tissue in tissues){
     rownames(expr[[tissue]]) <- gsub("_.*","", rownames(expr[[tissue]]))
     colnames(exprZ[[tissue]]) <- gsub("_.*","", colnames(exprZ[[tissue]]))
-    tissue_samp[[tissue]] <- details[which(details$ID %in% colnames(expr[[tissue]])),]
+    tissue_samp[[tissue]] <- details[which(details$ID %in% colnames(expr[[tissue]] & details$tissue == tissue)),]
   }
   std <- list(expr, exprZ, tissue_samp)
   names(std) <- c("expr","exprZ","tissue_samp")
