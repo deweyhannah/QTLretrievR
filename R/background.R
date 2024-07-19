@@ -177,4 +177,4 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
   newprobs
 }
 
-`%notin%` <- Negate(%in%)
+`%notin%` <- Negate(`%in%`)
