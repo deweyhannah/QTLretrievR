@@ -89,12 +89,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Reorganize and calculate rankZ for expression matrices
   exprZ_list <- list()
   for(tissue in names(expr_list)){
-    message(tissue)
     samps_keep <- rownames(probs_list[[tissue]])[which(rownames(probs_list[[tissue]]) %notin% samp_excl)]
-    message(length(samp_excl))
-    message(length(samps_keep))
-    message(length(colnames(expr_list[[tissue]])))
-    message(length(intersect(colnames(expr_list[[tissue]]), samps_keep)))
     expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
@@ -123,8 +118,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   outfile <- paste0(outdir, "/", map_out)
 
-  maps_list <- list(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, map_dat2,pmap, tissue_samp)
-  names(maps_list) <- c("qtlprobs", "covar_list", "expr_list", "exprZ_list", "kinship_loco", "gmap", "map_dat2", "pmap", "tissue_samp")
+  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, map_dat2,pmap, tissue_samp)
+  # names(maps_list) <- c("qtlprobs", "covar_list", "expr_list", "exprZ_list", "kinship_loco", "gmap", "map_dat2", "pmap", "tissue_samp")
   saveRDS(maps_list, file = outfile)
 
   ## Run Batchmap
@@ -137,6 +132,11 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
     message("Mapping ", ncol(exprZ_list[[tissue]]), " ", tissue, " gene expression levels. Running in ", num.batches, " batches")
     peaks_list[[tissue]] <- batchmap(num.batches, exprZ_list[[tissue]], kinship_loco[[tissue]], qtlprobs[[tissue]], covar_list[[tissue]], tissue, gmap = gmap, n.cores = n.cores)
+    message(class(peaks_list[[tissue]]))
+    if(is.list(peaks_list[[tissue]])){
+      peaks_list[[tissue]] <- list2DF(peaks_list[[tissue]])
+    }
+    message(paste0(colnames(peaks_list[[tissue]]), sep = " "))
   }
 
   peaks_list <- annotatePeaks(maps_list, peaks_list, biomart, localRange)
@@ -144,8 +144,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   outfile <- paste0(outdir,"/", peaks_out)
   saveRDS(peaks_list, file=outfile)
 
-  map_peaks <- list(maps_list, peaks_list)
-  names(map_peaks) <- c("maps_list", "peaks_list")
+  map_peaks <- tibble::lst(maps_list, peaks_list)
+  # names(map_peaks) <- c("maps_list", "peaks_list")
   return(map_peaks)
 
 }

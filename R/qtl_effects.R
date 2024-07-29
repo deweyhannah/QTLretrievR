@@ -62,12 +62,18 @@ qtl_effects <- function(mapping, peaks, lod_limit, outdir, outfile, n.cores = 4)
 
   effects_blup <- list()
   effects_std <- list()
-  foreach::foreach(tissue=names(QTL.peaks)) %dopar% {
+  xx <- parallel::detectCores()
+  yy <- floor(xx/length(names(peaksf)))
+  cl <- parallel::makeCluster(yy)
+  doParallel::registerDoParallel(cl)
+  effect_out <- foreach::foreach(tissue=names(QTL.peaks)) %dopar% {
     n_peaks <- nrow(peaksf[[tissue]])
     haps <- LETTERS[1:8]
     effects_blupl_temp <- list()
     effects_stdl_temp <- list()
-    foreach::foreach(i = 1:n_peaks) %dopar% {
+    cl2 <- parallel::makeCluster(floor(yy/n.cores))
+    doParallel::registerDoParallel(cl2)
+    effects_temp <- foreach::foreach(i = 1:n_peaks, .combine = 'rbind', .multicombine = TRUE, .init = list(data.frame(), data.frame())) %dopar% {
       this_chrom <- peaksf[[tissue]]$peak_chr[i]
       this_markers <- c(peaksf[[tissue]]$before[i], peaksf[[tissue]]$after[i])
       probs_2marker <- subset_probs(qtlprobs[[tissue]], this_chrom, this_markers)
@@ -83,13 +89,19 @@ qtl_effects <- function(mapping, peaks, lod_limit, outdir, outfile, n.cores = 4)
                                  kinship_loco[[tissue]][[this_chrom]],
                                  covar_list[[tissue]],
                                  cores = n.cores)
-      effects_blupl_temp[[i]] <- colMeans(out_blup[, haps])
-      effects_stdl_temp[[i]] <- colMeans(out_std[, haps])
+      effects_blupl_temp <- colMeans(out_blup[, haps])
+      effects_stdl_temp <- colMeans(out_std[, haps])
+      list(effects_blupl_temp, effects_stdl_temp)
     }
-    effects_blup[[tissue]] <- list2DF(effects_blupl_temp[[tissue]])
-    effects_std[[tissue]] <- list2DF(effects_stdl_temp[[tissue]])
+    parallel::stopCluster(cl2)
   }
+  parallel::stopCluster(cl)
 
+  names(effect_out) <- names(peaksf)
+  for(tissue in names(effect_out)){
+    effects_blup[[tissue]] <- effect_out[[tissue]][[1]]
+    effects_std[[tissue]] <- effect_out[[tissue]][[2]]
+  }
   peaks <- peaksf
 
   effects_out <- list(effects_blup, effects_std, peaks)

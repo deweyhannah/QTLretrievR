@@ -6,10 +6,16 @@
 ## usethis namespace: end
 annotatePeaks <- function(map, peaks, biomart, localRange = 10e6){
   ## Get biomart columnnames to wanted format from base download
+  if(is.character(biomart)){
+    biomart <- read.delim(biomart)
+  }
   if("Gene.start..bp." %in% colnames(biomart)){
     message("renaming biomart columns")
     biomart <- biomart %>%
       dplyr::rename(gene = Gene.stable.ID, symbol = MGI.symbol, start = Gene.start..bp., end = Gene.end..bp., chr = Chromosome.scaffold.name)
+  }
+  if("gene.id" %in% colnames(biomart)){
+    colnames(biomart)[which(colnames(biomart)=="gene.id")] <- "gene"
   }
 
   ## Add midpoint of gene to biomart and pare down the columns to those we need
@@ -21,7 +27,7 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6){
   peaks_pmap <- list()
   for(tissue in names(peaks)){
     peaks_pmap[[tissue]] <- peaks[[tissue]] %>%
-      interp_bp(.) %>%
+      interp_bp(., map$gmap, map$pmap) %>%
       dplyr::mutate(phenotype = gsub('_.*','', phenotype)) %>%
       dplyr::left_join(biomart, by = join_by(phenotype == gene))
   }

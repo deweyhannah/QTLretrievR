@@ -55,25 +55,34 @@ batchmap <- function(nbatch, exprZ, kinship_loco, genoprobs, covar, tissue, gmap
   # Do mapping in batches. I will only save significant peaks, for efficiency.
   nn <- ncol(exprZ)
   ss <- round(seq(0, nn, length.out=nbatch + 1))
-  peaks <- list()
+  # message(tissue)
+  message(date())
+  # peaks <- list()
   xx <- parallel::detectCores()
   cl <- parallel::makeCluster(floor(xx/n.cores))
   doParallel::registerDoParallel(cl)
-  foreach::foreach(i = 1:nbatch) %dopar% {
+  peaks <- foreach::foreach(i = 1:nbatch, .combine = "rbind") %dopar% {
     start <- ss[i] + 1
     end <- ss[i + 1]
     cat(sprintf("batch %d: %d-%d\n", i, start, end))
     out <- qtl2::scan1(genoprobs, exprZ[, start:end, drop=FALSE],
                        kinship_loco, addcovar=covar[,,drop=FALSE], cores=n.cores, ...)
-    peaks[[i]] <- qtl2::find_peaks(out, gmap, drop=1.5,
-                                   threshold=thrA, thresholdX=thrX)   # returns a long & tidy dataset
+    # peaks[[i]] <- qtl2::find_peaks(out, gmap, drop=1.5,
+    qtl2::find_peaks(out, gmap, drop=1.5,
+                     threshold=thrA, thresholdX=thrX)   # returns a long & tidy dataset
   }
   parallel::stopCluster(cl)
-  do.call('rbind', peaks) %>% dplyr::select(-lodindex) %>%
+  message(date())
+  # message(length(peaks))
+  peaks <- peaks %>%
+    dplyr::select(-lodindex) %>%
     dplyr::rename(phenotype=lodcolumn, peak_chr=chr, peak_cM=pos)
+  # do.call('rbind', peaks) %>% dplyr::select(-lodindex) %>%
+    # dplyr::rename(phenotype=lodcolumn, peak_chr=chr, peak_cM=pos)
+  return(peaks)
 }
 
-interp_bp <- function(df) {
+interp_bp <- function(df, gmap, pmap) {
   chroms <- c(as.character(1:19), "X")
   df <- arrange(df, peak_chr, peak_cM)
   peak_gpos <- select(df, peak_chr, peak_cM)
@@ -105,16 +114,14 @@ standardize <- function(expr, exprZ, details, tissues = c()){
     colnames(exprZ[[tissue]]) <- gsub("_.*","", colnames(exprZ[[tissue]]))
     tissue_samp[[tissue]] <- details[which(details$ID %in% colnames(expr[[tissue]]) & details$tissue == tissue),]
   }
-  std <- list(expr, exprZ, tissue_samp)
-  names(std) <- c("expr","exprZ","tissue_samp")
+  std <- tibble::lst(expr, exprZ, tissue_samp)
+  # names(std) <- c("expr","exprZ","tissue_samp")
   return(std)
 }
 
 batchmediate <- function( n, z_thres = -2,  pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, ...){
 
   med.scan <- list()
-
-  #for( l in 1:nbatch){
 
   start <- ss[n]+1
   end   <- ss[n+1]
@@ -157,15 +164,13 @@ batchmediate <- function( n, z_thres = -2,  pos_thres = 10, QTL.peaks, med_annot
         mediator_midpoint = middle_point,
         LOD)
 
-
-
     med.scan[[i]] <- med
 
     print(i)
   }
 
   return(med.scan)
-  #}
+
 }
 
 subset_probs <- function(this_probs, this_chrom, this_markers) {

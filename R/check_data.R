@@ -2,9 +2,18 @@ check_data <- function(x, type = ""){
   ## Load data into environment
   if(is.character(x)){
     y <- readRDS(x)
+    # message(names(y))
     # message(length(intersect(names(y), c("probs_list","map_dat2","peaks_list","res_list","effects_blup"))))
     if(length(intersect(names(y),c("probs_list","map_dat2", "peaks_list", "res_list", "effects_blup")))==1){
-      list2env(y,.GlobalEnv)
+      exprZ_list <- y$exprZ_list
+      covar_list <- y$covar_list
+      expr_list <- y$expr_list
+      gmap <- y$gmap
+      kinship_loco <- y$kinship_loco
+      map_dat2 <- y$map_dat2
+      pmap <- y$pmap
+      qtlprobs <- y$qtlprobs
+      tissue_samp <- y$tissue_samp
     }
     if(length(intersect(names(y),c("probs_list","map_dat2", "peaks_list", "res_list", "effects_blup")))==0){
       if(type == "genoprobs"){
@@ -12,6 +21,9 @@ check_data <- function(x, type = ""){
       }
       if(type == "mediation"){
         res_list <- y
+      }
+      if(type == "peaks"){
+        peaks_list <- y
       }
     }
   }
@@ -45,21 +57,21 @@ check_data <- function(x, type = ""){
     stopifnot(length(unique(a$Freq))==1)
 
     ## Names (chromosome) check
-    b <- data.frame(table(c(names(kinship_loco), names(gmap), names(pmap))))
+    b <- data.frame(table(c(names(kinship_loco[[1]]), names(gmap), names(pmap), names(qtlprobs[[1]]))))
     stopifnot(length(unique(b$Freq))==1)
 
     ## Sample Check
     for(tissue in names(tissue_samp)){
-      stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(rownames(expr_list[[tissue]]))))
-      stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(colnames(exprZ_list[[tissue]]))))
+      stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(colnames(expr_list[[tissue]]))))
+      stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(rownames(exprZ_list[[tissue]]))))
       stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(rownames(covar_list[[tissue]]))))
-      stopifnot(identical(sort(tissue_samp[[tissue]]$ID), sort(rownames(qtlprobs[[tissue]]))))
+      stopifnot(identical(sort(rownames(expr_list[[tissue]])), sort(colnames(exprZ_list[[tissue]]))))
     }
 
     ## map_dat2 column check
     stopifnot(all(c("chr","cM","marker","chrom","pos_bp","n") %in% colnames(map_dat2)))
 
-    return(list(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, pmap, tissue_samp, map_dat2))
+    return(tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, pmap, tissue_samp, map_dat2))
   }
   if(exists("peaks_list")){
     stopifnot(is.list(peaks_list))
@@ -91,5 +103,5 @@ check_data <- function(x, type = ""){
       stopifnot(colnames(effects_std[[tissue]])==LETTERS[1:8])
     }
   }
-  return(list(effects_blup, effects_std, peaks))
+  return(tibble::lst(effects_blup, effects_std, peaks))
 }
