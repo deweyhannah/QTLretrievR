@@ -5,7 +5,7 @@ Authors@R: c(
     person(given = "Hannah", family = "Dewey", middle = "B", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3009-0452")),
     person(given = "Selcan", family = "Aydin", email = "selcan.aydin@jax.org", role = "aut",
-           comment = c(ORCID = "0000-0002-0457-9641"))
+           comment = c(ORCID = "0000-0002-0457-9641")),
     person(given = "Dan", family = "Skelly", email = "dan.skelly@jax.org", role = "aut",
            comment = c(ORCID = "0000-0002-2329-2216")))
 Description: An integration of 'qtl2' and 'intermediate' to map genotypes to probes
@@ -35,4 +35,13 @@ Suggests:
     testthat (>= 3.0.0),
     devtools
 Config/testthat/edition: 3
-
+Collate: 
+    'annotatePeaks.R'
+    'background.R'
+    'check_data.R'
+    'genoprobably.R'
+    'mapQTL.R'
+    'qtl_effects.R'
+    'qtl_mediate.R'
+    'qtl_mediate2.R'
+    'runQTL.R'

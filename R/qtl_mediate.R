@@ -7,7 +7,7 @@
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
 ## usethis namespace: end
-prep_mediate <- function(peaks, mapping, peak_lim = 7, outdir, biomart, effects_out, n.cores = 4){
+prep_mediate <- function(peaks, mapping, peak_lim = 7, outdir, biomart, med_out, n.cores = 4){
   # mediate_env <- new.env()
   message("load annotations")
   if(is.character(biomart)){
@@ -117,97 +117,96 @@ prep_mediate <- function(peaks, mapping, peak_lim = 7, outdir, biomart, effects_
   med_covar <- covar_list
 
   message("running mediation")
-  res_list <- qtl_mediate(QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
-                          targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
-                          effects_out = effects_out, outdir = outdir, n.cores = n.cores)
+  res_list <- qtl_mediate2(QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
+                           targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
+                           med_out = med_out, outdir = outdir, n.cores = n.cores, mapDat = map_dat2)
   return(res_list)
 }
 
-qtl_mediate <- function(QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, effects_out, outdir, n.cores){
-  xx <- parallel::detectCores()
-  yy <- floor(xx/length(names(QTL.peaks)))
-  cl <- parallel::makeCluster(yy)
-  doParallel::registerDoParallel(cl)
+qtl_mediate <- function(QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, med_out, outdir, n.cores, mapDat){
+
+  res_list <- list()
   for(tissue in names(QTL.peaks)){
     n.batches <- max(c(round(nrow(QTL.peaks[[tissue]])/1000)))
     nn <- nrow(QTL.peaks[[tissue]])
     message(paste0("Mediating ", nn, " eQTL peaks. Running in ", n.batches - 1, " batches"))
     ss <- round(seq(0, nn, length.out = n.batches))
-    xx <- parallel::detectCores()
-    yy <- floor(xx/n.cores)
-    cl <- parallel::makeCluster(yy)
-    doParallel::registerDoParallel(cl)
-    # message(paste0("Mediating ", nn, " eQTL peaks. Running in ", n.batches - 1, " batches"))
-    # cl2 <- parallel::makeCluster(floor(yy/n.cores))
-    doParallel::registerDoParallel(cl)
-    med.scans <- foreach::foreach(i = 1:(n.batches - 1), .combine = "rbind") %dopar% {
-      scans <- batchmediate(n = i, QTL.peaks = QTL.peaks[[tissue]],
-                   med_annot = med_annot[[tissue]],
-                   QTL.mediator = QTL.mediator[[tissue]],
-                   targ_covar = targ_covar[[tissue]],
-                   QTL.target = QTL.target[[tissue]],
-                   probs = probs[[tissue]])
-      scans %>% purrr::compact()
-    }
-    parallel::stopCluster(cl)
-    res_list[[tissue]] <- med.scans
-    # res_list[[tissue]] <- list2DF(results[[tissue]])
+
+    message(date())
+
+    # med.scans <- foreach::foreach(i = 1:(n.batches - 1), .combine = "rbind") %dopar% {
+    res_list[[tissue]] <- purrr::compact(batchmediate2(n = n.batches, QTL.peaks = QTL.peaks[[tissue]],
+                                                       med_annot = med_annot[[tissue]],
+                                                       QTL.mediator = QTL.mediator[[tissue]],
+                                                       targ_covar = targ_covar[[tissue]],
+                                                       QTL.target = QTL.target[[tissue]],
+                                                       mapDat = mapDat,
+                                                       probs = probs[[tissue]],
+                                                       ss = ss))
   }
-  # parallel::stopCluster(cl)
-  # names(res_list) <- names(QTL.peaks)
   outfile <- paste0(outdir, "/", med_out)
   saveRDS(res_list, file = outfile)
 
   return(res_list)
 }
 
-batchmediate <- function( n, z_thres = -2,  pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, ...){
+batchmediate <- function( n, z_thres = -2,  pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, mapDat, probs, ss, ...){
+  xx <- parallel::detectCores()
+  yy <- floor(2*xx/(n-1))
+  cl <- parallel::makeCluster(yy)
+  doParallel::registerDoParallel(cl)
 
-  med.scan <- list()
+  mutate <- dplyr::mutate
+  select <- dplyr::select
+  filter <- dplyr::filter
+  res_list <- foreach::foreach(batch = 1:(n-1), .combine = "rbind") %dopar% {
 
-  start <- ss[n]+1
-  end   <- ss[n+1]
-  lod.peaks <- QTL.peaks[start:end,]
-  cat(sprintf("batch %d: %d-%d\n", n, start, end))
 
-  for(i in 1:nrow(lod.peaks) ){
+    med.scan <- list()
 
-    marker    <- map_dat2 %>%
-      dplyr::mutate(pos=as.numeric(pos_bp)) %>%
-      dplyr::filter( abs(pos - lod.peaks$peak_cM[i]) == min(abs(pos - lod.peaks$peak_cM[i])))
-    qtl.chr   <- marker$chr
-    qtl.pos   <- marker$pos_bp/1e06
-    annot     <- med_annot %>% mutate( middle_point = pos)
-    geno      <- qtl2::pull_genoprobpos(probs,marker$marker)
-    geno      <- geno[rownames(geno) %in% rownames(QTL.target),]
-    target    <- lod.peaks$phenotype[i]
+    start <- ss[batch]+1
+    end   <- ss[batch+1]
+    lod.peaks <- QTL.peaks[start:end,]
+    # cat(sprintf("batch %d: %d-%d\n", batch, start, end))
 
-    med <- intermediate::mediation.scan(target     = QTL.target[, target, drop = FALSE],
-                                        mediator   = QTL.mediator,
-                                        annotation = annot,
-                                        qtl.geno   = geno,
-                                        covar      = targ_covar,
-                                        verbose    = FALSE,
-                                        method     = "double-lod-diff")
+    for(i in 1:nrow(lod.peaks) ){
 
-    med <- med %>%
-      mutate(
-        target_id = lod.peaks$phenotype[i],
-        qtl_lod = lod.peaks$lod[i],
-        qtl_chr = lod.peaks$peak_chr[i]
-      ) %>%
-      select(
-        target_id,
-        qtl_lod,
-        qtl_chr,
-        mediator = symbol,
-        mediator_id ,
-        mediator_chr = chr,
-        mediator_midpoint = middle_point,
-        LOD)
+      marker    <- mapDat |>
+        mutate(pos=as.numeric(pos_bp)) |>
+        filter( abs(pos - lod.peaks$peak_cM[i]) == min(abs(pos - lod.peaks$peak_cM[i])))
+      qtl.chr   <- marker$chr
+      qtl.pos   <- marker$pos_bp/1e06
+      annot     <- med_annot |> mutate( middle_point = pos)
+      geno      <- qtl2::pull_genoprobpos(probs,marker$marker)
+      geno      <- geno[rownames(geno) %in% rownames(QTL.target),]
+      target    <- lod.peaks$phenotype[i]
 
-    med.scan[[i]] <- med
+      med <- intermediate::mediation.scan(target     = QTL.target[, target, drop = FALSE],
+                                          mediator   = QTL.mediator,
+                                          annotation = annot,
+                                          qtl.geno   = geno,
+                                          covar      = targ_covar,
+                                          verbose    = FALSE,
+                                          method     = "double-lod-diff")
 
-    print(i)
+      med |>
+        mutate(
+          target_id = lod.peaks$phenotype[i],
+          qtl_lod = lod.peaks$lod[i],
+          qtl_chr = lod.peaks$peak_chr[i]
+        ) |>
+        select(
+          target_id,
+          qtl_lod,
+          qtl_chr,
+          mediator = symbol,
+          mediator_id ,
+          mediator_chr = chr,
+          mediator_midpoint = middle_point,
+          LOD)
+
+    }
   }
+  parallel::stopCluster(cl)
+
 }
