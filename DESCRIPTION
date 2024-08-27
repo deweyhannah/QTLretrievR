@@ -17,18 +17,19 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:
-  abind,
-  dplyr,
-  DT,
-  foreach,
-  GenomicRanges,
-  intermediate,
-  magrittr,
-  purrr,
-  qtl2,
-  readr,
-  tibble,
-  tidyr
+    abind,
+    BiocParallel,
+    dplyr,
+    DT,
+    GenomicRanges,
+    ggplot2,
+    intermediate,
+    parallel,
+    purrr,
+    qtl2,
+    readr,
+    tibble,
+    tidyr
 Remotes:
   simecek/intermediate
 Suggests: 
@@ -43,5 +44,7 @@ Collate:
     'mapQTL.R'
     'qtl_effects.R'
     'qtl_mediate.R'
-    'qtl_mediate2.R'
     'runQTL.R'
+Depends: 
+    R (>= 2.10)
+LazyData: true

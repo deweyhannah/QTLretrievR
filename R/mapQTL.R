@@ -1,17 +1,41 @@
-## usethis namespace: start
+#' Generate mapping data and peaks for QTL analysis
+#'
+#' @param outdir Output directory where files mapping and peaks lists should be saved.
+#' @param peaks_out String indicating the name for output peaks file. Should end in .rds.
+#' @param map_out String indicating the name for output mapping file. Should end in .rds.
+#' @param genoprobs Either a string with the name of the genoprobs file, or the genoprobs object.
+#' @param samp_meta Sample metadata. Either a string pointing to the file, or the object itself.
+#' @param expr_mats Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.
+#' @param covar_factors Additive covariate factors. These need to be columns in the factor metadata.
+#' @param n.cores Number of cores to pass to qtl2. Your total cores available should be at least the number of tissues times n.cores.
+#' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
+#' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
+#' @param gridfile File location for genome grid. Defaults to object loaded with package for 75k grid.
+#' @param localRange What is defined as "local". Default is 10e6.
+#' @param biomart String pointing to annotations file or annotations object.
+#' @param samp_excl Are there any samples that should be excluded from your analysis?
+#'
+#' @return A list containing: \itemize{
+#'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
+#'  \item{qtlprobs}{Genome probabilities in qtl2format}
+#'  \item{covar_list}{list of covariate matrices for each tissue}
+#'  \item{expr_list}{Original normalized expression data for each tissue}
+#'  \item{exprZ_list}{Rank Z normalized expression data for each tissue}
+#'  \item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option in `qtl2::calc_kinship`}
+#'  \item{gmap}{Genomic map of markers}
+#'  \item{map_dat2}{Combined genomic and physical map of markers}
+#'  \item{pmap}{Physical map of markers}
+#'  \item{tissue_samp}{Metadata broken down for each tissue}}}
+#'  \item{peaks_list}{A list of peaks list for each tissue.}}
 #' @export
 #'
-#' @importFrom magrittr %>%
-#' @import dplyr
-#' @import tibble
-#' @import tidyr
-## usethis namespace: end
-mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, gridfile = "/projects/compsci/omics_share/mouse/GRCm39/supporting_files/emase_gbrs/rel_2112_v8/ref.genome_grid.GRCm39.tsv", localRange = 10e6,
+#' @examples
+mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridfile = gridfile, localRange = 10e6,
                     biomart, samp_excl = c()){
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if(is.list(genoprobs)){
-    tmp_probs <- check_data(genoprobs)
+    tmp_probs <- check_data(genoprobs, "genoprobs")
   }
   if(is.character(genoprobs)){
     tmp_probs <- check_data(paste0(outdir,"/",genoprobs), "genoprobs")
@@ -44,7 +68,13 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
 
   ## Create maps
-  grid_map <- read.delim(gridfile, stringsAsFactors = F, row.names = 1)
+  # message(gridfile)
+  if(is.character(gridfile)){
+    grid_map <- read.delim(gridfile, stringsAsFactors = F, row.names = 1)
+  }
+  else{
+    grid_map <- gridfile
+  }
   map_dat <- grid_map[,c("chr", "cM")]
 
   markers <- dimnames(probs_list[[1]])[[3]]
@@ -55,14 +85,14 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   message("gmap complete")
 
-  map_dat2 <- map_dat %>%
-    tidyr::separate(marker, into=c('chrom', 'pos_bp'), convert=T, remove=F) %>%
-    dplyr::mutate(n=1:dplyr::n()) %>%
+  map_dat2 <- map_dat |>
+    tidyr::separate(marker, into=c('chrom', 'pos_bp'), convert=T, remove=F) |>
+    dplyr::mutate(n=1:dplyr::n()) |>
     tibble::as_tibble()
   pmap <- split_map(dplyr::select(map_dat2, marker,
-                                  chr, pos_bp) %>%
-                      as.data.frame() %>%
-                      tibble::remove_rownames() %>%
+                                  chr, pos_bp) |>
+                      as.data.frame() |>
+                      tibble::remove_rownames() |>
                       tibble::column_to_rownames('marker'))
 
   message("pmap complete")
@@ -122,27 +152,34 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   # names(maps_list) <- c("qtlprobs", "covar_list", "expr_list", "exprZ_list", "kinship_loco", "gmap", "map_dat2", "pmap", "tissue_samp")
   saveRDS(maps_list, file = outfile)
 
+  message("map saved")
   ## Run Batchmap
 
   message("calculating peaks")
 
   ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
-  for(tissue in names(exprZ_list)){
-    num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
-    message("Mapping ", ncol(exprZ_list[[tissue]]), " ", tissue, " gene expression levels. Running in ", num.batches, " batches")
-    peaks_list[[tissue]] <- batchmap(num.batches, exprZ_list[[tissue]], kinship_loco[[tissue]], qtlprobs[[tissue]], covar_list[[tissue]], tissue, gmap = gmap, n.cores = n.cores)
-    message(class(peaks_list[[tissue]]))
-    if(is.list(peaks_list[[tissue]])){
-      peaks_list[[tissue]] <- list2DF(peaks_list[[tissue]])
-    }
-    message(paste0(colnames(peaks_list[[tissue]]), sep = " "))
+
+  each_tissue <- floor(parallel::detectCores()/length(names(exprZ_list)))
+
+  peak_tmp <- BiocParallel::bplapply(names(exprZ_list), function(tissue) batch_wrap(tissue, exprZ_list, kinship_loco,
+                                                                                    qtlprobs, covar_list, gmap, thrA,
+                                                                                    thrX, n.cores),
+                                     BPPARAM =  BiocParallel::MulticoreParam(workers = each_tissue))
+
+  for(i in 1:length(peak_tmp)){
+    tissue <- peak_tmp[[i]]$tissue
+    peaks_list[[tissue]] <- peak_tmp[[i]]$peaks
+    # message(paste0(tissue, colnames(peaks_list[[tissue]]), sep = " "))
   }
 
+  message("adding annotations to peaks")
   peaks_list <- annotatePeaks(maps_list, peaks_list, biomart, localRange)
+
 
   outfile <- paste0(outdir,"/", peaks_out)
   saveRDS(peaks_list, file=outfile)
+  message("saved peaks")
 
   map_peaks <- tibble::lst(maps_list, peaks_list)
   # names(map_peaks) <- c("maps_list", "peaks_list")

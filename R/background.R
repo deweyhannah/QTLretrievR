@@ -177,7 +177,7 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
   att <- attributes(this_probs)
   att$names <- this_chrom
   att$is_x_chr <- setNames(FALSE, this_chrom)
-  assert_that(all(this_markers %in% dimnames(this_probs[[this_chrom]])[[3]]))
+  # assert_that(all(this_markers %in% dimnames(this_probs[[this_chrom]])[[3]]))
   newprobs <- list(this_probs[[this_chrom]][, , this_markers, drop=FALSE])
   names(newprobs) <- this_chrom
   attributes(newprobs) <- att
@@ -185,3 +185,36 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 }
 
 `%notin%` <- Negate(`%in%`)
+
+peak_fun <- function(i, ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA=5, thrX=5, n.cores = 4){
+  start <- ss[i] + 1
+  end <- ss[i + 1]
+  out <- qtl2::scan1(genoprobs, exprZ[, start:end, drop=FALSE],
+                     kinship_loco, addcovar=covar[,,drop=FALSE], cores=n.cores)
+  peaks <- qtl2::find_peaks(out, gmap, drop = 1.5,
+                            threshold = thrA, thresholdX = thrX)
+  peaks <- peaks %>%
+    dplyr::select(-lodindex) %>%
+    dplyr::rename(phenotype=lodcolumn, peak_chr=chr, peak_cM=pos)
+  return(peaks)
+}
+
+batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
+                       covar_list, gmap, thrA, thrX, cores){
+  num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
+  nn <- ncol(exprZ_list[[tissue]])
+  ss <- round(seq(0, nn, length.out=num.batches + 1))
+  tissue_peaks <- BiocParallel::bplapply(1:num.batches, function(i) peak_fun(i, ss, exprZ_list[[tissue]], kinship_loco[[tissue]],
+                                                                             qtlprobs[[tissue]], covar_list[[tissue]],
+                                                                             tissue, gmap, thrA, thrX, n.cores = cores),
+                                         BPPARAM = BiocParallel::MulticoreParam(workers = cores))
+  peaks <- do.call("rbind", tissue_peaks)
+
+  # message(paste0(colnames(peaks), sep = " "))
+
+  tissue_peaks2 <- tibble::lst(tissue, peaks)
+
+  return(tissue_peaks2)
+}
+
+

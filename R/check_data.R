@@ -28,7 +28,29 @@ check_data <- function(x, type = ""){
     }
   }
   if(is.list(x)){
-    list2env(x,.GlobalEnv)
+    # list2env(x,.GlobalEnv)
+    if(length(intersect(names(x),c("probs_list","map_dat2", "peaks_list", "res_list", "effects_blup")))==1){
+      exprZ_list <- x$exprZ_list
+      covar_list <- x$covar_list
+      expr_list <- x$expr_list
+      gmap <- x$gmap
+      kinship_loco <- x$kinship_loco
+      map_dat2 <- x$map_dat2
+      pmap <- x$pmap
+      qtlprobs <- x$qtlprobs
+      tissue_samp <- x$tissue_samp
+    }
+    if(length(intersect(names(x),c("probs_list","map_dat2", "peaks_list", "res_list", "effects_blup")))==0){
+      if(type == "genoprobs"){
+        probs_list <- x
+      }
+      if(type == "mediation"){
+        res_list <- x
+      }
+      if(type == "peaks"){
+        peaks_list <- x
+      }
+    }
   }
 
   ## Run checks

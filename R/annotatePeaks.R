@@ -26,6 +26,7 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6){
   ## Interpolate the physical bp locations from centimorgans join to biomart
   peaks_pmap <- list()
   for(tissue in names(peaks)){
+    # message(paste0(colnames(peaks[[tissue]]), sep = " "))
     peaks_pmap[[tissue]] <- peaks[[tissue]] %>%
       interp_bp(., map$gmap, map$pmap) %>%
       dplyr::mutate(phenotype = gsub('_.*','', phenotype)) %>%

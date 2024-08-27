@@ -1,9 +1,35 @@
-## usethis namespace: start
+#' Wrapper function to generate mapping, peaks, mediation, and effects data
+#'
+#' @param geno_out Output file name to save gbrs interpolated genoprobs. Default is "gbrs_interpolated_genoprobs.rds".
+#' @param peaks_out Output file name to save peaks. Default is "mm39_peaks.rds".
+#' @param map_out Output file name to save mapping. Default is "mm39_mapping.rds".
+#' @param med_out Output file name to save mediation. Default is "mm39_mediation_res.rds".
+#' @param effects_out Output file name to save effects. Default is "mm39_effects.rds".
+#' @param outdir Output directory to save results.
+#' @param gbrs_fileLoc Path to GBRS interpolated tsv files
+#' @param metadata Sample metadata. Path to location or object.
+#' @param expr_mats Vector of expression matrices. Path to locations or objects.
+#' @param covar_factors Vector of strings indicating additive covariates.
+#' @param biomart Annotations file. Path to location or object.
+#' @param tissues Vector of strings indicating tissues in project. Ex: c("Kd","Lv") for "kidney" and "liver".
+#' @param samp_excl Vector of any sample IDs that need to be excluded from analysis.
+#' @param gridfile Genome Grid. Path to location or object. Defaults to 75k grid loaded with package.
+#' @param n.cores Number of cores to pass to `qtl2`. Default is 4.
+#' @param suggLOD Suggestive LOD to use as filter for mediation. Default is 7.
+#' @param localRange What is defined as "local". Default is 10e6.
+#'
+#' @return A list containing \itemize{
+#' \item{peaks_list}{Unfiltered peaks for each tissue.}
+#' \item{maps_list}{List of objects associated with mapping. See [mapQTL] help for details.}
+#' \item{res_list}{List containing mediation results for each tissue.}
+#' \item{effects_res}{List of objects associated with effects. See [qtl_effects] help for details.}}
 #' @export
-## usethis namespace: end
-runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.RDS", gbrs_fileLoc, tissues = c(), gridfile = "/projects/compsci/omics_share/mouse/GRCm39/supporting_files/emase_gbrs/rel_2112_v8/ref.genome_grid.GRCm39.tsv",
-                   outdir, peaks_out = "mm39_peaks.RDS", map_out = "mm39_mapping.RDS", med_out = "mm39_mediation_res.RDS", effects_out = "mm39_effects.RDS", metadata, expr_mats, covar_factors, n.cores = 4, suggLOD = 7, biomart, localRange = 10e6,
-                   samp_excl = c()){
+#'
+#' @examples
+runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
+                   med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
+                   metadata, expr_mats, covar_factors,  biomart, tissues = c(), samp_excl = c(),
+                   gridfile = gridfile, n.cores = 4, suggLOD = 7, localRange = 10e6){
 
   ## Check oudir
   if(length(outdir) == 0 | !dir.exists(outdir)){
@@ -13,17 +39,28 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.RDS", gbrs_fileLoc, t
   }
 
   ## Convert genoprobs
+  message("running genoprobs")
   genoprobs <- genoprobably(outfile = paste0(outdir,"/",geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridfile = gridfile)
 
   ## Map QTLs from genoprobs
-  map_peaks <- mapQTL(outdir, peaks_out, map_out, genoprobs, metadata, expr_mats, covar_factors, n.cores, gridfile, localRange, biomart, samp_excl)
-  list2env(map_peaks,.GlobalEnv)
+  message("running mapping")
+  map_peaks <- mapQTL(outdir = outdir, peaks_out =  peaks_out, map_out = map_out, genoprobs = genoprobs,
+                      samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors, n.cores = n.cores,
+                      gridfile = gridfile, localRange = localRange, biomart = biomart, samp_excl = samp_excl)
+
+  peaks_list <- map_peaks$peaks_list
+  maps_list <- map_peaks$maps_list
+
   rm(map_peaks)
 
   ## Run Mediation and Effects
-  res_list <- prep_mediate(peaks_list, maps_list, suggLOD, outdir, biomart, med_out)
-  effects_res <- qtl_effects(maps_list, peaks_list, suggLOD, outdir, effects_out, n.cores)
+  message("running mediation")
+  res_list <- run_mediate(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, biomart = biomart, med_out = med_out)
+
+  message("running effects")
+  effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, n.cores = n.cores)
 
   ## For now we are just going to return the peaks, mapping data, mediation results, and effects results
-  return(list(peaks_list, maps_list, res_list, effects_res))
+  all_out <- tibble::lst(peaks_list, maps_list, res_list, effects_res)
+  return(all_out)
 }
