@@ -2,7 +2,7 @@ Package: QTLretrievR
 Title: Calculate the Map, Peaks, Mediation, and Effects for Quantitative Trait Loci
 Version: 0.0.0.9000
 Authors@R: c(
-    person(given = "Hannah", family = "Dewey", middle = "B", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
+    person(given = "Hannah B.", family = "Dewey", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3009-0452")),
     person(given = "Selcan", family = "Aydin", email = "selcan.aydin@jax.org", role = "aut",
            comment = c(ORCID = "0000-0002-0457-9641")),

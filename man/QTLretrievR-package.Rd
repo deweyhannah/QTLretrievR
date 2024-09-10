@@ -9,7 +9,7 @@
 An integration of 'qtl2' and 'intermediate' to map genotypes to probes (genoprobs), calculate Quantitative Trait Loci (QTL) peaks, identify mediators of the peaks, and identify the phenotypic effects within experimental data from diversity outbred (DO) mice.
 }
 \author{
-\strong{Maintainer}: Hannah B Dewey \email{hannah.dewey@jax.org} (\href{https://orcid.org/0000-0002-3009-0452}{ORCID})
+\strong{Maintainer}: Hannah B. Dewey \email{hannah.dewey@jax.org} (\href{https://orcid.org/0000-0002-3009-0452}{ORCID})
 
 Authors:
 \itemize{

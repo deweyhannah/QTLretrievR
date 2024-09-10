@@ -21,8 +21,8 @@ qtl_effects(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4)
 }
 \value{
 A list containing: \itemize{
-\item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from \code{qtl2::scan1blup}}
-\item{effects_std}{QTL effect coefficients from scan along one chromosme. Output from \code{qtl2::scan1coef}}
+\item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
+\item{effects_std}{QTL effect coefficients from scan along one chromosme. Output from \code{\link[qtl2:scan1coef]{qtl2::scan1coef()}}}
 \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 }
 \description{

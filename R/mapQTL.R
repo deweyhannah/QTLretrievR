@@ -29,7 +29,6 @@
 #'  \item{peaks_list}{A list of peaks list for each tissue.}}
 #' @export
 #'
-#' @examples
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridfile = gridfile, localRange = 10e6,
                     biomart, samp_excl = c()){
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call

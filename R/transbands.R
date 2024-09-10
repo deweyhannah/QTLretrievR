@@ -25,7 +25,6 @@
 #' @importFrom dplyr select rename group_by summarize filter mutate
 #' @importFrom GenomicRanges GRanges countOverlaps seqnames start end slidingWindows nearest
 #'
-#' @examples
 #'
 transbands <- function(map_dat, peaks, sigLOD = 8, suggLOD = 7, outdir, psave = T){
   ## Set up chromosome midpoints and offset

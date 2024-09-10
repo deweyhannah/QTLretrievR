@@ -15,7 +15,6 @@
 #' @importFrom purrr compact
 #' @importFrom BiocParallel bplapply MulticoreParam
 #'
-#' @examples
 run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out){
   # mediate_env <- new.env()
   message("load annotations")

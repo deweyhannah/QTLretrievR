@@ -18,7 +18,6 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-#' @examples
 plot_eqtlmap <- function(map_dat, peaks, sigLOD = 8, outdir, outbase, psave = T, unit = "bp"){
   if(psave == TRUE){
     if(is.null(outdir) & !is.null(outbase)){

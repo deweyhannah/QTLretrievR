@@ -13,7 +13,6 @@
 #'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 #' @export
 #'
-#' @examples
 qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4){
   ## Load in data
   if((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))){

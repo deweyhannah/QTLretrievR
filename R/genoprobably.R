@@ -10,7 +10,6 @@
 #'
 #' @importFrom abind abind
 #'
-#' @examples
 genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds", gbrsFileLoc, tissues = c(), gridfile = gridfile){
 
   ## Check that interpolated genoprobs doesn't already exist
