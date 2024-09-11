@@ -27,11 +27,10 @@
 #'
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
-                   metadata, expr_mats, covar_factors,  biomart, tissues = c(), samp_excl = c(),
-                   gridfile = gridfile, n.cores = 4, suggLOD = 7, localRange = 10e6){
-
+                   metadata, expr_mats, covar_factors, biomart, tissues = c(), samp_excl = c(),
+                   gridfile = gridfile, n.cores = 4, suggLOD = 7, localRange = 10e6) {
   ## Check oudir
-  if(length(outdir) == 0 | !dir.exists(outdir)){
+  if (length(outdir) == 0 | !dir.exists(outdir)) {
     message("Invalid or no directory provided. Making an output file directory in the current working directory.")
     dir.create("./QTL_mapping")
     outdir <- "./QTL_mapping"
@@ -39,13 +38,15 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
 
   ## Convert genoprobs
   message("running genoprobs")
-  genoprobs <- genoprobably(outfile = paste0(outdir,"/",geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridfile = gridfile)
+  genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridfile = gridfile)
 
   ## Map QTLs from genoprobs
   message("running mapping")
-  map_peaks <- mapQTL(outdir = outdir, peaks_out =  peaks_out, map_out = map_out, genoprobs = genoprobs,
-                      samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors, n.cores = n.cores,
-                      gridfile = gridfile, localRange = localRange, biomart = biomart, samp_excl = samp_excl)
+  map_peaks <- mapQTL(
+    outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
+    samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors, n.cores = n.cores,
+    gridfile = gridfile, localRange = localRange, biomart = biomart, samp_excl = samp_excl
+  )
 
   peaks_list <- map_peaks$peaks_list
   maps_list <- map_peaks$maps_list
