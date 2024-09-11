@@ -1,15 +1,16 @@
-# Background functions for QTLretrievR that will be called by the primary functions
-
-## usethis namespace: start
+#' Background functions for QTLretrievR that will be called by the primary functions
 #' @importFrom magrittr %>%
 #' @importFrom foreach foreach
 #' @importFrom foreach %dopar%
-#' @importFrom dplyr rename
-#' @importFrom dplyr select
+#' @importFrom dplyr rename select arrange
 #' @importFrom DT datatable
+#' @importFrom doParallel registerDoParallel
+#' @importFrom stats setNames
 #' @import qtl2
 #' @importFrom intermediate mediation.scan
-## usethis namespace: end
+#' @importFrom stats qnorm
+#'
+
 
 split_map <- function(map, chr_names = NULL) {
   map <- reorder_map_table(map, chr_names = chr_names)
@@ -89,7 +90,7 @@ batchmap <- function(nbatch, exprZ, kinship_loco, genoprobs, covar, tissue, gmap
 
 interp_bp <- function(df, genmap, physmap) {
   chroms <- c(as.character(1:19), "X")
-  df <- arrange(df, peak_chr, peak_cM)
+  df <- dplyr::arrange(df, peak_chr, peak_cM)
   peak_gpos <- select(df, peak_chr, peak_cM)
   chr <- peak_gpos$peak_chr
   f <- factor(chr, chroms)

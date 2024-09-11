@@ -13,6 +13,15 @@
 #'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 #' @export
 #'
+#' @importFrom stats setNames
+#' @importFrom dplyr mutate select rename filter arrange
+#' @importFrom GenomicRanges GRanges
+#' @importFrom qtl2 scan1blup scan1coef
+#' @importFrom BiocParallel MulticoreParam bplapply
+#' @importFrom parallel detectCores
+#' @importFrom tibble lst
+#'
+
 qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4) {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
@@ -55,7 +64,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
   peaks2 <- list()
   for (tissue in names(peaks_list)) {
     peaks2[[tissue]] <- peaks_list[[tissue]] |>
-      interp_bp(., gmap, pmap) |>
+      interp_bp(df = ., genmap = gmap, physmap = pmap) |>
       dplyr::mutate(interp_bp_peak = ifelse(interp_bp_peak == 3e6, 3000001, interp_bp_peak))
 
     # message(paste0(names(peaks2[[tissue]]), sep = " "))
@@ -97,7 +106,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
   each_tissue <- floor(parallel::detectCores() / length(names(peaksf)))
 
   effects_out <- BiocParallel::bplapply(names(peaksf), function(tissue) {
-    call_effects2(
+    call_effects(
       tissue, peaksf[[tissue]], qtlprobs[[tissue]],
       gmap, exprZ_list[[tissue]], kinship_loco[[tissue]],
       covar_list[[tissue]], n.cores

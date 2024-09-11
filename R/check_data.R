@@ -1,3 +1,8 @@
+#' Checking the inputted data for QTLretrievR
+#'
+#' @importFrom tibble lst
+#'
+
 check_data <- function(x, type = "") {
   ## Load data into environment
   if (is.character(x)) {

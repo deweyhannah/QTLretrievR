@@ -29,6 +29,14 @@
 #'  \item{peaks_list}{A list of peaks list for each tissue.}}
 #' @export
 #'
+#' @importFrom tidyr separate
+#' @importFrom dplyr mutate select
+#' @importFrom tibble as_tibble remove_rownames column_to_rownames lst
+#' @importFrom parallel detectCores
+#' @importFrom BiocParallel bplapply MulticoreParam
+#' @importFrom utils read.delim
+#' @importFrom stats model.matrix formula
+#'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridfile = gridfile, localRange = 10e6,
                    biomart, samp_excl = c()) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
@@ -169,7 +177,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
       thrX, n.cores
     )
   },
-  BPPARAM = BiocParallel::MulticoreParam(workers = each_tissue)
+  BPPARAM = c(workers = each_tissue)
   )
 
   for (i in 1:length(peak_tmp)) {

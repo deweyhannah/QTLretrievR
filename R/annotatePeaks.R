@@ -6,7 +6,10 @@
 #' @param localRange is defined as "local". Default is 10e6.
 #'
 #' @return List of annotated peaks for each tissue.
+#'
 #' @export
+#'
+#' @importFrom utils read.delim
 #'
 annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
   ## Get biomart columnnames to wanted format from base download
@@ -32,9 +35,9 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
   for (tissue in names(peaks)) {
     # message(paste0(colnames(peaks[[tissue]]), sep = " "))
     peaks_pmap[[tissue]] <- peaks[[tissue]] |>
-      interp_bp(., genmap = map$gmap, physmap = map$pmap) |>
+      interp_bp(df = ., genmap = map$gmap, physmap = map$pmap) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
-      dplyr::left_join(biomart, by = join_by(phenotype == gene))
+      dplyr::left_join(biomart, by = ("phenotype" == "gene"))
   }
 
   ## Annotate for locality
