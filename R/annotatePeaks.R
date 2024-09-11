@@ -3,7 +3,7 @@
 #' @param map map_list from [mapQTL].
 #' @param peaks Un-annotated peaks.
 #' @param biomart Annotations file. Path to location or object.
-#' @param localRangeWhat is defined as "local". Default is 10e6.
+#' @param localRange is defined as "local". Default is 10e6.
 #'
 #' @return List of annotated peaks for each tissue.
 #' @export
@@ -32,7 +32,7 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
   for (tissue in names(peaks)) {
     # message(paste0(colnames(peaks[[tissue]]), sep = " "))
     peaks_pmap[[tissue]] <- peaks[[tissue]] |>
-      interp_bp(., map$gmap, map$pmap) |>
+      interp_bp(., genmap = map$gmap, physmap = map$pmap) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
       dplyr::left_join(biomart, by = join_by(phenotype == gene))
   }
