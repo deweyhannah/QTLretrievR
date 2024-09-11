@@ -82,14 +82,14 @@ batchmap <- function(nbatch, exprZ, kinship_loco, genoprobs, covar, tissue, gmap
   return(peaks)
 }
 
-interp_bp <- function(df, gmap, pmap) {
+interp_bp <- function(df, genmap, physmap) {
   chroms <- c(as.character(1:19), "X")
   df <- arrange(df, peak_chr, peak_cM)
   peak_gpos <- select(df, peak_chr, peak_cM)
   chr <- peak_gpos$peak_chr
   f <- factor(chr, chroms)
   peak_gcoord_list <- split(peak_gpos$peak_cM, f)
-  peak_pcoord_list <- qtl2::interp_map(peak_gcoord_list, gmap, pmap)
+  peak_pcoord_list <- qtl2::interp_map(peak_gcoord_list, genmap, physmap)
   df$interp_bp_peak <- unsplit(peak_pcoord_list, f)
   df
 }
