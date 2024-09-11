@@ -48,6 +48,9 @@ Collate:
     'qtl_effects.R'
     'qtl_mediate.R'
     'runQTL.R'
+    'transbands.R'
+    'plot_map.R'
+    'QTLretrievR-package.R'
 Depends: 
     R (>= 2.10)
 LazyData: true
