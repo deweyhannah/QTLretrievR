@@ -29,7 +29,10 @@ Imports:
     qtl2,
     readr,
     tibble,
-    tidyr
+    tidyr,
+    foreach,
+    ggpubr,
+    magrittr
 Remotes:
   simecek/intermediate
 Suggests: 
