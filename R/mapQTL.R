@@ -10,10 +10,9 @@
 #' @param n.cores Number of cores to pass to qtl2. Your total cores available should be at least the number of tissues times n.cores.
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
-#' @param gridfile File location for genome grid. Defaults to object loaded with package for 75k grid.
+#' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #' @param localRange What is defined as "local". Default is 10e6.
 #' @param biomart String pointing to annotations file or annotations object.
-#' @param samp_excl Are there any samples that should be excluded from your analysis?
 #'
 #' @return A list containing: \itemize{
 #'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
@@ -37,8 +36,8 @@
 #' @importFrom utils read.delim
 #' @importFrom stats model.matrix formula
 #'
-mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridfile = gridfile, localRange = 10e6,
-                   biomart, samp_excl = c()) {
+mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
+                   biomart) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -75,11 +74,11 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
 
   ## Create maps
-  # message(gridfile)
-  if (is.character(gridfile)) {
-    grid_map <- read.delim(gridfile, stringsAsFactors = F, row.names = 1)
+  # message(gridFile)
+  if (is.character(gridFile)) {
+    grid_map <- read.delim(gridFile, stringsAsFactors = F, row.names = 1)
   } else {
-    grid_map <- gridfile
+    grid_map <- gridFile
   }
   map_dat <- grid_map[, c("chr", "cM")]
 
@@ -127,7 +126,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Reorganize and calculate rankZ for expression matrices
   exprZ_list <- list()
   for (tissue in names(expr_list)) {
-    samps_keep <- rownames(probs_list[[tissue]])[which(rownames(probs_list[[tissue]]) %notin% samp_excl)]
+    samps_keep <- intersect(rownames(probs_list[[tissue]]), colnames(expr_list[[tissue]]))
+    message(paste0("There are ", length(samps_keep), " samples in ", tissue, ". Does that look right?"))
     expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
@@ -168,16 +168,16 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
 
-  each_tissue <- floor(parallel::detectCores() / length(names(exprZ_list)))
-
-  peak_tmp <- BiocParallel::bplapply(names(exprZ_list), function(tissue) {
+  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(exprZ_list)))
+  # message(each_tissue)
+  peak_tmp <- BiocParallel::bplapply( names(exprZ_list), function(tissue) {
     batch_wrap(
       tissue, exprZ_list, kinship_loco,
       qtlprobs, covar_list, gmap, thrA,
       thrX, n.cores
     )
   },
-  BPPARAM = c(workers = each_tissue)
+  BPPARAM = BiocParallel::MulticoreParam(workers = each_tissue)
   )
 
   for (i in 1:length(peak_tmp)) {

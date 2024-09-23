@@ -3,14 +3,17 @@
 #' @param outfile Name of file to save genoprobs to. Defaults to "gbrs_interpolated_genoprobs.rds"
 #' @param gbrsFileLoc File path to where the GBRS files are located.
 #' @param tissues List of tissues included in analysis. If left blank tissue will be set to "a".
-#' @param gridfile File location for genome grid. Defaults to object loaded with package for 75k grid.
+#' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #'
 #' @return List of three dimensional genome probabilities
 #' @export
 #'
 #' @importFrom abind abind
 #'
-genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds", gbrsFileLoc, tissues = c(), gridfile = gridfile) {
+genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds",
+                         gbrsFileLoc,
+                         tissues = c(),
+                         gridFile = gridfile) {
   ## Check that interpolated genoprobs doesn't already exist
   gbrs.interp <- outfile
   # if (file.exists(gbrs.interp)) {
@@ -69,9 +72,17 @@ genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds", gbrsFile
   }
 
   ## Attach marker names to probs
-  gridmap <- readr::read_tsv(gridfile, col_types = "ccddd")
-  for (tissue in tissues) {
-    dimnames(tsv_probs[[tissue]])[[3]] <- gridmap$marker
+  if( is.data.frame(gridFile)) {
+    gridmap <- gridFile
+    for (tissue in tissues) {
+      dimnames(tsv_probs[[tissue]])[[3]] <- rownames(gridmap)
+    }
+  }
+  if( is.character(gridFile)) {
+    gridmap <- readr::read_tsv(gridFile, col_types = "ccddd")
+    for (tissue in tissues) {
+      dimnames(tsv_probs[[tissue]])[[3]] <- gridmap$marker
+    }
   }
 
   ## Rename

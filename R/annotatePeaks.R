@@ -10,6 +10,8 @@
 #' @export
 #'
 #' @importFrom utils read.delim
+#' @importFrom dplyr left_join join_by mutate select rename
+#'
 #'
 annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
   ## Get biomart columnnames to wanted format from base download
@@ -35,9 +37,9 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
   for (tissue in names(peaks)) {
     # message(paste0(colnames(peaks[[tissue]]), sep = " "))
     peaks_pmap[[tissue]] <- peaks[[tissue]] |>
-      interp_bp(df = ., genmap = map$gmap, physmap = map$pmap) |>
+      interp_bp(genmap = map$gmap, physmap = map$pmap) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
-      dplyr::left_join(biomart, by = ("phenotype" == "gene"))
+      dplyr::left_join(biomart, by = dplyr::join_by("phenotype" == "gene"))
   }
 
   ## Annotate for locality

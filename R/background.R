@@ -194,6 +194,7 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 `%notin%` <- Negate(`%in%`)
 
 peak_fun <- function(i, ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4) {
+  #timestamp()
   start <- ss[i] + 1
   end <- ss[i + 1]
   out <- qtl2::scan1(genoprobs, exprZ[, start:end, drop = FALSE],
@@ -207,11 +208,13 @@ peak_fun <- function(i, ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
   peaks <- peaks %>%
     dplyr::select(-lodindex) %>%
     dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
+  #timestamp()
   return(peaks)
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
                        covar_list, gmap, thrA, thrX, cores) {
+  #timestamp()
   num.batches <- max(c(round(ncol(exprZ_list[[tissue]]) / 1000), 2))
   nn <- ncol(exprZ_list[[tissue]])
   ss <- round(seq(0, nn, length.out = num.batches + 1))
@@ -224,6 +227,7 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
   },
   BPPARAM = BiocParallel::MulticoreParam(workers = cores)
   )
+  #timestamp()
   peaks <- do.call("rbind", tissue_peaks)
 
   # message(paste0(colnames(peaks), sep = " "))

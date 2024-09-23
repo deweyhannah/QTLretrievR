@@ -1,5 +1,10 @@
 #' Checking the inputted data for QTLretrievR
 #'
+#' @param x can be a path to an Rds object or a list of R objects.
+#' @param type The name of the object if a single one is passed. Use "genoprobs" for genotype probabilities, "mediation" for mediation results and "peaks" for a table of eQTL peaks.
+#' @return List of properly names R objects to be used in downstream analysis of QTLretrievR.
+#'
+#'
 #' @importFrom tibble lst
 #'
 
