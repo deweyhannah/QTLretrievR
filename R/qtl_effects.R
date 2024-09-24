@@ -103,17 +103,15 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
 
   message("peaks extracted, calculating effects now")
 
-  each_tissue <- floor(parallel::detectCores() / length(names(peaksf)))
-
-  effects_out <- BiocParallel::bplapply(names(peaksf), function(tissue) {
+  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(peaksf)))
+  doParallel::registerDoParallel(cores = each_tissue )
+  effects_out <- foreach::foreach(names(peaksf))  %dopar% {
     call_effects(
       tissue, peaksf[[tissue]], qtlprobs[[tissue]],
       gmap, exprZ_list[[tissue]], kinship_loco[[tissue]],
       covar_list[[tissue]], n.cores
     )
-  },
-  BPPARAM = BiocParallel::MulticoreParam(workers = each_tissue)
-  )
+  }
 
   message("effects calculated. saving to RDS")
   # message("out names")
