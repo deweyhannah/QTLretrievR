@@ -215,7 +215,7 @@ peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA =
   peaks <- peaks %>%
     dplyr::select(-lodindex) %>%
     dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
-  #timestamp()
+
   return(peaks)
 }
 

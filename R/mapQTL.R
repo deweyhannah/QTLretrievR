@@ -183,7 +183,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   for (i in 1:length(peak_tmp)) {
     tissue <- peak_tmp[[i]]$tissue
-    peaks_list[[tissue]] <- peak_tmp[[i]]$peaks
+    peaks_list[[tissue]] <- peak_tmp[[i]]$tissue_peaks
     # message(paste0(tissue, colnames(peaks_list[[tissue]]), sep = " "))
   }
 
