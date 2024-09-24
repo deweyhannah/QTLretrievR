@@ -37,7 +37,7 @@
 #' @importFrom stats model.matrix formula
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   biomart) {
+                   biomart, max_genes = 1000) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -169,16 +169,17 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   peaks_list <- list()
 
   each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(exprZ_list)))
-  # message(each_tissue)
-  peak_tmp <- BiocParallel::bplapply( names(exprZ_list), function(tissue) {
+
+  doParallel::registerDoParallel(cores = each_tissue)
+
+  peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
     batch_wrap(
       tissue, exprZ_list, kinship_loco,
       qtlprobs, covar_list, gmap, thrA,
-      thrX, n.cores
+      thrX, n.cores, max_genes
     )
-  },
-  BPPARAM = BiocParallel::MulticoreParam(workers = each_tissue)
-  )
+  }
+  doParallel::stopImplicitCluster()
 
   for (i in 1:length(peak_tmp)) {
     tissue <- peak_tmp[[i]]$tissue
