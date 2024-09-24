@@ -125,19 +125,18 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
   med_covar <- covar_list
 
   message("running mediation")
-  # res_list <- qtl_mediate2(QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
-  # targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
-  # med_out = med_out, outdir = outdir, n.cores = n.cores, mapDat = map_dat2)
 
-  res_out <- BiocParallel::bplapply(names(qtl_peaks), function(tissue) {
+  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(exprZ_list)))
+  doParallel::registerDoParallel(cores = each_tissue)
+  res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
-      QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
-      targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
-      mapDat = map_dat2
+                QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
+                targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
+                mapDat = map_dat2
     )
-  },
-  BPPARAM = BiocParallel::MulticoreParam(workers = length(names(exprZ_list)))
-  )
+  }
+  doParallel::stopImplicitCluster()
+
   res_list <- list()
   for (i in 1:length(res_out)) {
     # message(i)
