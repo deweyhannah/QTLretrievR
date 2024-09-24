@@ -193,14 +193,21 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(i, ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4) {
-  #timestamp()
-  start <- ss[i] + 1
-  end <- ss[i + 1]
-  out <- qtl2::scan1(genoprobs, exprZ[, start:end, drop = FALSE],
+peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, max_batch = 1000) {
+  message("Started mapping")
+  message(timestamp())
+  # start <- ss[i] + 1
+  # end <- ss[i + 1]
+  out <- qtl2::scan1(
+    genoprobs,
+    exprZ,
     kinship_loco,
-    addcovar = covar[, , drop = FALSE], cores = n.cores
+    addcovar = covar[, , drop = FALSE],
+    cores = n.cores,
+    max_batch = max_batch
   )
+  message("Finished mapping")
+  message(timestamp())
   peaks <- qtl2::find_peaks(out, gmap,
     drop = 1.5,
     threshold = thrA, thresholdX = thrX
@@ -214,20 +221,29 @@ peak_fun <- function(i, ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
                        covar_list, gmap, thrA, thrX, cores) {
-  #timestamp()
-  num.batches <- max(c(round(ncol(exprZ_list[[tissue]]) / 1000), 2))
-  nn <- ncol(exprZ_list[[tissue]])
-  ss <- round(seq(0, nn, length.out = num.batches + 1))
-  tissue_peaks <- BiocParallel::bplapply(1:num.batches, function(i) {
-    peak_fun(i, ss, exprZ_list[[tissue]], kinship_loco[[tissue]],
-      qtlprobs[[tissue]], covar_list[[tissue]],
-      tissue, gmap, thrA, thrX,
-      n.cores = cores
-    )
-  },
-  BPPARAM = BiocParallel::MulticoreParam(workers = cores)
+  timestamp()
+  # num.batches <- max(c(round(ncol(exprZ_list[[tissue]]) / 1000), 2))
+  # nn <- ncol(exprZ_list[[tissue]])
+  # ss <- round(seq(0, nn, length.out = num.batches + 1))
+  # tissue_peaks <- BiocParallel::bplapply(1:num.batches, function(i) {
+  #   peak_fun(i, ss, exprZ_list[[tissue]], kinship_loco[[tissue]],
+  #     qtlprobs[[tissue]], covar_list[[tissue]],
+  #     tissue, gmap, thrA, thrX,
+  #     n.cores = cores
+  #   )
+  # },
+  # BPPARAM = BiocParallel::MulticoreParam(workers = cores)
+  # )
+  tissue_peaks <- peak_fun(
+    exprZ = exprZ_list[[tissue]],
+    kinship_loco = kinship_loco[[tissue]],
+    genoprobs = qtlprobs[[tissue]],
+    covar = covar_list[[tissue]],
+    tissue, gmap, thrA, thrX,
+    max_batch = 1000,
+    n.cores = cores
   )
-  #timestamp()
+  timestamp()
   peaks <- do.call("rbind", tissue_peaks)
 
   # message(paste0(colnames(peaks), sep = " "))
