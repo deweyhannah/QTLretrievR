@@ -108,7 +108,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
   max_peaks <- max(sapply(peaksf, nrow)) # how many peaks are there?
   cores_needed <- max(4, ceiling(max_peaks / 1000)) # Calculate the number of cores needed based on peaks (4 cores per 1000 peaks, minimum 4)
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
-  each_tissue <- floor( total_cores / length(names(peaksf))) # divide cores per tissue and pass onto the function inside the foreach loop
+  each_tissue <- floor( min(total_cores, cores_needed) / length(names(peaksf))) # divide cores per tissue and pass onto the function inside the foreach loop
 
   effects_out <- foreach::foreach( tissue = names(peaksf))  %dopar% {
     call_effects(

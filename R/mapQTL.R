@@ -174,7 +174,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   cores_needed <- max(4, ceiling(max_genes / 1000)) # Calculate the number of cores needed based on genes (4 core per 1000 genes, minimum 4)
 
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
-  each_tissue <- floor( total_cores / length(names(exprZ_list))) # Divide cores per tissue and pass onto the foreach loop
+  each_tissue <- floor(  min(total_cores, cores_needed) / length(names(exprZ_list)) ) # Divide cores per tissue and pass onto the foreach loop
   message(paste0("Registering ", min(total_cores, cores_needed), "cores and passing ", each_tissue ," cores to ", length(names(exprZ_list)) ," tissue(s)." ) )
   peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
     batch_wrap(

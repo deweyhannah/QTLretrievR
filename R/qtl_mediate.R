@@ -132,7 +132,7 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
   max_peaks <- max(sapply(qtl_peaks, nrow)) # get te maximum number of peaks
   cores_needed <- max(4, ceiling(max_genes / 1000)) # Calculate the number of cores needed based on genes (4 core per 1000 peaks, minimum 4)
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
-  each_tissue <- floor( total_cores / length(names(qtl_peaks))) # Divide cores per tissue and pass onto the foreach loop
+  each_tissue <- floor( min(total_cores, cores_needed) / length(names(qtl_peaks))) # Divide cores per tissue and pass onto the foreach loop
 
   res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
