@@ -31,10 +31,11 @@
 #' @importFrom tidyr separate
 #' @importFrom dplyr mutate select
 #' @importFrom tibble as_tibble remove_rownames column_to_rownames lst
-#' @importFrom parallel detectCores
-#' @importFrom BiocParallel bplapply MulticoreParam
 #' @importFrom utils read.delim
 #' @importFrom stats model.matrix formula
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallelly availableCores
+#' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
                    biomart, max_genes = 1000) {

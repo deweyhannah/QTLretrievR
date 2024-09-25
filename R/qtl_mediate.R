@@ -13,7 +13,9 @@
 #'
 #' @importFrom dplyr rename filter mutate select
 #' @importFrom purrr compact
-#' @importFrom BiocParallel bplapply MulticoreParam
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallelly availableCores
+#' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
   # mediate_env <- new.env()

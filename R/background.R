@@ -1,7 +1,6 @@
 #' Background functions for QTLretrievR that will be called by the primary functions
 #' @importFrom magrittr %>%
-#' @importFrom foreach foreach
-#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach %dopar%
 #' @importFrom dplyr rename select arrange
 #' @importFrom DT datatable
 #' @importFrom doParallel registerDoParallel
