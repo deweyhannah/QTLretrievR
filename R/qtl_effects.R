@@ -104,15 +104,20 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
 
   message("peaks extracted, calculating effects now")
 
-  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(peaksf)))
-  doParallel::registerDoParallel(cores = each_tissue )
-  effects_out <- foreach::foreach(names(peaksf))  %dopar% {
+  total_cores <- as.numeric(parallelly::availableCores())
+  max_peaks <- max(sapply(peaksf, nrow)) # how many peaks are there?
+  cores_needed <- max(4, ceiling(max_peaks / 1000)) # Calculate the number of cores needed based on peaks (4 cores per 1000 peaks, minimum 4)
+  doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
+  each_tissue <- floor( total_cores / length(names(peaksf))) # divide cores per tissue and pass onto the function inside the foreach loop
+
+  effects_out <- foreach::foreach( tissue = names(peaksf))  %dopar% {
     call_effects(
       tissue, peaksf[[tissue]], qtlprobs[[tissue]],
       gmap, exprZ_list[[tissue]], kinship_loco[[tissue]],
-      covar_list[[tissue]], n.cores
+      covar_list[[tissue]], each_tissue
     )
   }
+  doParallel::stopImplicitCluster()
 
   message("effects calculated. saving to RDS")
   # message("out names")
@@ -147,12 +152,18 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
   # message(paste0(peaks[[tissue]]$peak_chr[1:5], sep = " "))
 
   # message("blup")
-  effects_blup <- BiocParallel::bplapply(1:n_peaks, function(i) blup_scan(i, peaks, probs, gmap, exprZ, kinship, covars, cores),
-    BPPARAM = BiocParallel::MulticoreParam(workers = cores)
-  )
+  # not paralelizing scan1blup since qtl2 already does that. Instead I am passing all 20 cores to the function to let qtl2 do the parallelization.
+  effects_blup <- lapply(1:n_peaks, function(i) {
+    blup_scan(i, peaksf[[tissue]], qtlprobs[[tissue]], gmap, exprZ_list[[tissue]],
+              kinship_loco[[tissue]], covar_list[[tissue]], cores = cores)
+  })
   # message("coef")
-  effects_coef <- BiocParallel::bplapply(1:n_peaks, function(i) coef_scan(i, peaks, probs, gmap, exprZ, kinship, covars)) # ,
-  # BPPARAM = BiocParallel::MulticoreParam(workers = cores))
+  # parallelizing scan1coef since it doesn't have internal parallelization in qtl2.
+  doParallel::registerDoParallel(cores = cores)
+  effects_coef <- foreach::foreach(i = 1:n_peaks) %dopar% function(i){
+    coef_scan(i, peaks, probs, gmap, exprZ, kinship, covars)
+    }
+  doParallel::stopImplicitCluster()
 
   effects_blup_tmp <- do.call("rbind", effects_blup)
   effects_coef_tmp <- do.call("rbind", effects_coef)
@@ -193,7 +204,6 @@ coef_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars) {
     exprZ[, pheno, drop = FALSE],
     kinship = kinship[[this_chrom]],
     addcovar = covars
-  ) # ,
-  # cores = cores)
+  )
   return(out_std)
 }

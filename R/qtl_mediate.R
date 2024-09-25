@@ -128,13 +128,18 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
 
   message("running mediation")
 
-  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(qtl_peaks)))
-  doParallel::registerDoParallel(cores = each_tissue)
+  total_cores <- as.numeric(parallelly::availableCores()) # get total number of available cores
+  max_peaks <- max(sapply(qtl_peaks, nrow)) # get te maximum number of peaks
+  cores_needed <- max(4, ceiling(max_genes / 1000)) # Calculate the number of cores needed based on genes (4 core per 1000 peaks, minimum 4)
+  doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
+  each_tissue <- floor( total_cores / length(names(qtl_peaks))) # Divide cores per tissue and pass onto the foreach loop
+
   res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
                 QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
                 targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
-                mapDat = map_dat2
+                mapDat = map_dat2,
+                cores = each_tissue
     )
   }
   doParallel::stopImplicitCluster()
@@ -152,7 +157,7 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
   return(res_list)
 }
 
-qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, mapDat) {
+qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, mapDat, cores) {
   # res_list <- list()
   # for(tissue in names(QTL.peaks)){
   # message(str(QTL.peaks))
@@ -162,9 +167,7 @@ qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, 
   nn <- nrow(QTL.peaks[[tissue]])
   ss <- round(seq(0, nn, length.out = n.batches))
 
-  each_tissue <- floor( as.numeric(parallelly::availableCores()) / length(names(QTL.peaks)))
-  doParallel::registerDoParallel(cores = each_tissue)
-  # med.scans <- foreach::foreach(i = 1:(n.batches - 1), .combine = "rbind") %dopar% {
+  doParallel::registerDoParallel(cores = cores)
   med_res <- foreach::foreach(i = 1:(n.batches - 1)) %dopar% {
     purrr::compact(batchmediate(
       batch = i, QTL.peaks = QTL.peaks[[tissue]],
