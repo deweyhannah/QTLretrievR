@@ -64,7 +64,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
   peaks2 <- list()
   for (tissue in names(peaks_list)) {
     peaks2[[tissue]] <- peaks_list[[tissue]] |>
-      interp_bp(df = ., genmap = gmap, physmap = pmap) |>
+      interp_bp(genmap = gmap, physmap = pmap) |>
       dplyr::mutate(interp_bp_peak = ifelse(interp_bp_peak == 3e6, 3000001, interp_bp_peak))
 
     # message(paste0(names(peaks2[[tissue]]), sep = " "))
