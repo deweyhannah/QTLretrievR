@@ -129,11 +129,16 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
   message("running mediation")
 
   total_cores <- as.numeric(parallelly::availableCores()) # get total number of available cores
-  max_peaks <- max(sapply(qtl_peaks, nrow)) # get te maximum number of peaks
-  cores_needed <- max(4, ceiling(max_genes / 1000)) # Calculate the number of cores needed based on genes (4 core per 1000 peaks, minimum 4)
+  max_peaks <- max(sapply(qtl_peaks, nrow)) # get the maximum number of peaks
+  num_tissues <-  length(names(qtl_peaks)) # number of tissues
+  if( max_peaks < 1000){
+    cores_needed <- 8 # Limiting #of cores if there are <1000 peaks in total
+  }else{
+    cores_needed <- total_cores
+  }
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
-  each_tissue <- floor( min(total_cores, cores_needed) / length(names(qtl_peaks))) # Divide cores per tissue and pass onto the foreach loop
-
+  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues) # Divide cores per tissue and pass onto the foreach loop
+  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
   res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
                 QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,

@@ -171,11 +171,16 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   total_cores <- as.numeric(parallelly::availableCores()) # get the total number of available cores
   max_genes <- max(sapply(exprZ_list, nrow)) # Calculate the maximum number of rows across all data frames in exprZ_list
-  cores_needed <- max(4, ceiling(max_genes / 1000)) # Calculate the number of cores needed based on genes (4 core per 1000 genes, minimum 4)
+  num_tissues <-  length(names(exprZ_list))
+  if( max_genes < 1000){
+    cores_needed <- 8 # Limiting #of cores if there are <1000 genes in total
+  }else{
+    cores_needed <- total_cores
+  }
 
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
-  each_tissue <- floor(  min(total_cores, cores_needed) / length(names(exprZ_list)) ) # Divide cores per tissue and pass onto the foreach loop
-  message(paste0("Registering ", min(total_cores, cores_needed), "cores and passing ", each_tissue ," cores to ", length(names(exprZ_list)) ," tissue(s)." ) )
+  each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues ) # Divide cores per tissue and pass onto the foreach loop
+  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
   peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
     batch_wrap(
       tissue, exprZ_list, kinship_loco,
