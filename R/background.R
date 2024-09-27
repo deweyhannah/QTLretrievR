@@ -193,8 +193,8 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 `%notin%` <- Negate(`%in%`)
 
 peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, max_genes = 1000) {
-  message("Started mapping")
-  message(timestamp())
+  # message("Started mapping")
+  # message(timestamp())
   # start <- ss[i] + 1
   # end <- ss[i + 1]
   out <- qtl2::scan1(
@@ -205,8 +205,8 @@ peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA =
     cores = n.cores,
     max_batch = max_genes
   )
-  message("Finished mapping")
-  message(timestamp())
+  # message("Finished mapping")
+  # message(timestamp())
   peaks <- qtl2::find_peaks(out, gmap,
     drop = 1.5,
     threshold = thrA, thresholdX = thrX
@@ -220,6 +220,10 @@ peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA =
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
                        covar_list, gmap, thrA, thrX, cores, max_genes) {
+
+  # adjust the max_genes to make sure we take full advantage of all the registered cores
+  n_genes <- nrow(exprZ_list[[tissue]])
+  if(n_genes < 1000) max_genes = ceiling(n_genes/cores)
 
   tissue_peaks <- peak_fun(
     exprZ = exprZ_list[[tissue]],
