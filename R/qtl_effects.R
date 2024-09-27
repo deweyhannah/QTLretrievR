@@ -95,6 +95,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
     subject <- marker_list[[tissue]]
     peaksf[[tissue]]$before <- map_dat2$marker[GenomicRanges::follow(query, subject)]
     peaksf[[tissue]]$after <- map_dat2$marker[GenomicRanges::precede(query, subject)]
+    peaksf[[tissue]]$marker <- map_dat2$marker[GenomicRanges::nearest(query, subject)]
     peaksf[[tissue]] <- peaksf[[tissue]] |>
       dplyr::filter(!is.na(before) & !is.na(after))
 
@@ -115,11 +116,12 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
   each_tissue <- floor( min(total_cores, cores_needed) /num_tissues) # divide cores per tissue and pass onto the function inside the foreach loop
   message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
+
   effects_out <- foreach::foreach( tissue = names(peaksf))  %dopar% {
-    call_effects(
-      tissue, peaksf[[tissue]], qtlprobs[[tissue]],
-      gmap, exprZ_list[[tissue]], kinship_loco[[tissue]],
-      covar_list[[tissue]], each_tissue
+    call_effects(tissue = tissue,
+                 peaks =peaksf[[tissue]], probs = qtlprobs[[tissue]],gmap = gmap,
+                 exprZ = exprZ_list[[tissue]], kinship = kinship_loco[[tissue]],
+                 covars = covar_list[[tissue]], cores = each_tissue
     )
   }
   doParallel::stopImplicitCluster()
@@ -148,7 +150,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
 }
 
 call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cores) {
-  message(tissue)
+  #message(tissue)
   n_peaks <- nrow(peaks)
   # message(n_peaks)
   # message(paste0(colnames(peaks), sep = " "))
@@ -156,16 +158,15 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
 
   # message(paste0(peaks[[tissue]]$peak_chr[1:5], sep = " "))
 
-  # message("blup")
-  # not paralelizing scan1blup since qtl2 already does that. Instead I am passing all 20 cores to the function to let qtl2 do the parallelization.
+  #message("blup")
+  # not paralelizing scan1blup since qtl2 already does that. Instead I am passing all cores to the function to let qtl2 do the parallelization.
   effects_blup <- lapply(1:n_peaks, function(i) {
-    blup_scan(i, peaksf[[tissue]], qtlprobs[[tissue]], gmap, exprZ_list[[tissue]],
-              kinship_loco[[tissue]], covar_list[[tissue]], cores = cores)
+    blup_scan(i, peaks, probs, gmap, exprZ, kinship, covars, cores = cores)
   })
-  # message("coef")
+  #message("coef")
   # parallelizing scan1coef since it doesn't have internal parallelization in qtl2.
   doParallel::registerDoParallel(cores = cores)
-  effects_coef <- foreach::foreach(i = 1:n_peaks) %dopar% function(i){
+  effects_coef <- foreach::foreach(i = 1:n_peaks) %dopar% {
     coef_scan(i, peaks, probs, gmap, exprZ, kinship, covars)
     }
   doParallel::stopImplicitCluster()
@@ -173,8 +174,8 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
   effects_blup_tmp <- do.call("rbind", effects_blup)
   effects_coef_tmp <- do.call("rbind", effects_coef)
 
-  effects_blup <- colMeans(effects_blup_tmp[, haps])
-  effects_std <- colMeans(effects_coef_tmp[, haps])
+  effects_blup <- (effects_blup_tmp[, haps])
+  effects_std <- (effects_coef_tmp[, haps])
 
   effect_out <- tibble::lst(tissue, effects_blup, effects_std)
   return(effect_out)
@@ -183,9 +184,10 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
 blup_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars, cores) {
   this_chrom <- peaks$peak_chr[i]
   # message(this_chrom)
-  this_markers <- c(peaks$before[i], peaks$after[i])
-  probs_2marker <- subset_probs(probs, this_chrom, this_markers)
-  g <- setNames(list(gmap[[this_chrom]][this_markers]), this_chrom)
+  #this_markers <- c(peaks$before[i], peaks$after[i])
+  this_marker <- peaks$marker[i]
+  probs_2marker <- subset_probs(probs, this_chrom,this_marker )
+  g <- setNames(list(gmap[[this_chrom]][this_marker]), this_chrom)
   pheno <- peaks$phenotype[i]
 
   out_blup <- qtl2::scan1blup(probs_2marker,
@@ -200,9 +202,10 @@ blup_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars, cores) {
 coef_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars) {
   this_chrom <- peaks$peak_chr[i]
   # message(this_chrom)
-  this_markers <- c(peaks$before[i], peaks$after[i])
-  probs_2marker <- subset_probs(probs, this_chrom, this_markers)
-  g <- setNames(list(gmap[[this_chrom]][this_markers]), this_chrom)
+  #this_markers <- c(peaks$before[i], peaks$after[i])
+  this_marker <- peaks$marker[i]
+  probs_2marker <- subset_probs(probs, this_chrom, this_marker)
+  g <- setNames(list(gmap[[this_chrom]][this_marker]), this_chrom)
   pheno <- peaks$phenotype[i]
 
   out_std <- qtl2::scan1coef(probs_2marker,
