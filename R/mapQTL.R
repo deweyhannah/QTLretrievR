@@ -170,7 +170,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   peaks_list <- list()
 
   total_cores <- as.numeric(parallelly::availableCores()) # get the total number of available cores
-  max_genes <- max(sapply(exprZ_list, nrow)) # Calculate the maximum number of rows across all data frames in exprZ_list
+  max_genes <- max(sapply(exprZ_list, ncol)) # Calculate the maximum number of rows across all data frames in exprZ_list
   num_tissues <-  length(names(exprZ_list))
   if( max_genes < 1000){
     cores_needed <- 8 # Limiting #of cores if there are <1000 genes in total
