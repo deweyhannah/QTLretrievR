@@ -10,7 +10,7 @@
 #' @export
 #'
 #' @importFrom utils read.delim
-#' @importFrom dplyr left_join join_by mutate select rename
+#' @importFrom dplyr left_join mutate select rename
 #'
 #'
 annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
@@ -39,7 +39,7 @@ annotatePeaks <- function(map, peaks, biomart, localRange = 10e6) {
     peaks_pmap[[tissue]] <- peaks[[tissue]] |>
       interp_bp(genmap = map$gmap, physmap = map$pmap) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
-      dplyr::left_join(biomart, by = dplyr::join_by("phenotype" == "gene"))
+      dplyr::left_join(biomart, by = c("phenotype" = "gene"))
   }
 
   ## Annotate for locality
