@@ -239,3 +239,25 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
   return(tissue_peaks2)
 }
+
+
+get_cores <- function(){
+  # get the total number of cores that are available for each OS
+  if (Sys.info()['sysname'] == "Windows") {
+    num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
+    message(paste0("Working in Windows and using ", num_cores, " ."))
+  }
+  if (Sys.info()['sysname'] == "Linux"){
+    num_cores <- as.numeric(system("nproc", intern = TRUE))
+    message(paste0("Working in Linux and using ", num_cores, " ."))
+  }
+  if(Sys.info()['sysname'] == "Darwin" ){
+    num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
+    message(paste0("Working in MacOS and using ", num_cores, " ."))
+  }
+  else{
+    num_cores <- 1
+    message(paste0("Unknown OS using only 1 core."))
+  }
+  return(num_cores)
+}

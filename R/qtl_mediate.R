@@ -17,7 +17,7 @@
 #' @importFrom parallelly availableCores
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
+run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, total_cores = NULL) {
   # mediate_env <- new.env()
   message("load annotations")
   if (is.character(biomart)) {
@@ -128,7 +128,7 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out) {
 
   message("running mediation")
 
-  total_cores <- as.numeric(parallelly::availableCores()) # get total number of available cores
+  if( is.null(total_cores)) total_cores <- get_cores()
   max_peaks <- max(sapply(qtl_peaks, nrow)) # get the maximum number of peaks
   num_tissues <-  length(names(qtl_peaks)) # number of tissues
   if( max_peaks < 1000){

@@ -23,7 +23,7 @@
 #' @importFrom tibble lst
 #'
 
-qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4) {
+qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4, total_cores) {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")
@@ -105,7 +105,7 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 
 
   message("peaks extracted, calculating effects now")
 
-  total_cores <- as.numeric(parallelly::availableCores())
+  if( is.null(total_cores)) total_cores <- get_cores()
   max_peaks <- max(sapply(peaksf, nrow)) # how many peaks are there?
   num_tissues <-  length(names(peaksf)) # number of tissues
   if( max_peaks < 1000){

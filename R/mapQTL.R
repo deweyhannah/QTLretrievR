@@ -38,7 +38,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   biomart, max_genes = 1000) {
+                   biomart, max_genes = 1000, total_cores = NULL) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -169,7 +169,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
 
-  total_cores <- as.numeric(parallelly::availableCores()) # get the total number of available cores
+  if( is.null(total_cores)) total_cores <- get_cores()
   max_genes <- max(sapply(exprZ_list, ncol)) # Calculate the maximum number of rows across all data frames in exprZ_list
   num_tissues <-  length(names(exprZ_list))
   if( max_genes < 1000){
@@ -180,7 +180,9 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
   each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues ) # Divide cores per tissue and pass onto the foreach loop
-  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
+
+  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s). Does that look rigth? If not please set total_cores parameter to the number of available cores." ) )
+
   peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
     batch_wrap(
       tissue, exprZ_list, kinship_loco,
