@@ -245,15 +245,15 @@ get_cores <- function(){
   # get the total number of cores that are available for each OS
   if (Sys.info()['sysname'] == "Windows") {
     num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-    message(paste0("Working in Windows and using ", num_cores, " ."))
+    message(paste0("Working in Windows and there are ", num_cores, " in total."))
   }
-  if (Sys.info()['sysname'] == "Linux"){
+  else if (Sys.info()['sysname'] == "Linux"){
     num_cores <- as.numeric(system("nproc", intern = TRUE))
-    message(paste0("Working in Linux and using ", num_cores, " ."))
+    message(paste0("Working in Linux and there are ", num_cores, " in total."))
   }
-  if(Sys.info()['sysname'] == "Darwin" ){
+  else if(Sys.info()['sysname'] == "Darwin" ){
     num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-    message(paste0("Working in MacOS and using ", num_cores, " ."))
+    message(paste0("Working in MacOS and there are ", num_cores, " in total."))
   }
   else{
     num_cores <- 1
