@@ -13,9 +13,9 @@
 #' @param biomart Annotations file. Path to location or object.
 #' @param tissues Vector of strings indicating tissues in project. Ex: c("Kd","Lv") for "kidney" and "liver".
 #' @param gridFile Genome Grid. Path to location or object. Defaults to 75k grid loaded with package.
-#' @param n.cores Number of cores to pass to `qtl2`. Default is 4.
 #' @param suggLOD Suggestive LOD to use as filter for mediation. Default is 7.
 #' @param localRange What is defined as "local". Default is 10e6.
+#' @param total_cores Number of available cores to use. Default is NULL.
 #'
 #' @return A list containing \itemize{
 #' \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -27,7 +27,7 @@
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, biomart, tissues = c(),
-                   gridFile = gridfile, n.cores = 4, suggLOD = 7, localRange = 10e6,
+                   gridFile = gridfile, suggLOD = 7, localRange = 10e6,
                    max_genes = 1000, total_cores = NULL) {
   ## Check oudir
   if (length(outdir) == 0 | !dir.exists(outdir)) {
@@ -44,7 +44,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   message("running mapping")
   map_peaks <- mapQTL(
     outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
-    samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors, n.cores = n.cores,
+    samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors,
     gridFile = gridFile, localRange = localRange, biomart = biomart, max_genes = max_genes, total_cores = NULL
   )
 
@@ -58,7 +58,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   res_list <- run_mediate(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, biomart = biomart, med_out = med_out, total_cores = NULL)
 
   message("running effects")
-  effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, n.cores = n.cores, total_cores = NULL)
+  effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, total_cores = NULL)
 
   ## For now we are just going to return the peaks, mapping data, mediation results, and effects results
   all_out <- tibble::lst(peaks_list, maps_list, res_list, effects_res)

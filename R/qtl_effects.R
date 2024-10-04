@@ -5,7 +5,7 @@
 #' @param suggLOD Suggestive LOD threshold. Default is 7.
 #' @param outdir String of path to output directory where effects lists will be saved.
 #' @param outfile Output file name to save mediation results for later use
-#' @param n.cores Number of cores passed to qtl2. Default is 4.
+#' @param total_cores Number of available cores to use. Default is NULL.
 #'
 #' @return A list containing: \itemize{
 #'  \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from [qtl2::scan1blup()]}
@@ -23,7 +23,7 @@
 #' @importFrom tibble lst
 #'
 
-qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, n.cores = 4, total_cores) {
+qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, total_cores) {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")

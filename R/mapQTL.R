@@ -7,12 +7,12 @@
 #' @param samp_meta Sample metadata. Either a string pointing to the file, or the object itself.
 #' @param expr_mats Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.
 #' @param covar_factors Additive covariate factors. These need to be columns in the factor metadata.
-#' @param n.cores Number of cores to pass to qtl2. Your total cores available should be at least the number of tissues times n.cores.
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #' @param localRange What is defined as "local". Default is 10e6.
 #' @param biomart String pointing to annotations file or annotations object.
+#' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #'
 #' @return A list containing: \itemize{
 #'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
@@ -37,7 +37,7 @@
 #' @importFrom parallelly availableCores
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, n.cores = 4, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
+mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
                    biomart, max_genes = 1000, total_cores = NULL) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
@@ -66,12 +66,13 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
 
   ## Modify Probs and Determine Kinship
+  if( is.null(total_cores)) total_cores <- get_cores()
   qtlprobs <- list()
   kinship_loco <- list()
   for (tissue in names(probs_list)) {
     message(tissue)
     qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
-    kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = n.cores)
+    kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = total_cores)
   }
 
   ## Create maps
