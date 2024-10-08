@@ -52,41 +52,6 @@ probs_3d_to_qtl2 <- function(probs) {
   newprobs
 }
 
-batchmap <- function(nbatch, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, ...) {
-  # Do mapping in batches. I will only save significant peaks, for efficiency.
-  nn <- ncol(exprZ)
-  ss <- round(seq(0, nn, length.out = nbatch + 1))
-  # message(tissue)
-  message(date())
-  # peaks <- list()
-  xx <- parallel::detectCores()
-  cl <- parallel::makeCluster(floor(xx / n.cores))
-  doParallel::registerDoParallel(cl)
-  peaks <- foreach::foreach(i = 1:nbatch, .combine = "rbind") %dopar% {
-    start <- ss[i] + 1
-    end <- ss[i + 1]
-    cat(sprintf("batch %d: %d-%d\n", i, start, end))
-    out <- qtl2::scan1(genoprobs, exprZ[, start:end, drop = FALSE],
-      kinship_loco,
-      addcovar = covar[, , drop = FALSE], cores = n.cores, ...
-    )
-    # peaks[[i]] <- qtl2::find_peaks(out, gmap, drop=1.5,
-    qtl2::find_peaks(out, gmap,
-      drop = 1.5,
-      threshold = thrA, thresholdX = thrX
-    ) # returns a long & tidy dataset
-  }
-  parallel::stopCluster(cl)
-  message(date())
-  # message(length(peaks))
-  peaks <- peaks %>%
-    dplyr::select(-lodindex) %>%
-    dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
-  # do.call('rbind', peaks) %>% dplyr::select(-lodindex) %>%
-  # dplyr::rename(phenotype=lodcolumn, peak_chr=chr, peak_cM=pos)
-  return(peaks)
-}
-
 interp_bp <- function(df, genmap, physmap) {
   chroms <- c(as.character(1:19), "X")
   df <- dplyr::arrange(df, peak_chr, peak_cM)
@@ -192,18 +157,17 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, max_genes = 1000) {
+peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4) {
   # message("Started mapping")
   # message(timestamp())
-  # start <- ss[i] + 1
-  # end <- ss[i + 1]
+  start <- ss[i] + 1
+  end <- ss[i + 1]
   out <- qtl2::scan1(
     genoprobs,
-    exprZ,
+    exprZ[,start:end,drop=F],
     kinship_loco,
     addcovar = covar[, , drop = FALSE],
-    cores = n.cores,
-    max_batch = max_genes
+    cores = n.cores
   )
   # message("Finished mapping")
   # message(timestamp())
@@ -219,25 +183,55 @@ peak_fun <- function(exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA =
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
-                       covar_list, gmap, thrA, thrX, cores, max_genes) {
+                       covar_list, gmap, thrA, thrX, cores) {
 
-  # adjust the max_genes to make sure we take full advantage of all the registered cores
-  n_genes <- nrow(exprZ_list[[tissue]])
-  if(n_genes < 1000) max_genes = ceiling(n_genes/cores)
+  num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
+  nn <- ncol(exprZ_list[[tissue]])
+  ss <- round(seq(0, nn, length.out=num.batches + 1))
 
-  tissue_peaks <- peak_fun(
-    exprZ = exprZ_list[[tissue]],
-    kinship_loco = kinship_loco[[tissue]],
-    genoprobs = qtlprobs[[tissue]],
-    covar = covar_list[[tissue]],
-    tissue, gmap, thrA, thrX,
-    max_genes = max_genes,
-    n.cores = cores
-  )
+  # Calculate the maximum number of concurrent batches
+  # Each batch should at least have 4 cores.
+  max_concurrent_batches <- max(1, floor(cores / 4) )
+  # Adjust the number of cores to use based on concurrency limit
+  cores_to_use <- min(cores, max_concurrent_batches * 4)
+  # get the cores to use per batch, minimum 4
+  cores_per_batch <- max(4, cores_to_use/max_concurrent_batches)
 
-  tissue_peaks2 <- tibble::lst(tissue, tissue_peaks)
+  # Initialize an empty list to store the results
+  all_results <- list()
+  for (i in seq(1, num.batches, by = max_concurrent_batches)) {
+
+    # Determine the current batch range
+    current_batches <- i:min(i + max_concurrent_batches - 1, num.batches)
+
+    # Run the current batch of tasks in parallel
+    current_results <- foreach::foreach( i = current_batches)  %dopar% {
+      peak_fun(i,
+               ss,
+               exprZ_list[[tissue]],
+               kinship_loco[[tissue]],
+               qtlprobs[[tissue]],
+               covar_list[[tissue]],
+               tissue = tissue,
+               gmap = gmap,
+               thrA = thrA,
+               thrX = thrX,
+               n.cores = cores_per_batch)
+    }
+
+    # Append the current results to the overall results
+    all_results <- c(all_results, current_results)
+  }
+
+
+  peaks <- do.call("rbind", all_results)
+
+  # message(paste0(colnames(peaks), sep = " "))
+
+  tissue_peaks2 <- tibble::lst(tissue, peaks)
 
   return(tissue_peaks2)
+
 }
 
 
@@ -245,15 +239,15 @@ get_cores <- function(){
   # get the total number of cores that are available for each OS
   if (Sys.info()['sysname'] == "Windows") {
     num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-    message(paste0("Working in Windows and there are ", num_cores, " in total."))
+    message(paste0("Working in Windows and there are ", num_cores, " cores in total."))
   }
   else if (Sys.info()['sysname'] == "Linux"){
     num_cores <- as.numeric(system("nproc", intern = TRUE))
-    message(paste0("Working in Linux and there are ", num_cores, " in total."))
+    message(paste0("Working in Linux and there are ", num_cores, " cores in total."))
   }
   else if(Sys.info()['sysname'] == "Darwin" ){
     num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-    message(paste0("Working in MacOS and there are ", num_cores, " in total."))
+    message(paste0("Working in MacOS and there are ", num_cores, " cores in total."))
   }
   else{
     num_cores <- 1
