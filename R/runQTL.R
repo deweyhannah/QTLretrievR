@@ -27,8 +27,7 @@
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, biomart, tissues = c(),
-                   gridFile = gridfile, suggLOD = 7, localRange = 10e6,
-                   max_genes = 1000, total_cores = NULL) {
+                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL) {
   ## Check oudir
   if (length(outdir) == 0 | !dir.exists(outdir)) {
     message("Invalid or no directory provided. Making an output file directory in the current working directory.")
@@ -45,7 +44,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   map_peaks <- mapQTL(
     outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
     samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors,
-    gridFile = gridFile, localRange = localRange, biomart = biomart, max_genes = max_genes, total_cores = NULL
+    gridFile = gridFile, localRange = localRange, biomart = biomart, total_cores = NULL
   )
 
   peaks_list <- map_peaks$peaks_list
