@@ -4,7 +4,15 @@
 \alias{run_mediate}
 \title{Prepare and run mediation for a set of QTL peaks}
 \usage{
-run_mediate(peaks, mapping, suggLOD = 7, outdir, biomart, med_out)
+run_mediate(
+  peaks,
+  mapping,
+  suggLOD = 7,
+  outdir,
+  biomart,
+  med_out,
+  total_cores = NULL
+)
 }
 \arguments{
 \item{peaks}{List of dataframes containing QTL peaks for each tissue}
@@ -18,6 +26,8 @@ run_mediate(peaks, mapping, suggLOD = 7, outdir, biomart, med_out)
 \item{biomart}{String pointing to annotations file or annotations object.}
 
 \item{med_out}{Output file name to save mediation results for later use}
+
+\item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
 }
 \value{
 A list containing mediation results for each tissue

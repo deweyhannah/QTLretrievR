@@ -12,13 +12,12 @@ mapQTL(
   samp_meta,
   expr_mats,
   covar_factors,
-  n.cores = 4,
   thrA = 5,
   thrX = 5,
-  gridfile = gridfile,
+  gridFile = gridfile,
   localRange = 1e+07,
   biomart,
-  samp_excl = c()
+  total_cores = NULL
 )
 }
 \arguments{
@@ -36,19 +35,17 @@ mapQTL(
 
 \item{covar_factors}{Additive covariate factors. These need to be columns in the factor metadata.}
 
-\item{n.cores}{Number of cores to pass to qtl2. Your total cores available should be at least the number of tissues times n.cores.}
-
 \item{thrA}{Minimum reported LOD threshold for autosomes. Default is 5.}
 
 \item{thrX}{Minimum reported LOD threshold for X chromosome. Default is 5.}
 
-\item{gridfile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
+\item{gridFile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
 
 \item{localRange}{What is defined as "local". Default is 10e6.}
 
 \item{biomart}{String pointing to annotations file or annotations object.}
 
-\item{samp_excl}{Are there any samples that should be excluded from your analysis?}
+\item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
 }
 \value{
 A list containing: \itemize{
