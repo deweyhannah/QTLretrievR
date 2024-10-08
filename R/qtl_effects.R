@@ -165,11 +165,11 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
   })
   #message("coef")
   # parallelizing scan1coef since it doesn't have internal parallelization in qtl2.
-  doParallel::registerDoParallel(cores = cores)
+  #doParallel::registerDoParallel(cores = cores)
   effects_coef <- foreach::foreach(i = 1:n_peaks) %dopar% {
     coef_scan(i, peaks, probs, gmap, exprZ, kinship, covars)
     }
-  doParallel::stopImplicitCluster()
+  #doParallel::stopImplicitCluster()
 
   effects_blup_tmp <- do.call("rbind", effects_blup)
   effects_coef_tmp <- do.call("rbind", effects_coef)
