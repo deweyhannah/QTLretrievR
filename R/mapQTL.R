@@ -129,7 +129,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   exprZ_list <- list()
   for (tissue in names(expr_list)) {
     samps_keep <- intersect(rownames(probs_list[[tissue]]), colnames(expr_list[[tissue]]))
-    message(paste0("There are ", length(samps_keep), " samples in ", tissue, ". Does that look right?"))
+    message(paste0("Working with ", length(samps_keep), " samples and ", nrow(expr_list[[tissue]])," genes in ", tissue, "."))
     expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
@@ -182,20 +182,26 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
   each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues ) # Divide cores per tissue and pass onto the foreach loop
 
-  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s). Does that look rigth? If not please set total_cores parameter to the number of available cores." ) )
+  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s). Does that look right? If not please set total_cores parameter to the number of available cores." ) )
 
   peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
     batch_wrap(
-      tissue, exprZ_list, kinship_loco,
-      qtlprobs, covar_list, gmap, thrA,
-      thrX, each_tissue, max_genes
+      tissue,
+      exprZ_list,
+      kinship_loco,
+      qtlprobs,
+      covar_list,
+      gmap,
+      thrA,
+      thrX,
+      each_tissue
     )
   }
   doParallel::stopImplicitCluster()
 
   for (i in 1:length(peak_tmp)) {
     tissue <- peak_tmp[[i]]$tissue
-    peaks_list[[tissue]] <- peak_tmp[[i]]$tissue_peaks
+    peaks_list[[tissue]] <- peak_tmp[[i]]$peaks
     # message(paste0(tissue, colnames(peaks_list[[tissue]]), sep = " "))
   }
 
