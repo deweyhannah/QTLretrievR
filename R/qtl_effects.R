@@ -18,7 +18,6 @@
 #' @importFrom GenomicRanges GRanges
 #' @importFrom qtl2 scan1blup scan1coef
 #' @importFrom foreach foreach %dopar%
-#' @importFrom parallelly availableCores
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #' @importFrom tibble lst
 #'

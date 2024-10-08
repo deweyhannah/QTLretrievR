@@ -6,6 +6,7 @@
 #' @param outdir String of path to output directory where mediation lists will be saved.
 #' @param biomart String pointing to annotations file or annotations object.
 #' @param med_out Output file name to save mediation results for later use
+#' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #'
 #' @return A list containing mediation results for each tissue
 #'
@@ -14,7 +15,6 @@
 #' @importFrom dplyr rename filter mutate select
 #' @importFrom purrr compact
 #' @importFrom foreach foreach %dopar%
-#' @importFrom parallelly availableCores
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, total_cores = NULL) {

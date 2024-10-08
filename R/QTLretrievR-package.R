@@ -2,8 +2,6 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom BiocParallel bplapply
-#' @importFrom BiocParallel MulticoreParam
 #' @importFrom dplyr filter
 #' @importFrom dplyr group_by
 #' @importFrom dplyr mutate

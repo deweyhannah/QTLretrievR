@@ -24,6 +24,10 @@
 #' \item{effects_res}{List of objects associated with effects. See [qtl_effects] help for details.}}
 #' @export
 #'
+#'
+#' @importFrom tibble lst
+#'
+#'
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, biomart, tissues = c(),
