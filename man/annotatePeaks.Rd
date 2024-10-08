@@ -13,7 +13,7 @@ annotatePeaks(map, peaks, biomart, localRange = 1e+07)
 
 \item{biomart}{Annotations file. Path to location or object.}
 
-\item{localRangeWhat}{is defined as "local". Default is 10e6.}
+\item{localRange}{is defined as "local". Default is 10e6.}
 }
 \value{
 List of annotated peaks for each tissue.

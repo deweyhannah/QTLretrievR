@@ -17,11 +17,10 @@ runQTL(
   covar_factors,
   biomart,
   tissues = c(),
-  samp_excl = c(),
-  gridfile = gridfile,
-  n.cores = 4,
+  gridFile = gridfile,
   suggLOD = 7,
-  localRange = 1e+07
+  localRange = 1e+07,
+  total_cores = NULL
 )
 }
 \arguments{
@@ -49,15 +48,13 @@ runQTL(
 
 \item{tissues}{Vector of strings indicating tissues in project. Ex: c("Kd","Lv") for "kidney" and "liver".}
 
-\item{samp_excl}{Vector of any sample IDs that need to be excluded from analysis.}
-
-\item{gridfile}{Genome Grid. Path to location or object. Defaults to 75k grid loaded with package.}
-
-\item{n.cores}{Number of cores to pass to \code{qtl2}. Default is 4.}
+\item{gridFile}{Genome Grid. Path to location or object. Defaults to 75k grid loaded with package.}
 
 \item{suggLOD}{Suggestive LOD to use as filter for mediation. Default is 7.}
 
 \item{localRange}{What is defined as "local". Default is 10e6.}
+
+\item{total_cores}{Number of available cores to use. Default is NULL.}
 }
 \value{
 A list containing \itemize{
