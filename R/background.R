@@ -192,8 +192,8 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
   # Calculate the maximum number of concurrent batches
   # Each batch should at least have 4 cores.
   max_concurrent_batches <- max(1, floor(cores / 4) )
-  # Adjust the number of cores to use based on concurrency limit
-  cores_to_use <- min(cores, max_concurrent_batches * 4)
+  # I already adjust the #of cores that are passed to the function so I think we can use all the cores here.
+  cores_to_use <- cores
   # get the cores to use per batch, minimum 4
   cores_per_batch <- max(4, cores_to_use/max_concurrent_batches)
 
