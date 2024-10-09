@@ -71,7 +71,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   for (tissue in names(probs_list)) {
     message(tissue)
     qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
-    kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = 4)
+    kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = 1)
   }
 
   ## Create maps
