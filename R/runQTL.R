@@ -39,9 +39,15 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
     outdir <- "./QTL_mapping"
   }
 
-  ## Convert genoprobs
-  message("running genoprobs")
-  genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridFile = gridFile)
+  ## Check if object or file location is passed. If object assign to genoprobs, if file location run geoprobably
+  if (is.list(gbrs_fileLoc)) {
+    genoprobs <- gbrs_fileLoc
+  }
+  else if (is.string(gbrs_fileLoc)) {
+    ## Convert genoprobs
+    message("running genoprobs")
+    genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridFile = gridFile)
+  }
 
   ## Map QTLs from genoprobs
   message("running mapping")
