@@ -43,7 +43,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   if (is.list(gbrs_fileLoc)) {
     genoprobs <- gbrs_fileLoc
   }
-  else if (is.string(gbrs_fileLoc)) {
+  else if (is.character(gbrs_fileLoc)) {
     ## Convert genoprobs
     message("running genoprobs")
     genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridFile = gridFile)
