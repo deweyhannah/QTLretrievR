@@ -67,7 +67,7 @@ check_data <- function(x, type = "") {
   if (exists("probs_list")) {
     stopifnot(is.list(probs_list))
     for (tissue in names(probs_list)) {
-      stopifnot(dimnames(probs_list[[tissue]])[[2]] == LETTERS[1:8])
+      stopifnot(names(probs_list[[tissue]]) == c(1:19,X))
     }
     return(probs_list)
   }

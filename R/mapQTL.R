@@ -46,7 +46,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   if (is.character(genoprobs)) {
     tmp_probs <- check_data(paste0(outdir, "/", genoprobs), "genoprobs")
   }
-  probs_list <- tmp_probs
+  qtlprobs <- tmp_probs
   rm(tmp_probs)
 
   ## Check inputs
@@ -66,11 +66,11 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   ## Modify Probs and Determine Kinship
   #if( is.null(total_cores)) total_cores <- get_cores()
-  qtlprobs <- list()
+  # qtlprobs <- list()
   kinship_loco <- list()
   for (tissue in names(probs_list)) {
     message(tissue)
-    qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
+    # qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
     kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = 1)
   }
 

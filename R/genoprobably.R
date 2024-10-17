@@ -86,7 +86,12 @@ genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds",
   }
 
   ## Rename
-  probs_list <- tsv_probs
+  # probs_list <- tsv_probs
+  probs_list <- list()
+  for (tissue in names(tsv_probs)) {
+    message(tissue)
+    probs_list[[tissue]] <- probs_3d_to_qtl2(tsv_probs[[tissue]])
+  }
 
   ## Save to outfile
   saveRDS(probs_list, gbrs.interp)
