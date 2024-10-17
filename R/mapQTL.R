@@ -41,12 +41,12 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
-    tmp_probs <- check_data(genoprobs, "genoprobs")
+    tmp_probs <- check_data(genoprobs, type = "genoprobs")
   }
   if (is.character(genoprobs)) {
-    tmp_probs <- check_data(paste0(outdir, "/", genoprobs), "genoprobs")
+    tmp_probs <- check_data(paste0(outdir, "/", genoprobs), type = "genoprobs")
   }
-  qtlprobs <- tmp_probs
+  probs_list <- tmp_probs
   rm(tmp_probs)
 
   ## Check inputs
@@ -66,7 +66,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   ## Modify Probs and Determine Kinship
   #if( is.null(total_cores)) total_cores <- get_cores()
-  # qtlprobs <- list()
+  qtlprobs <- probs_list
   kinship_loco <- list()
   for (tissue in names(probs_list)) {
     message(tissue)
@@ -83,7 +83,11 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
   map_dat <- grid_map[, c("chr", "cM")]
 
-  markers <- dimnames(probs_list[[1]])[[3]]
+  # markers <- dimnames(probs_list[[1]])[[3]]
+  markers <- c()
+  for (chrom in names(qtlprobs[[1]])) {
+    markers <- c(markers, dimnames(qtlprobs[[1]][[chrom]])[[3]])
+  }
   map_dat <- map_dat[markers, ]
   # assert_that(are_equal(rownames(map_dat), markers))
   gmap <- split_map(map_dat)
