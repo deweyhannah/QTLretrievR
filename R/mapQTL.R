@@ -118,14 +118,19 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
       expr_list[[tissue]] <- as.matrix(read.delim(expr, row.names = 1, header = T, stringsAsFactors = F))
     }
     else {
-      expr_list[[tissue]] <- expr
+      expr_list[[tissue]] <- expr[[tissue]]
     }
   }
 
   message("expression loaded")
 
   ## Sample Details
-  sample_details <- read.delim(samp_meta, stringsAsFactors = F, header = T)
+  if (is.character(samp_meta)) {
+    sample_details <- read.delim(samp_meta, stringsAsFactors = F, header = T)
+  }
+  if (is.data.frame(samp_meta)) {
+    sample_details <- samp_meta
+  }
   if (!all(covar_factors %in% colnames(sample_details))) {
     stop("Chosen factors are not in sample metadata. Please check factors and sample metadata for missing or misspelled elements")
   }
@@ -136,7 +141,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Reorganize and calculate rankZ for expression matrices
   exprZ_list <- list()
   for (tissue in names(expr_list)) {
-    samps_keep <- intersect(rownames(probs_list[[tissue]]), colnames(expr_list[[tissue]]))
+    samps_keep <- intersect(rownames(probs_list[[tissue]][[1]]), colnames(expr_list[[tissue]]))
     message(paste0("Working with ", length(samps_keep), " samples and ", nrow(expr_list[[tissue]])," genes in ", tissue, "."))
     expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
