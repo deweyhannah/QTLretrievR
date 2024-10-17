@@ -114,7 +114,12 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   for (i in 1:length(expr_mats)) {
     expr <- expr_mats[i]
     tissue <- names(probs_list)[[i]]
-    expr_list[[tissue]] <- as.matrix(read.delim(expr, row.names = 1, header = T, stringsAsFactors = F))
+    if (is.character(expr)) {
+      expr_list[[tissue]] <- as.matrix(read.delim(expr, row.names = 1, header = T, stringsAsFactors = F))
+    }
+    else {
+      expr_list[[tissue]] <- expr
+    }
   }
 
   message("expression loaded")
