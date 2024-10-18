@@ -56,6 +56,9 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
     tmp_map <- check_data(paste0(outdir, "/", mapping))
     # message(paste0(names(tmp_map), sep = " "))
   }
+
+  stopifnot(str(peaks_list[[1]]) == "data.frame")
+
   message("data checked")
 
   ## clean up

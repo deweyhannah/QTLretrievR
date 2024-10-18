@@ -227,6 +227,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   message("saved peaks")
 
   map_peaks <- tibble::lst(maps_list, peaks_list)
+  rm(probs_list)
   # names(map_peaks) <- c("maps_list", "peaks_list")
   return(map_peaks)
 }

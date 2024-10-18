@@ -10,6 +10,7 @@
 
 check_data <- function(x, type = "") {
   ## Load data into environment
+
   if (is.character(x)) {
     y <- readRDS(x)
     # message(names(y))
