@@ -65,14 +65,14 @@ check_data <- function(x, type = "") {
   }
 
   ## Run checks
-  if (exists("probs_list")) {
+  if (type == "genoprobs") {
     stopifnot(is.list(probs_list))
     for (tissue in names(probs_list)) {
       stopifnot(names(probs_list[[tissue]]) == c(1:19,"X"))
     }
     return(probs_list)
   }
-  if (exists("map_dat2")) {
+  if (type = "") {
     ## Class check
     stopifnot(is.list(qtlprobs))
     stopifnot(is.list(covar_list))
@@ -108,7 +108,7 @@ check_data <- function(x, type = "") {
 
     return(tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, pmap, tissue_samp, map_dat2))
   }
-  if (exists("peaks_list")) {
+  if (type = "peaks") {
     stopifnot(is.list(peaks_list))
     for (tissue in names(peaks_list)) {
       stopifnot(is.data.frame(peaks_list[[tissue]]))
@@ -116,14 +116,14 @@ check_data <- function(x, type = "") {
     }
     return(peaks_list)
   }
-  if (exists("res_list")) {
+  if (type = "mediation") {
     stopifnot(is.list(res_list))
     for (tissue in names(res_list)) {
       stopifnot(all(c("target_id", "qtl_lod", "qtl_chr", "mediator", "mediator_id", "mediator_chr", "mediator_midpoint", "LOD") %in% colnames(res_list[[tissue]])))
     }
     return(res_list)
   }
-  if (exists("effects_blup")) {
+  if (type = "effects") {
     stopifnot(is.list(effects_blup))
     stopifnot(is.list(effects_std))
 
