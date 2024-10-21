@@ -16,6 +16,7 @@
 #' @param suggLOD Suggestive LOD to use as filter for mediation. Default is 7.
 #' @param localRange What is defined as "local". Default is 10e6.
 #' @param total_cores Number of available cores to use. Default is NULL.
+#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
 #' @return A list containing \itemize{
 #' \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -31,7 +32,7 @@
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, biomart, tissues = c(),
-                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL) {
+                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL, save = "sr") {
   ## Check oudir
   if (length(outdir) == 0 | !dir.exists(outdir)) {
     message("Invalid or no directory provided. Making an output file directory in the current working directory.")
@@ -56,7 +57,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   if (is.character(gbrs_fileLoc)) {
     ## Convert genoprobs
     message("running genoprobs")
-    genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridFile = gridFile)
+    genoprobs <- genoprobably(outfile = paste0(outdir, "/", geno_out), gbrsFileLoc = gbrs_fileLoc, tissues = tissues, gridFile = gridFile, save = save)
   }
 
   ## Map QTLs from genoprobs
@@ -64,7 +65,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   map_peaks <- mapQTL(
     outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
     samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors,
-    gridFile = gridFile, localRange = localRange, biomart = biomart, total_cores = NULL
+    gridFile = gridFile, localRange = localRange, biomart = biomart, total_cores = NULL, save = save
   )
 
   peaks_list <- map_peaks$peaks_list
@@ -74,12 +75,14 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
 
   ## Run Mediation and Effects
   message("running mediation")
-  res_list <- run_mediate(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, biomart = biomart, med_out = med_out, total_cores = NULL)
+  res_list <- run_mediate(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, biomart = biomart, med_out = med_out, total_cores = NULL, save = save)
 
   message("running effects")
-  effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, total_cores = NULL)
+  effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, total_cores = NULL, save = save)
 
-  ## For now we are just going to return the peaks, mapping data, mediation results, and effects results
-  all_out <- tibble::lst(peaks_list, maps_list, res_list, effects_res)
-  return(all_out)
+  if (save %in% c("sr", "ro")) {
+    ## Return created objects
+    all_out <- tibble::lst(peaks_list, maps_list, res_list, effects_res)
+    return(all_out)
+  }
 }

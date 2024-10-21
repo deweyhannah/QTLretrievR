@@ -6,6 +6,7 @@
 #' @param outdir String of path to output directory where effects lists will be saved.
 #' @param outfile Output file name to save mediation results for later use
 #' @param total_cores Number of available cores to use. Default is NULL.
+#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
 #' @return A list containing: \itemize{
 #'  \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from [qtl2::scan1blup()]}
@@ -22,7 +23,7 @@
 #' @importFrom tibble lst
 #'
 
-qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, total_cores) {
+qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, total_cores, save = "sr") {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")
@@ -143,9 +144,13 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, total_core
   peaks <- peaksf
 
   effects_out <- tibble::lst(effects_blup, effects_std, peaks)
-  saveRDS(effects_out, paste0(outdir, "/", outfile))
 
-  return(effects_out)
+  if(save %in% c("sr","so")) {
+    saveRDS(effects_out, paste0(outdir, "/", outfile))
+  }
+  if(save %in% c("sr","ro")) {
+    return(effects_out)
+  }
 }
 
 call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cores) {

@@ -13,6 +13,7 @@
 #' @param localRange What is defined as "local". Default is 10e6.
 #' @param biomart String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
+#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
 #' @return A list containing: \itemize{
 #'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
@@ -37,7 +38,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   biomart, total_cores = NULL) {
+                   biomart, total_cores = NULL, save = "sr") {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -169,15 +170,15 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   message("covariates calculated")
 
-  outfile <- paste0(outdir, "/", map_out)
-
   maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list, kinship_loco, gmap, map_dat2, pmap, tissue_samp)
-  # names(maps_list) <- c("qtlprobs", "covar_list", "expr_list", "exprZ_list", "kinship_loco", "gmap", "map_dat2", "pmap", "tissue_samp")
-  saveRDS(maps_list, file = outfile)
 
-  message("map saved")
+  if(save %in% c("sr","so")) {
+    outfile <- paste0(outdir, "/", map_out)
+    saveRDS(maps_list, file = outfile)
+    message("map saved")
+  }
+
   ## Run Batchmap
-
   message("calculating peaks")
 
   ## Add functionality to save out files if wanted -- probably in the background functions file.
@@ -221,13 +222,14 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   message("adding annotations to peaks")
   peaks_list <- annotatePeaks(maps_list, peaks_list, biomart, localRange)
 
+  if(save %in% c("sr","so")) {
+    outfile <- paste0(outdir, "/", peaks_out)
+    saveRDS(peaks_list, file = outfile)
+    message("saved peaks")
+  }
 
-  outfile <- paste0(outdir, "/", peaks_out)
-  saveRDS(peaks_list, file = outfile)
-  message("saved peaks")
-
-  map_peaks <- tibble::lst(maps_list, peaks_list)
-  rm(probs_list)
-  # names(map_peaks) <- c("maps_list", "peaks_list")
-  return(map_peaks)
+  if(save %in% c("sr","ro")) {
+    map_peaks <- tibble::lst(maps_list, peaks_list)
+    return(map_peaks)
+  }
 }

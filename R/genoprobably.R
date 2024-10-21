@@ -4,6 +4,7 @@
 #' @param gbrsFileLoc File path to where the GBRS files are located.
 #' @param tissues List of tissues included in analysis. If left blank tissue will be set to "a".
 #' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
+#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
 #' @return List of three dimensional genome probabilities
 #' @export
@@ -13,7 +14,8 @@
 genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds",
                          gbrsFileLoc,
                          tissues = c(),
-                         gridFile = gridfile) {
+                         gridFile = gridfile,
+                         save = "sr") {
   ## Check that interpolated genoprobs doesn't already exist
   gbrs.interp <- outfile
   # if (file.exists(gbrs.interp)) {
@@ -94,7 +96,11 @@ genoprobably <- function(outfile = "./gbrs_interpolated_genoprobs.rds",
   }
 
   ## Save to outfile
-  saveRDS(probs_list, gbrs.interp)
+  if(save %in% c("sr", "so")) {
+    saveRDS(probs_list, gbrs.interp)
+  }
 
-  return(probs_list)
+  if(save %in% c("sr","ro")) {
+    return(probs_list)
+  }
 }

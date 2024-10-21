@@ -7,6 +7,7 @@
 #' @param biomart String pointing to annotations file or annotations object.
 #' @param med_out Output file name to save mediation results for later use
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
+#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
 #' @return A list containing mediation results for each tissue
 #'
@@ -17,7 +18,7 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, total_cores = NULL) {
+run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, total_cores = NULL, save = "sr") {
   # mediate_env <- new.env()
   message("load annotations")
   if (is.character(biomart)) {
@@ -160,9 +161,13 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
   }
   # names(res_list) <- names(qtl_peaks)
   # message(str(res_list))
-  outfile <- paste0(outdir, "/", med_out)
-  saveRDS(res_list, file = outfile)
-  return(res_list)
+  if(save %in% c("sr","so")) {
+    outfile <- paste0(outdir, "/", med_out)
+    saveRDS(res_list, file = outfile)
+  }
+  if(save %in% c("sr","ro")) {
+    return(res_list)
+  }
 }
 
 qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, mapDat, cores) {
