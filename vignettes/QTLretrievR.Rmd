@@ -36,10 +36,10 @@ Please note in the example below that the objects will be only be returned, not 
 qtl_res <- runQTL(outdir = "../../vignette/", gbrs_fileLoc = list("mESC" = demo_probs),
                   geno_out = "mESC_mm10_probs.rds", peaks_out = "mESC_mm10_peaks.rds", 
                   map_out = "mESC_mm10_map.rds", med_out = "mESC_mm10_mediation.rds",
-                  effects_out = "mESC_mm10_effects.rds", expr_mats = list("mESC" = demo_counts),
+                  effects_out = "mESC_mm10_effects.rds",
+                  expr_mats = list("mESC" = demo_counts),
                   tissues = "mESC", gridFile = gridfile69k, covar_factors = c("sex"),
-                  metadata = demo_meta, biomart = demo_annot, save_t = "ro"
-                  )
+                  metadata = demo_meta, biomart = demo_annot, save_t = "ro")
 ```
 
 This can be alternatively submitted as follows:

@@ -80,7 +80,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   message("running effects")
   effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, total_cores = NULL, save = save_t)
 
-  if (save %in% c("sr", "ro")) {
+  if (save_t %in% c("sr", "ro")) {
     ## Return created objects
     all_out <- tibble::lst(peaks_list, maps_list, res_list, effects_res)
     return(all_out)
