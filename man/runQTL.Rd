@@ -21,7 +21,11 @@ runQTL(
   suggLOD = 7,
   localRange = 1e+07,
   total_cores = NULL,
+<<<<<<< HEAD
   save = "sr"
+=======
+  Save = "sr"
+>>>>>>> ecb629e (add files)
 )
 }
 \arguments{
@@ -57,7 +61,11 @@ runQTL(
 
 \item{total_cores}{Number of available cores to use. Default is NULL.}
 
+<<<<<<< HEAD
 \item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+=======
+\item{Save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+>>>>>>> ecb629e (add files)
 }
 \value{
 A list containing \itemize{
