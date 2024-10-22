@@ -11,7 +11,8 @@ run_mediate(
   outdir,
   biomart,
   med_out,
-  total_cores = NULL
+  total_cores = NULL,
+  save = "sr"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ run_mediate(
 \item{med_out}{Output file name to save mediation results for later use}
 
 \item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
+
+\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 }
 \value{
 A list containing mediation results for each tissue

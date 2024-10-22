@@ -20,7 +20,8 @@ runQTL(
   gridFile = gridfile,
   suggLOD = 7,
   localRange = 1e+07,
-  total_cores = NULL
+  total_cores = NULL,
+  save = "sr"
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ runQTL(
 \item{localRange}{What is defined as "local". Default is 10e6.}
 
 \item{total_cores}{Number of available cores to use. Default is NULL.}
+
+\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 }
 \value{
 A list containing \itemize{

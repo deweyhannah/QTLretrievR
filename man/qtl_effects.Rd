@@ -4,7 +4,15 @@
 \alias{qtl_effects}
 \title{Calculate founder effects for significant peaks}
 \usage{
-qtl_effects(mapping, peaks, suggLOD = 8, outdir, outfile, total_cores)
+qtl_effects(
+  mapping,
+  peaks,
+  suggLOD = 8,
+  outdir,
+  outfile,
+  total_cores,
+  save = "sr"
+)
 }
 \arguments{
 \item{mapping}{List of relevant mapping information for overall project}
@@ -18,6 +26,8 @@ qtl_effects(mapping, peaks, suggLOD = 8, outdir, outfile, total_cores)
 \item{outfile}{Output file name to save mediation results for later use}
 
 \item{total_cores}{Number of available cores to use. Default is NULL.}
+
+\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 }
 \value{
 A list containing: \itemize{

@@ -47,7 +47,13 @@ Collate:
     'annotatePeaks.R'
     'background.R'
     'check_data.R'
+    'demo_annot.R'
+    'demo_counts.R'
+    'demo_meta.R'
+    'demo_probs.R'
     'genoprobably.R'
+    'gridfile.R'
+    'gridfile69k.R
     'mapQTL.R'
     'qtl_effects.R'
     'qtl_mediate.R'
@@ -55,7 +61,6 @@ Collate:
     'transbands.R'
     'plot_map.R'
     'QTLretrievR-package.R'
-    'gridfile.R'
 Depends: 
     R (>= 2.10)
 LazyData: true

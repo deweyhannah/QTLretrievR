@@ -8,7 +8,8 @@ genoprobably(
   outfile = "./gbrs_interpolated_genoprobs.rds",
   gbrsFileLoc,
   tissues = c(),
-  gridFile = gridfile
+  gridFile = gridfile,
+  save = "sr"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ genoprobably(
 \item{tissues}{List of tissues included in analysis. If left blank tissue will be set to "a".}
 
 \item{gridFile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
+
+\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 }
 \value{
 List of three dimensional genome probabilities
