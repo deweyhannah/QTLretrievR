@@ -53,11 +53,7 @@ Collate:
     'demo_probs.R'
     'genoprobably.R'
     'gridfile.R'
-<<<<<<< HEAD
-    'gridfile69k.R
-=======
     'gridfile69k.R'
->>>>>>> ecb629e (add files)
     'mapQTL.R'
     'qtl_effects.R'
     'qtl_mediate.R'
