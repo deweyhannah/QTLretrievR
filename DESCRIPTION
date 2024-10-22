@@ -54,6 +54,7 @@ Collate:
     'genoprobably.R'
     'gridfile.R'
     'gridfile69k.R'
+    'gridfile_GM.R'
     'mapQTL.R'
     'qtl_effects.R'
     'qtl_mediate.R'
