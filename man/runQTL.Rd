@@ -21,7 +21,7 @@ runQTL(
   suggLOD = 7,
   localRange = 1e+07,
   total_cores = NULL,
-  Save = "sr"
+  save_t = "sr"
 )
 }
 \arguments{
@@ -57,7 +57,7 @@ runQTL(
 
 \item{total_cores}{Number of available cores to use. Default is NULL.}
 
-\item{Save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+\item{save_t}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 }
 \value{
 A list containing \itemize{
