@@ -185,6 +185,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   peaks_list <- list()
 
   if( is.null(total_cores)) total_cores <- get_cores()
+  available_cores <- get_cores()
+  if( total_cores > available_cores) total_cores <- available_cores
   max_genes <- max(sapply(exprZ_list, ncol)) # Calculate the maximum number of rows across all data frames in exprZ_list
   num_tissues <-  length(names(exprZ_list))
   if( max_genes < 1000){

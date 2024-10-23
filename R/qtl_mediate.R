@@ -136,6 +136,8 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
   message("running mediation")
 
   if( is.null(total_cores)) total_cores <- get_cores()
+  available_cores <- get_cores()
+  if( total_cores > available_cores) total_cores <- available_cores
   max_peaks <- max(sapply(qtl_peaks, nrow)) # get the maximum number of peaks
   num_tissues <-  length(names(qtl_peaks)) # number of tissues
   if( max_peaks < 1000){

@@ -106,6 +106,9 @@ qtl_effects <- function(mapping, peaks, suggLOD = 8, outdir, outfile, total_core
   message("peaks extracted, calculating effects now")
 
   if( is.null(total_cores)) total_cores <- get_cores()
+  available_cores <- get_cores()
+  if( total_cores > available_cores) total_cores <- available_cores
+
   max_peaks <- max(sapply(peaksf, nrow)) # how many peaks are there?
   num_tissues <-  length(names(peaksf)) # number of tissues
   if( max_peaks < 1000){
