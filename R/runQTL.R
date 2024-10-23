@@ -65,7 +65,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   map_peaks <- mapQTL(
     outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
     samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors,
-    gridFile = gridFile, localRange = localRange, biomart = biomart, total_cores = NULL, save = save_t
+    gridFile = gridFile, localRange = localRange, biomart = biomart, total_cores = total_cores, save = save_t
   )
 
   peaks_list <- map_peaks$peaks_list
