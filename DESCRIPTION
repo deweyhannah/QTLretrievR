@@ -4,11 +4,11 @@ Version: 0.0.0.9000
 Authors@R: c(
     person(given = "Hannah B.", family = "Dewey", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3009-0452")),
-    person(given = "Selcan", family = "Aydin", email = "selcan.aydin@jax.org", role = c("aut","cre"),
+    person(given = "Selcan", family = "Aydin", email = "selcan.aydin@jax.org", role = "aut",
            comment = c(ORCID = "0000-0002-0457-9641")),
-    person(given = "Dan", family = "Skelly", email = "dan.skelly@jax.org", role = "aut",
+    person(given = "Dan", family = "Skelly", email = "dan.skelly@jax.org", role = "ctb",
            comment = c(ORCID = "0000-0002-2329-2216")),
-    person(given = "Daniel", family = "Gatti", email = "dan.gatti@jax.org", role = "aut",
+    person(given = "Daniel", family = "Gatti", email = "dan.gatti@jax.org", role = "ctb",
            comment = c(ORCID = "0000-0003-0667-9926")))
 Description: An integration of 'qtl2' and 'intermediate' to map genotypes to probes
     (genoprobs), calculate Quantitative Trait Loci (QTL) peaks, identify mediators 
