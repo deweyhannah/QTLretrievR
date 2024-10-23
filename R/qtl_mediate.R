@@ -58,7 +58,10 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
     # message(paste0(names(tmp_map), sep = " "))
   }
 
-  stopifnot(str(peaks_list[[1]]) == "data.frame")
+  #stopifnot(str(peaks_list[[1]]) == "data.frame")
+  if (!is.data.frame(peaks_list[[1]])) {
+    stop("The elements of 'peaks_list' must be data frames.")
+  }
 
   message("data checked")
 
