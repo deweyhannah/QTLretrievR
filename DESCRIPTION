@@ -56,6 +56,7 @@ Collate:
     'gridfile69k.R'
     'gridfile_GM.R'
     'mapQTL.R'
+    'mugaprobs.R'
     'qtl_effects.R'
     'qtl_mediate.R'
     'runQTL.R'

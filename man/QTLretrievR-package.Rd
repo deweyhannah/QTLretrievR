@@ -14,8 +14,12 @@ An integration of 'qtl2' and 'intermediate' to map genotypes to probes (genoprob
 Authors:
 \itemize{
   \item Selcan Aydin \email{selcan.aydin@jax.org} (\href{https://orcid.org/0000-0002-0457-9641}{ORCID})
-  \item Dan Skelly \email{dan.skelly@jax.org} (\href{https://orcid.org/0000-0002-2329-2216}{ORCID})
-  \item Daniel Gatti \email{dan.gatti@jax.org} (\href{https://orcid.org/0000-0003-0667-9926}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Dan Skelly \email{dan.skelly@jax.org} (\href{https://orcid.org/0000-0002-2329-2216}{ORCID}) [contributor]
+  \item Daniel Gatti \email{dan.gatti@jax.org} (\href{https://orcid.org/0000-0003-0667-9926}{ORCID}) [contributor]
 }
 
 }
