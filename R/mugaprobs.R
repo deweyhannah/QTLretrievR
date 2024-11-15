@@ -2,7 +2,7 @@
 #'
 #' @param type string indicating GigaMUGA (GM) or MegaMUGA (MM), default is "GM"
 #' @param covarLoc location of covariate file
-#' @param covar_file covariate file including at minimum the sex (sex) and generation (ngen) of each sample
+#' @param covar_file covariate file including at minimum the sex (sex) and generation (ngen) of each sample, this needs to be a .csv file
 #' @param i.files either a string of the directory where the chromosome specific genotype files are or a list of final report files to process - if passing the final report files they need to be either unzipped or in .gz format
 #' @param genoPrefix prefix for the chromosome specific genotype files (excluding "_geno")
 #' @param probsOut file name to save probabilities, default is "muga_interpolated_genoprobs.rds". probs will save to directory that mugaprobs is called from.
