@@ -18,7 +18,7 @@ mugaprobs(
 
 \item{covarLoc}{location of covariate file}
 
-\item{covar_file}{covariate file including at minimum the sex (sex) and generation (ngen) of each sample}
+\item{covar_file}{covariate file including at minimum the sex (sex) and generation (ngen) of each sample, this needs to be a .csv file}
 
 \item{i.files}{either a string of the directory where the chromosome specific genotype files are or a list of final report files to process - if passing the final report files they need to be either unzipped or in .gz format}
 
