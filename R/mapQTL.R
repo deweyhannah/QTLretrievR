@@ -82,7 +82,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   } else {
     grid_map <- gridFile
   }
-  map_dat <- grid_map[, c("chr", "cM")]
+  map_dat <- grid_map[, c("chr", "cM", "pos")]
 
   # markers <- dimnames(probs_list[[1]])[[3]]
   markers <- c()
@@ -96,10 +96,15 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   message("gmap complete")
 
+  # map_dat2 <- map_dat |>
+  #   tidyr::separate(marker, into = c("chrom", "pos_bp"), convert = T, remove = F) |>
+  #   dplyr::mutate(n = 1:dplyr::n()) |>
+  #   tibble::as_tibble()
   map_dat2 <- map_dat |>
-    tidyr::separate(marker, into = c("chrom", "pos_bp"), convert = T, remove = F) |>
-    dplyr::mutate(n = 1:dplyr::n()) |>
+    dplyr::mutate(n = 1:dplyr::n(), chrom = chr) |>
+    dplyr::rename(pos_bp = pos) |>
     tibble::as_tibble()
+
   pmap <- split_map(dplyr::select(
     map_dat2, marker,
     chr, pos_bp
