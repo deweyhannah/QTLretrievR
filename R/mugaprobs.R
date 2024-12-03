@@ -6,6 +6,7 @@
 #' @param i.files either a string of the directory where the chromosome specific genotype files are or a list of final report files to process - if passing the final report files they need to be either unzipped or in .gz format
 #' @param genoPrefix prefix for the chromosome specific genotype files (excluding "_geno")
 #' @param probsOut file name to save probabilities, default is "muga_interpolated_genoprobs.rds". probs will save to directory that mugaprobs is called from.
+#' @param tissues list of tissues included in analysis. If left blank tissue will be set to "a".
 #'
 #' @return none
 #' @export
@@ -15,7 +16,7 @@
 #' @importFrom data.table fread
 #' @importFrom qtl2 calc_genoprob
 #'
-mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_geonprobs.rds") {
+mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_genoprobs.rds", tissues = c()) {
   ## Confirm type and set url to pull info from
   if(type == "GM") {
     message("Using GigaMUGA markers for calculating probabilities")
@@ -26,6 +27,10 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
     message("Using MegaMUGA markers for calculating probabilities")
     url <- "https://figshare.com/ndownloader/files/9311164"
     code_file <- "MM/MM_allelecodes.csv"
+  }
+
+  if (length(tissues) == 0) {
+    tissues <- "a"
   }
 
   ## Pull relevant files for MUGA
@@ -78,7 +83,12 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   message("calculating genoprobs")
   pr <- qtl2::calc_genoprob(ctrl, map, error_prob = 0.002, cores = 4)
 
-  saveRDS(pr, paste0(ogDir,"/", probsOut))
+  probs_list <- list()
+  for (tissue in tissues) {
+    probs_list[[tissue]] <- pr
+  }
+
+  saveRDS(probs_list, paste0(ogDir,"/", probsOut))
   setwd(ogDir)
 }
 
