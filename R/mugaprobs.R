@@ -15,6 +15,7 @@
 #' @importFrom httr write_disk
 #' @importFrom data.table fread
 #' @importFrom qtl2 calc_genoprob
+#' @importFrom qtl2 genoprob_to_alleleprob
 #'
 mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_genoprobs.rds", tissues = c()) {
   ## Confirm type and set url to pull info from
@@ -82,10 +83,11 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   map <- ctrl$pmap
   message("calculating genoprobs")
   pr <- qtl2::calc_genoprob(ctrl, map, error_prob = 0.002, cores = 4)
+  pr_allele <- qtl2::genoprob_to_alleleprob(pr)
 
   probs_list <- list()
   for (tissue in tissues) {
-    probs_list[[tissue]] <- pr
+    probs_list[[tissue]] <- pr_allele
   }
 
   saveRDS(probs_list, paste0(ogDir,"/", probsOut))
