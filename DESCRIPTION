@@ -47,6 +47,7 @@ Suggests:
 Config/testthat/edition: 3
 Collate: 
     'annotatePeaks.R'
+    'annot_105.R'
     'background.R'
     'check_data.R'
     'demo_annot.R'

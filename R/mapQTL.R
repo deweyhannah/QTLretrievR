@@ -11,7 +11,7 @@
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #' @param localRange What is defined as "local". Default is 10e6.
-#' @param biomart String pointing to annotations file or annotations object.
+#' @param annots String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #'
@@ -38,7 +38,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   biomart, total_cores = NULL, save = "sr") {
+                   annots, total_cores = NULL, save = "sr") {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -227,7 +227,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
 
   message("adding annotations to peaks")
-  peaks_list <- annotatePeaks(maps_list, peaks_list, biomart, localRange)
+  peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
 
   if(save %in% c("sr","so")) {
     outfile <- paste0(outdir, "/", peaks_out)

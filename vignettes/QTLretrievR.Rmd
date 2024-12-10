@@ -29,7 +29,7 @@ This is the easiest way to run QTLretrievR. There are several input files requir
 
 ```{r quick_start}
 ## Passing a Genoprobs object - list of probabilities for each tissue
-## Using internal data for expr, gridFile, metadata, biomart
+## Using internal data for expr, gridFile, metadata, annots
 
 qtl_res <- runQTL(outdir = "../vignettes/", 
                   gbrs_fileLoc = list("mESC" = demo_probs),
@@ -43,7 +43,7 @@ qtl_res <- runQTL(outdir = "../vignettes/",
                   gridFile = gridfile69k, 
                   covar_factors = c("sex"),
                   metadata = demo_meta, 
-                  biomart = demo_annot, 
+                  annots = demo_annot, 
                   save_t = "ro")
 ```
 
@@ -64,7 +64,7 @@ qtl_res <- runQTL(outdir = <path/to/output/dir>,
                   gridFile = <path/to/gridfile>, 
                   covar_factors = c("Covariates"),
                   metadata = <path/to/sample/metadata>, 
-                  biomart = <path/to/annotations>, 
+                  annots = <path/to/annotations>, 
                   save = "ro"
                   )
 
@@ -122,7 +122,7 @@ head(demo_meta[which(demo_meta$ID %in% colnames(demo_counts)),])
 
 ### Annotations
 
-Currently the annotations needs to contain at a minimum `gene`, `symbol`, `chr`, `start`, and `end` columns. The `gene` column should contain the phenotype information that appears in the row names of the quantified data. In the attached example (`demo_annot`) the gene column contains ensembl gene IDs, these could be traded out for ensembl protein IDs or any other phenotype identifier.
+Currently the annotations needs to contain at a minimum `id`, `symbol`, `chr`, `start`, and `end` columns. The `id` column should contain the phenotype information that appears in the row names of the quantified data. In the attached example (`demo_annot`) the id column contains ensembl gene IDs, these could be traded out for ensembl protein IDs or any other phenotype identifier.
 
 ```{r annot_ex}
 ## Example annotation file - Note this file is all the genes for this biomart build
@@ -161,7 +161,7 @@ map_peaks <- mapQTL(outdir = "../../vignette/",
                     expr_mats = list("mESC" = demo_counts), 
                     covar_factors = c("sex"),
                     gridFile = gridfile, 
-                    biomart = demo_annot, 
+                    annots = demo_annot, 
                     save = "ro")
 
 ## Passing file locations
@@ -173,7 +173,7 @@ map_peaks <- mapQTL(outdir = "../../vignette/",
                     expr_mats = c("path/to/counts1","path/to/coounts/2"), 
                     covar_factors = c("sex"),
                     gridFile = "path/to/custom/grid",
-                    biomart = "path/to/annotations",
+                    annots = "path/to/annotations",
                     save = "ro")
 ```
 
@@ -186,7 +186,7 @@ For mediation we use the peaks, mapping information (which includes the rankZ no
 med_res <- run_mediate(peaks = map_peaks$peaks_list, 
                        mapping = map_peaks$maps_list,
                        outdir = "../../vignette", 
-                       biomart = demo_annot,
+                       annots = demo_annot,
                        suggLOD - 7, 
                        med_out = "mm39_mediation.rds", 
                        save = "ro")

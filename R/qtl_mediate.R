@@ -4,7 +4,7 @@
 #' @param mapping List of relevant mapping information for overall project
 #' @param suggLOD Suggestive LOD to use as filter for mediation. Default is 7.
 #' @param outdir String of path to output directory where mediation lists will be saved.
-#' @param biomart String pointing to annotations file or annotations object.
+#' @param annots String pointing to annotations file or annotations object.
 #' @param med_out Output file name to save mediation results for later use
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
@@ -18,25 +18,25 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, total_cores = NULL, save = "sr") {
+run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, annots, med_out, total_cores = NULL, save = "sr") {
   # mediate_env <- new.env()
   message("load annotations")
-  if (is.character(biomart)) {
-    biomart <- read.delim(biomart)
+  if (is.character(annots)) {
+    annots <- read.delim(annots)
   }
-  if ("Gene.start..bp." %in% colnames(biomart)) {
-    message("renaming biomart columns")
-    biomart <- biomart |>
-      dplyr::rename(gene = Gene.stable.ID, symbol = MGI.symbol, start = Gene.start..bp., end = Gene.end..bp., chr = Chromosome.scaffold.name)
+  if ("Gene.start..bp." %in% colnames(annots)) {
+    message("renaming annots columns")
+    annots <- annots |>
+      dplyr::rename(id = Gene.stable.ID, symbol = MGI.symbol, start = Gene.start..bp., end = Gene.end..bp., chr = Chromosome.scaffold.name)
   }
-  if ("gene.id" %in% colnames(biomart)) {
-    colnames(biomart)[which(colnames(biomart) == "gene.id")] <- "gene"
+  if ("gene.id" %in% colnames(annots)) {
+    colnames(annots)[which(colnames(annots) == "gene.id")] <- "id"
   }
-  if ("end" %in% colnames(biomart)) {
-    colnames(biomart)[which(colnames(biomart) == "end")] <- "stop"
+  if ("end" %in% colnames(annots)) {
+    colnames(annots)[which(colnames(annots) == "end")] <- "stop"
   }
-  if ("chr" %in% colnames(biomart)) {
-    colnames(biomart)[which(colnames(biomart) == "chr")] <- "chromosome"
+  if ("chr" %in% colnames(annots)) {
+    colnames(annots)[which(colnames(annots) == "chr")] <- "chromosome"
   }
 
   message("checking peaks and mapping")
@@ -82,10 +82,10 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
   }
   rm(tmp_map)
 
-  biomart_list <- list()
+  annots_list <- list()
   for (tissue in names(peaks_list)) {
-    biomart_list[[tissue]] <- biomart |>
-      dplyr::filter(gene %in% rownames(expr_list[[tissue]])) |>
+    annots_list[[tissue]] <- annots |>
+      dplyr::filter(id %in% rownames(expr_list[[tissue]])) |>
       dplyr::mutate(midpoint = (start + stop) / 2)
   }
 
@@ -100,8 +100,8 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
       # interp_bp(.) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
       dplyr::mutate(target_id = phenotype) |>
-      dplyr::filter(target_id %in% biomart_list[[tissue]]$gene)
-    qtl_target[[tissue]] <- exprZ_list[[tissue]][, biomart_list[[tissue]]$gene]
+      dplyr::filter(target_id %in% annots_list[[tissue]]$id)
+    qtl_target[[tissue]] <- exprZ_list[[tissue]][, annots_list[[tissue]]$id]
   }
 
   message("filtered peaks")
@@ -109,9 +109,9 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
   ## Run annotations
   targ_annot <- list()
   for (tissue in names(peaks_list)) {
-    # message(paste0(names(biomart_list[[tissue]]), sep = " "))
-    targ_annot[[tissue]] <- biomart_list[[tissue]] |>
-      dplyr::mutate(target_id = gene, chrom = chromosome) |>
+    # message(paste0(names(annots_list[[tissue]]), sep = " "))
+    targ_annot[[tissue]] <- annots_list[[tissue]] |>
+      dplyr::mutate(target_id = id, chrom = chromosome) |>
       dplyr::mutate(chrom = ifelse(chromosome == "MT", "M", chromosome)) |>
       dplyr::filter(!is.na(chrom)) |>
       dplyr::mutate(chr = chrom, pos = abs(stop + start) / 2)
@@ -125,8 +125,8 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, biomart, med_out, t
   for (tissue in names(exprZ_list)) {
     med_annot[[tissue]] <- targ_annot[[tissue]] |>
       dplyr::rename(mediator_id = target_id)
-    qtl_mediatior[[tissue]] <- exprZ_list[[tissue]][, biomart_list[[tissue]]$gene]
-    qtl_mediatior[[tissue]] <- qtl_mediatior[[tissue]][, med_annot[[tissue]]$gene, drop = FALSE]
+    qtl_mediatior[[tissue]] <- exprZ_list[[tissue]][, annots_list[[tissue]]$id]
+    qtl_mediatior[[tissue]] <- qtl_mediatior[[tissue]][, med_annot[[tissue]]$id, drop = FALSE]
     qtl_target[[tissue]] <- qtl_target[[tissue]][, targ_annot[[tissue]]$target_id, drop = FALSE]
     qtl_peaks[[tissue]] <- qtl_peaks[[tissue]] |>
       dplyr::filter(target_id %in% targ_annot[[tissue]]$target_id)
