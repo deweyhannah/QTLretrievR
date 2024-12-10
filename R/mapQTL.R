@@ -38,7 +38,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   annots, total_cores = NULL, save = "sr") {
+                   annots = NULL, total_cores = NULL, save = "sr") {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   if (is.list(genoprobs)) {
@@ -226,8 +226,10 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     # message(paste0(tissue, colnames(peaks_list[[tissue]]), sep = " "))
   }
 
-  message("adding annotations to peaks")
-  peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
+  if (!is.null(annots)) {
+    message("adding annotations to peaks")
+    peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
+  }
 
   if(save %in% c("sr","so")) {
     outfile <- paste0(outdir, "/", peaks_out)
