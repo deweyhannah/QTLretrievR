@@ -16,7 +16,7 @@ mapQTL(
   thrX = 5,
   gridFile = gridfile,
   localRange = 1e+07,
-  biomart,
+  annots = NULL,
   total_cores = NULL,
   save = "sr"
 )
@@ -44,7 +44,7 @@ mapQTL(
 
 \item{localRange}{What is defined as "local". Default is 10e6.}
 
-\item{biomart}{String pointing to annotations file or annotations object.}
+\item{annots}{String pointing to annotations file or annotations object.}
 
 \item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
 

@@ -7,7 +7,7 @@
 \format{
 A 46521 x 6 data frame with gene annotations from Ensembl v84.
 \describe{
-\item{gene}{Ensembl gene IDs}
+\item{id}{Ensembl gene IDs}
 \item{symbol}{Associated MGI symbol}
 \item{chr}{Chromosome of the gene}
 \item{start}{Start position (bp) on chromosome}

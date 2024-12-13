@@ -9,7 +9,7 @@ run_mediate(
   mapping,
   suggLOD = 7,
   outdir,
-  biomart,
+  annots,
   med_out,
   total_cores = NULL,
   save = "sr"
@@ -24,7 +24,7 @@ run_mediate(
 
 \item{outdir}{String of path to output directory where mediation lists will be saved.}
 
-\item{biomart}{String pointing to annotations file or annotations object.}
+\item{annots}{String pointing to annotations file or annotations object.}
 
 \item{med_out}{Output file name to save mediation results for later use}
 

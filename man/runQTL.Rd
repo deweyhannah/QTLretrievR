@@ -15,7 +15,7 @@ runQTL(
   metadata,
   expr_mats,
   covar_factors,
-  biomart,
+  annots,
   tissues = c(),
   gridFile = gridfile,
   suggLOD = 7,
@@ -45,7 +45,7 @@ runQTL(
 
 \item{covar_factors}{Vector of strings indicating additive covariates.}
 
-\item{biomart}{Annotations file. Path to location or object.}
+\item{annots}{Annotations file. Path to location or object.}
 
 \item{tissues}{Vector of strings indicating tissues in project. Ex: c("Kd","Lv") for "kidney" and "liver".}
 

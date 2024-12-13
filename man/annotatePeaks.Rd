@@ -4,14 +4,14 @@
 \alias{annotatePeaks}
 \title{Interpolate peak positions and attach annotations}
 \usage{
-annotatePeaks(map, peaks, biomart, localRange = 1e+07)
+annotatePeaks(map, peaks, annots, localRange = 1e+07)
 }
 \arguments{
 \item{map}{map_list from \link{mapQTL}.}
 
 \item{peaks}{Un-annotated peaks.}
 
-\item{biomart}{Annotations file. Path to location or object.}
+\item{annots}{Annotations file. Path to location or object.}
 
 \item{localRange}{is defined as "local". Default is 10e6.}
 }

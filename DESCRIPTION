@@ -25,6 +25,7 @@ Imports:
     DT,
     GenomicRanges,
     ggplot2,
+    httr,
     intermediate,
     purrr,
     qtl2,

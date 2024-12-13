@@ -10,7 +10,8 @@ mugaprobs(
   covar_file,
   i.files,
   genoPrefix = "gm4qtl2",
-  probsOut = "muga_interpolated_geonprobs.rds"
+  probsOut = "muga_interpolated_genoprobs.rds",
+  tissues = c()
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ mugaprobs(
 \item{genoPrefix}{prefix for the chromosome specific genotype files (excluding "_geno")}
 
 \item{probsOut}{file name to save probabilities, default is "muga_interpolated_genoprobs.rds". probs will save to directory that mugaprobs is called from.}
+
+\item{tissues}{list of tissues included in analysis. If left blank tissue will be set to "a".}
 }
 \value{
 none
