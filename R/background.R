@@ -10,7 +10,6 @@
 #' @importFrom stats qnorm
 #'
 
-
 split_map <- function(map, chr_names = NULL) {
   map <- reorder_map_table(map, chr_names = chr_names)
   pos <- as.numeric(map[, 2])
@@ -197,12 +196,12 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
     # Adjust the number of cores to use based on concurrency limit
     cores_to_use <- min(cores, max_concurrent_batches * 4)
     # get the cores to use per batch, minimum 4
-    cores_per_batch <- max(4, cores_to_use/max_concurrent_batches)
+    cores_per_batch <- max(4, floor(cores_to_use/max_concurrent_batches))
   } else{
     # can use all the cores
     cores_to_use <- cores
     # get the cores to use per batch
-    cores_per_batch <- cores_to_use/num.batches
+    cores_per_batch <- floor(cores_to_use/num.batches)
   }
 
   # Initialize an empty list to store the results
@@ -263,3 +262,5 @@ get_cores <- function(){
   }
   return(num_cores)
 }
+
+`%notin%` <- Negate(`%in%`)

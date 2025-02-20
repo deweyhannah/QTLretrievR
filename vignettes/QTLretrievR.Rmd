@@ -8,7 +8,7 @@ vignette: >
 ---
 
 <div align='center'>**Abstract**</div>
-Quantitative trait locus (QTL) analysis is a frequently used technique in omics studies to identify molecular phenotypes that have effects on what is being measured. These analyses are often computationally intensive and intimidating to those without a strong computational background, especially when samples are taken for multiple cell types that won’t be analyzed concurrently. QTLretirevR is designed to simplify and streamline the process of identifying QTL peaks, mediators of those peaks, and specific local effects. Built on `qtl2` (for peak calling and effect identification) and `intermediate` (for peak mediation), QTLretrievR is designed to use nested parallelism in order to optimize the amount of time it takes to run each analysis step. In its first version it is designed to work with raw genotype probabilities from genome reconstruction by RNA-Seq (GBRS) (or any qtl2 formatted genome probabilities) for all samples, and normalized quantification data from Collaborative Cross and Diversity Outbred mice.
+Advances in molecular phenotyping technologies, including quantitative transcriptomics and proteomics (“-omics”), have transformed biomedical research over the past two decades by providing a granular understanding of the gene regulatory networks that drive disease. Many studies have demonstrated the additional power of combining  -omics profiling with genetic mapping, an integrative approach referred to as “systems genetics”, to link population variability in complex disease phenotypes back to genetic variants and their direct effects on gene regulation (e.g. gene expression). However, these quantitative trait locus (QTL) analyses are often computationally intensive and intimidating to those without a strong computational background — especially when samples originate from multiple cell/tissue types or involve thousands of molecular phenotypes. We have developed a new R package, QTLretrievR, that aims to simplify and streamline the identification and downstream analyses of molecular QTL from genetically diverse populations such as Diversity Outbred or Collaborative Cross mice. QTLretrievR leverages existing R packages used in complex trait analysis, including the popular `qtl2` package for QTL peak calling and haplotype effect identification and the `intermediate` package for peak mediation, and employs dynamic nested parallelism to enhance the efficiency of each analysis step. Future developments will enhance the visualization functionality and data analysis options, including adding network inference methods and expanding the software to work with other mapping populations.
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -92,9 +92,11 @@ str(demo_probs)
 demo_probs[[1]][1:2,,1:2]
 ```
   
+If you have genotyping from one of the Mouse Universal Genotyping Arrays (MUGA), then you can format your probabilities using our `mugaprobs` function, a detailed example is below in the [Genoprobs](#genoprobs) section of this document.
+  
 ### Quantified Data
 
-Although the variable is named `expr_mats` any quantified molecular data can be passed to this variable. They can be passed as a vector of paths to the data (in the same order as tissues are being passed), or as a named list of matrices (named with the tissue type associated with the counts). These should be filtered, batch corrected and normalized data with the phenotype in rows and the samples in columns. See the attached `demo_counts` for an example of formatting.
+Although the variable is named `expr_mats` any quantified molecular data can be passed to this variable. They can be passed as a vector of paths to the data (in the same order as tissues are being passed), or as a named list of matrices (named with the tissue type associated with the counts). These should be filtered, batch corrected and normalized data with the phenotype in rows and the samples in columns, there is no need to rankZ transform your counts, that step occurs in `mapQTL`. See the attached `demo_counts` for an example of formatting.
 
 ```{r counts_ex}
 ## Information and partial example of quantified data
@@ -122,10 +124,10 @@ head(demo_meta[which(demo_meta$ID %in% colnames(demo_counts)),])
 
 ### Annotations
 
-Currently the annotations needs to contain at a minimum `id`, `symbol`, `chr`, `start`, and `end` columns. The `id` column should contain the phenotype information that appears in the row names of the quantified data. In the attached example (`demo_annot`) the id column contains ensembl gene IDs, these could be traded out for ensembl protein IDs or any other phenotype identifier.
+Currently the annotations needs to contain at a minimum `id`, `symbol`, `chr`, `start`, and `end` columns. The `id` column should contain the phenotype information that appears in the row names of the quantified data. In the attached example (`demo_annot`) the id column contains ensembl gene IDs, these could be traded out for ensembl protein IDs or any other phenotype identifier. The `demo_annot` file is the Ensemblv84 biomart annotations, if you are using newer expression data use `annot_105` or upload your own annotations
 
 ```{r annot_ex}
-## Example annotation file - Note this file is all the genes for this biomart build
+## Example annotation file - Note this file is all the genes for the Ensemblv84 build
 head(demo_annot)
 ```
 
@@ -133,17 +135,32 @@ head(demo_annot)
 
 If, instead of using the wrapper to run all steps at once, you wish to run each step individually (calculating/formatting the genotype probabilities, mapping/peak calling, mediation, effects) this can be done with relative ease.
 
-### Genoprobs
+### Genoprobs {#genoprobs}
 
 In order to convert the genoprobs from the GBRS output to the `qtl2` format we run a function called `genoprobably`. It pulls in the relevant files from the provided location and splits samples into the tissues they are derived from (the names that you pass to `tissue` should be included in the file name in some form), then puts these into a 3 dimensional format based on the markers. Once the genotype probabilities are in the 3D format `probs_3d_to_qtl2` is used to convert them to the qtl2 format. The below example shows how to run genoprobably with the 75k gridfile.
 
 ```{r genoprobably, eval=FALSE}
 ## Unevaluated Code Chunk
-probs <- genoprobably(outfile = "../../vignette/gbrs_interpolated_probs.rds", 
+probs <- genoprobably(outfile     = "../../vignette/gbrs_interpolated_probs.rds", 
                       gbrsFileLoc = "<path/to/gbrs/results>",
-                      tissues = c("tissue1","tissue2"), 
-                      gridFile = gridfile, 
-                      save = "ro")
+                      tissues     = c("tissue1","tissue2"), 
+                      gridFile    = gridfile, 
+                      save        = "ro")
+```
+
+Alternatively you can use genotyping from either GigaMUGA or MegaMUGA as your genome probabilities. In order to convert these reports to the `qtl2` format we run a function called `mugaprobs`. It loads the appropriate grid files, builds the control file, and processes the genotyping file(s) into the correct allele based format for processing. The below example shows how to run `mugaprobs` from a sample GigaMUGA genotyping run.
+
+```{r mugaprobs, eval=FALSE}
+## Unevaluated Code Chunk
+
+probs <- mugaprobs(type       = "GM",                                   # Did your genotyping come from GigaMUGA or MegaMUGA?
+                   covarLoc   = "/path/to/covariate/file/", 
+                   covar_file = "name_of_covariate_file.tsv", 
+                   i.files    = c("final_report_1", "final_report_2"),  # If you already have chromosome specific genotype files you can pass that directory as a string here
+                   genoPrefix = "gm4qtl2", 
+                   probsOut   = "muga_interpolated_genoprobs.rds",      # This is the file that your probabilites will be saved to
+                   tissues    = c("tissue1", "tissue2"))                # All probabilities will be attributed to each tissue, this is just to put it in the format needed for `mapQTL`
+
 ```
 
 ### Mapping and Peak Calling
@@ -153,28 +170,28 @@ The mapping and peak calling steps are combined in our pipeline. We use the geno
 ```{r mapQTL, eval=FALSE}
 ## Unevaluated Code Chunk
 ## Passing objects:
-map_peaks <- mapQTL(outdir = "../../vignette/", 
-                    peaks_out = "mm39_peaks.rds",
-                    map_out = "mm39_map.rds", 
-                    genoprobs = probs, 
-                    samp_meta = demo_meta,
-                    expr_mats = list("mESC" = demo_counts), 
+map_peaks <- mapQTL(outdir        = "../../vignette/", 
+                    peaks_out     = "mm39_peaks.rds",
+                    map_out       = "mm39_map.rds", 
+                    genoprobs     = probs, 
+                    samp_meta     = demo_meta,                   # Make sure that your ID column is named "ID"
+                    expr_mats     = list("mESC" = demo_counts),  # Pass your counts as a named list
                     covar_factors = c("sex"),
-                    gridFile = gridfile, 
-                    annots = demo_annot, 
-                    save = "ro")
+                    gridFile      = gridfile, 
+                    annots        = demo_annot,                  # See the Annotations section above for notes on this
+                    save          = "ro")                        # return only - other options are "so" (save only) and "sr" (save and return)
 
 ## Passing file locations
-map_peaks <- mapQTL(outdir = "../../vignette/", 
-                    peaks_out = "mm39_peaks.rds",
-                    map_out = "mm39_map.rds", 
-                    genoprobs = "path/to/saved/probs.rds",
-                    samp_meta = "path/to/sample/metadata",
-                    expr_mats = c("path/to/counts1","path/to/coounts/2"), 
+map_peaks <- mapQTL(outdir        = "../../vignette/", 
+                    peaks_out     = "mm39_peaks.rds",
+                    map_out       = "mm39_map.rds", 
+                    genoprobs     = "path/to/saved/probs.rds",
+                    samp_meta     = "path/to/sample/metadata",
+                    expr_mats     = c("path/to/counts1","path/to/coounts/2"), 
                     covar_factors = c("sex"),
-                    gridFile = "path/to/custom/grid",
-                    annots = "path/to/annotations",
-                    save = "ro")
+                    gridFile      = "path/to/custom/grid",
+                    annots        = "path/to/annotations",
+                    save          = "ro")
 ```
 
 ### Mediation
@@ -183,13 +200,13 @@ For mediation we use the peaks, mapping information (which includes the rankZ no
 
 ```{r qtl_mediate, eval=FALSE}
 ## Unevaluated Code Chunk
-med_res <- run_mediate(peaks = map_peaks$peaks_list, 
+med_res <- run_mediate(peaks   = map_peaks$peaks_list, 
                        mapping = map_peaks$maps_list,
-                       outdir = "../../vignette", 
-                       annots = demo_annot,
-                       suggLOD - 7, 
+                       outdir  = "../../vignette", 
+                       annots  = demo_annot,
+                       suggLOD = 7, 
                        med_out = "mm39_mediation.rds", 
-                       save = "ro")
+                       save    = "ro")
 ```
 
 ### Effects
@@ -199,11 +216,11 @@ For mediation we use the peaks, mapping information (which includes the rankZ no
 ```{r qtl_effects, eval=FALSE}
 ## Unevaluated Code Chunk
 effects <- qtl_effects(mapping = map_peaks$maps_list, 
-                       peaks = map_peaks$peaks_list,
+                       peaks   = map_peaks$peaks_list,
                        suggLOD = 8, 
-                       outdir = "../../vignette", 
+                       outdir  = "../../vignette", 
                        outfile = "mm39_effects.rds", 
-                       save = "ro")
+                       save    = "ro")
 ```
 
 

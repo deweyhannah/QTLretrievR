@@ -2,6 +2,7 @@
 
 export(annotatePeaks)
 export(genoprobably)
+export(gxeQTL)
 export(mapQTL)
 export(mugaprobs)
 export(plot_eqtlmap)
