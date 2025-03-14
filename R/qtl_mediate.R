@@ -150,10 +150,14 @@ run_mediate <- function(peaks, mapping, suggLOD = 7, outdir, annots, med_out, to
   message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
   res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
-                QTL.peaks = qtl_peaks, med_annot = med_annot, QTL.mediator = qtl_mediatior,
-                targ_covar = targ_covar, QTL.target = qtl_target, probs = probs,
-                mapDat = map_dat2,
-                cores = each_tissue
+                QTL.peaks    = qtl_peaks,
+                med_annot    = med_annot,
+                QTL.mediator = qtl_mediatior,
+                targ_covar   = targ_covar,
+                QTL.target   = qtl_target,
+                probs        = probs,
+                mapDat       = map_dat2,
+                cores        = each_tissue
     )
   }
   doParallel::stopImplicitCluster()
@@ -262,9 +266,11 @@ batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks, med_ann
         LOD
       )
 
-    return(med)
-
+    # return(med)
+    med.scan[[i]] <- med
     #   }
   }
+  med.scan2 <- dplyr::bind_rows(med.scan)
+  return(med.scan2)
   # parallel::stopCluster(cl)
 }
