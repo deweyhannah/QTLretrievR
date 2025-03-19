@@ -9,7 +9,6 @@
 #'   \item{chr}{Chromosome name}
 #'   \item{pos}{Marker position in basepairs}
 #'   \item{cM}{Marker position in centiMorgan}
-#'   \item{bp}{Marker position in basepairs}
 #' }
 #'
 #' @source Updated GBRS software, see "https://github.com/TheJacksonLaboratory/cs-nf-pipelines/wiki/GBRS-Pipeline-ReadMe" for details.

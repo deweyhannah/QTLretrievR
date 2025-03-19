@@ -7,7 +7,7 @@
 qtl_effects(
   mapping,
   peaks,
-  suggLOD = 8,
+  suggLOD = 6,
   outdir,
   outfile,
   total_cores,
@@ -19,7 +19,7 @@ qtl_effects(
 
 \item{peaks}{List of dataframes containing QTL peaks for each tissue}
 
-\item{suggLOD}{Suggestive LOD threshold. Default is 7.}
+\item{suggLOD}{Suggestive LOD threshold. Default is 6.}
 
 \item{outdir}{String of path to output directory where effects lists will be saved.}
 

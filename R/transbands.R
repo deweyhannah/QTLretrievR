@@ -2,8 +2,8 @@
 #'
 #' @param map_dat Mapping information for each marker used to determine genoprobs
 #' @param peaks List of annotated peaks for each tissue
-#' @param sigLOD Significant LOD threshold. Default is 8.
-#' @param suggLOD Suggestive LOD threshold. Default is 7.
+#' @param sigLOD Significant LOD threshold. Default is 7.5.
+#' @param suggLOD Suggestive LOD threshold. Default is 6.
 #' @param outdir String to output directory where plots should be saved
 #' @param psave Whether or not to save plots to png. Default is TRUE.
 #'
@@ -25,7 +25,7 @@
 #' @importFrom dplyr select rename group_by summarize filter mutate
 #' @importFrom GenomicRanges GRanges countOverlaps seqnames start end slidingWindows nearest
 #'
-transbands <- function(map_dat, peaks, sigLOD = 8, suggLOD = 7, outdir, psave = T) {
+transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = T) {
   ## Set up chromosome midpoints and offset
   uchr <- c(as.character(1:19), "X")
   cl <- dplyr::select(map_dat, chr, pos_bp) |>
@@ -171,7 +171,7 @@ transbands <- function(map_dat, peaks, sigLOD = 8, suggLOD = 7, outdir, psave = 
       ggplot2::theme(axis.text = ggplot2::element_text(size = 10))
 
     if (psave == TRUE) {
-      ggplot2::ggsave(paste0("hotspots_", tissue, ".png"), plot = trans_band_plot[[tissue]], device = png, path = outdir)
+      ggplot2::ggsave(paste0("hotspots_", tissue, ".png"), plot = trans_band_plot[[tissue]], device = "png", path = outdir)
     }
   }
   table_plot <- tibble::lst(bands.rna, trans_band_plot)

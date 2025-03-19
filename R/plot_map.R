@@ -2,7 +2,7 @@
 #'
 #' @param map_dat Mapping information for each marker used to determine genoprobs
 #' @param peaks List of annotated peaks for each tissue
-#' @param sigLOD Significant LOD threshold. Default is 8.
+#' @param sigLOD Significant LOD threshold. Default is 7.5.
 #' @param outdir String to output directory where plots should be saved
 #' @param outbase File name to save plots to
 #' @param psave Whether or not to save plots to png. Default is TRUE.
@@ -18,7 +18,7 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 8, outdir, outbase, psave = T, unit = "bp") {
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = T, unit = "bp") {
   if (psave == TRUE) {
     if (is.null(outdir) & !is.null(outbase)) {
       stop("Attempting to save plot and missing output directory")
@@ -111,7 +111,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 8, outdir, outbase, psave = T,
 
     ## Save file if wanted
     if (psave == TRUE) {
-      ggplot2::ggsave(paste0(outbase, "_lod", sigLOD, "_", tissue, ".png"), eqtl_map, device = png, path = outdir)
+      ggplot2::ggsave(paste0(outbase, "_lod", sigLOD, "_", tissue, ".png"), eqtl_map, device = "png", path = outdir)
     }
   }
   return(peak_map)

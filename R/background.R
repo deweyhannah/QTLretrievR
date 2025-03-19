@@ -243,22 +243,34 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
 
 get_cores <- function(){
-  # get the total number of cores that are available for each OS
-  if (Sys.info()['sysname'] == "Windows") {
-    num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-    message(paste0("Working in Windows and there are ", num_cores, " cores in total."))
+  if (Sys.getenv("SLURM_NTASKS") != "" && Sys.getenv("SLURM_CPUS_PER_TASK") != "") {
+    # Get the number of tasks and the number of CPUs per task
+    num_tasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
+    cpus_per_task <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK"))
+
+    # Calculate total number of cores
+    num_cores <- num_tasks * cpus_per_task
+    message(paste0("SLURM job detected, using ", num_cores, " cores (", num_tasks, " tasks, ", cpus_per_task, " cores per task)."))
+
   }
-  else if (Sys.info()['sysname'] == "Linux"){
-    num_cores <- as.numeric(system("nproc", intern = TRUE))
-    message(paste0("Working in Linux and there are ", num_cores, " cores in total."))
-  }
-  else if(Sys.info()['sysname'] == "Darwin" ){
-    num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-    message(paste0("Working in MacOS and there are ", num_cores, " cores in total."))
-  }
-  else{
-    num_cores <- 1
-    message(paste0("Unknown OS using only 1 core."))
+  else {
+    # get the total number of cores that are available for each OS
+    if (Sys.info()['sysname'] == "Windows") {
+      num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
+      message(paste0("Working in Windows and there are ", num_cores, " cores in total."))
+    }
+    else if (Sys.info()['sysname'] == "Linux"){
+      num_cores <- as.numeric(system("nproc", intern = TRUE))
+      message(paste0("Working in Linux and there are ", num_cores, " cores in total."))
+    }
+    else if(Sys.info()['sysname'] == "Darwin" ){
+      num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
+      message(paste0("Working in MacOS and there are ", num_cores, " cores in total."))
+    }
+    else{
+      num_cores <- 1
+      message(paste0("Unknown OS using only 1 core."))
+    }
   }
   return(num_cores)
 }

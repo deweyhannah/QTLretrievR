@@ -4,16 +4,16 @@
 \alias{transbands}
 \title{Identify distal hotspots above a suggestive and significant LOD score.}
 \usage{
-transbands(map_dat, peaks, sigLOD = 8, suggLOD = 7, outdir, psave = T)
+transbands(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = T)
 }
 \arguments{
 \item{map_dat}{Mapping information for each marker used to determine genoprobs}
 
 \item{peaks}{List of annotated peaks for each tissue}
 
-\item{sigLOD}{Significant LOD threshold. Default is 8.}
+\item{sigLOD}{Significant LOD threshold. Default is 7.5.}
 
-\item{suggLOD}{Suggestive LOD threshold. Default is 7.}
+\item{suggLOD}{Suggestive LOD threshold. Default is 6.}
 
 \item{outdir}{String to output directory where plots should be saved}
 

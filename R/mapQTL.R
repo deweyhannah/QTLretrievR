@@ -41,6 +41,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
                    annots = NULL, total_cores = NULL, save = "sr") {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
+  # message(paste("We are now checking your genoprobs. The genoprobs you are passing are a: ", class(genoprobs)))
   if (is.list(genoprobs)) {
     tmp_probs <- check_data(genoprobs, type = "genoprobs")
   }
@@ -49,6 +50,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
   probs_list <- tmp_probs
   rm(tmp_probs)
+
+  # message("Probabilities loaded")
 
   ## Check inputs
 
@@ -65,6 +68,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     stop("Please provide at least one covariate for model")
   }
 
+  # message("Inputs Checked")
+
   ## Modify Probs and Determine Kinship
   #if( is.null(total_cores)) total_cores <- get_cores()
   qtlprobs <- probs_list
@@ -74,6 +79,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     # qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
     kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = 1)
   }
+
+  # message("kinship_calculated")
 
   ## Create maps
   # message(gridFile)

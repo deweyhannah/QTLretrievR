@@ -66,6 +66,7 @@ check_data <- function(x, type = "") {
 
   ## Run checks
   if (type == "genoprobs") {
+    message("checking probabilities")
     stopifnot(is.list(probs_list))
     for (tissue in names(probs_list)) {
       stopifnot(names(probs_list[[tissue]]) == c(1:19,"X"))

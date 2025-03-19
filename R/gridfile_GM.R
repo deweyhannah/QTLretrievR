@@ -9,7 +9,6 @@
 #'   \item{chr}{Chromosome name}
 #'   \item{pos}{Marker position in basepairs}
 #'   \item{cM}{Marker position in centiMorgan}
-#'   \item{bp}{Marker position in basepairs}
 #' }
 #'
 #' @source https://raw.githubusercontent.com/kbroman/MUGAarrays/main/UWisc/gm_uwisc_v4.csv.

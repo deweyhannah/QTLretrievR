@@ -7,7 +7,7 @@
 plot_eqtlmap(
   map_dat,
   peaks,
-  sigLOD = 8,
+  sigLOD = 7.5,
   outdir,
   outbase,
   psave = T,
@@ -19,7 +19,7 @@ plot_eqtlmap(
 
 \item{peaks}{List of annotated peaks for each tissue}
 
-\item{sigLOD}{Significant LOD threshold. Default is 8.}
+\item{sigLOD}{Significant LOD threshold. Default is 7.5.}
 
 \item{outdir}{String to output directory where plots should be saved}
 
