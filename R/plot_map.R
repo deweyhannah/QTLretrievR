@@ -6,8 +6,8 @@
 #' @param outdir String to output directory where plots should be saved
 #' @param outbase File name to save plots to
 #' @param psave Whether or not to save plots to png. Default is TRUE.
-#' @param unit Units for start/stop/midpoint from annotations. One of "bp" or "mbp".
-#' Default is "bp"
+#' @param unit Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"
+#' @param map_col Map Color. Default is "blue3"
 #'
 #' @return A list of peak maps (ggplot objects) for each tissue
 #'
@@ -18,7 +18,7 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = T, unit = "bp") {
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = T, unit = "bp", map_col = "blue3") {
   if (psave == TRUE) {
     if (is.null(outdir) & !is.null(outbase)) {
       stop("Attempting to save plot and missing output directory")
@@ -84,7 +84,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = 
           dplyr::filter(lod > sigLOD),
         ggplot2::aes(x = cumsum_bp_peak, y = cumsum_bp_gene),
         size = 2,
-        col = "blue3",
+        col = map_col,
         inherit.aes = FALSE
       ) +
       ggpubr::theme_pubclean(base_size = 16) +

@@ -11,7 +11,8 @@ plot_eqtlmap(
   outdir,
   outbase,
   psave = T,
-  unit = "bp"
+  unit = "bp",
+  map_col = "blue3"
 )
 }
 \arguments{
@@ -27,8 +28,9 @@ plot_eqtlmap(
 
 \item{psave}{Whether or not to save plots to png. Default is TRUE.}
 
-\item{unit}{Units for start/stop/midpoint from annotations. One of "bp" or "mbp".
-Default is "bp"}
+\item{unit}{Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"}
+
+\item{map_col}{Map Color. Default is "blue3"}
 }
 \value{
 A list of peak maps (ggplot objects) for each tissue
