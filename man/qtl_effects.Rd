@@ -10,7 +10,7 @@ qtl_effects(
   suggLOD = 6,
   outdir,
   outfile,
-  total_cores,
+  total_cores = NULL,
   save = "sr"
 )
 }
@@ -32,7 +32,6 @@ qtl_effects(
 \value{
 A list containing: \itemize{
 \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
-\item{effects_std}{QTL effect coefficients from scan along one chromosme. Output from \code{\link[qtl2:scan1coef]{qtl2::scan1coef()}}}
 \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 }
 \description{

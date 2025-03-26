@@ -4,7 +4,6 @@
 #' @param peaks List of annotated peaks for each tissue
 #' @param sigLOD Significant LOD threshold. Default is 7.5.
 #' @param outdir String to output directory where plots should be saved
-#' @param outbase File name to save plots to
 #' @param psave Whether or not to save plots to png. Default is TRUE.
 #' @param unit Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"
 #' @param map_col Map Color. Default is "blue3"
@@ -18,16 +17,13 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = T, unit = "bp", map_col = "blue3") {
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, psave = T, unit = "bp", map_col = "blue3") {
   if (psave == TRUE) {
-    if (is.null(outdir) & !is.null(outbase)) {
+    if (is.null(outdir)) {
       stop("Attempting to save plot and missing output directory")
     }
-    if (!is.null(outdir) & is.null(outbase)) {
-      stop("Attempting to save plot and missing base file name")
-    }
-    if (!is.null(outdir) & !is.null(outbase)) {
-      message(paste0("saving plots to: ", outdir, "/", outbase, "_lod", sigLOD, "_<tissue>.png"))
+    if (!is.null(outdir)) {
+      message(paste0("saving plots to: ", outdir, "/", "eqtl_map_lod", sigLOD, "_<tissue>.png"))
     }
   }
 
@@ -102,6 +98,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = 
       ) +
       ggplot2::theme(
         axis.text = ggplot2::element_text(size = 10),
+        axis.title = ggplot2::element_text(size = 16),
         panel.grid.major.x = ggplot2::element_blank(),
         panel.grid.major.y = ggplot2::element_blank()
       )
@@ -111,7 +108,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, outbase, psave = 
 
     ## Save file if wanted
     if (psave == TRUE) {
-      ggplot2::ggsave(paste0(outbase, "_lod", sigLOD, "_", tissue, ".png"), eqtl_map, device = "png", path = outdir)
+      ggplot2::ggsave(paste0("eqtl_map_lod", sigLOD, "_", tissue, ".png"), eqtl_map, device = "png", path = outdir, width = 3072, height = 3072, units = "px")
     }
   }
   return(peak_map)

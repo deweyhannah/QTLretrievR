@@ -24,7 +24,6 @@
 #' @importFrom dplyr filter select slice_sample
 #' @importFrom tibble lst
 #'
-#' @examples
 LOD_thld <- function(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.size = 5) {
   ## Check that mapping object is valid
   if (is.list(mapping)) {

@@ -10,7 +10,6 @@
 #'
 #' @return A list containing: \itemize{
 #'  \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from [qtl2::scan1blup()]}
-#'  \item{effects_std}{QTL effect coefficients from scan along one chromosme. Output from [qtl2::scan1coef()]}
 #'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 #' @export
 #'
@@ -23,7 +22,7 @@
 #' @importFrom tibble lst
 #'
 
-qtl_effects <- function(mapping, peaks, suggLOD = 6, outdir, outfile, total_cores, save = "sr") {
+qtl_effects <- function(mapping, peaks, suggLOD = 6, outdir, outfile, total_cores = NULL, save = "sr") {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")

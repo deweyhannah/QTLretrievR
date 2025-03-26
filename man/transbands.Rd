@@ -4,7 +4,15 @@
 \alias{transbands}
 \title{Identify distal hotspots above a suggestive and significant LOD score.}
 \usage{
-transbands(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = T)
+transbands(
+  map_dat,
+  peaks,
+  sigLOD = 7.5,
+  suggLOD = 6,
+  outdir,
+  psave = TRUE,
+  color = "blue3"
+)
 }
 \arguments{
 \item{map_dat}{Mapping information for each marker used to determine genoprobs}
@@ -18,6 +26,8 @@ transbands(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = T)
 \item{outdir}{String to output directory where plots should be saved}
 
 \item{psave}{Whether or not to save plots to png. Default is TRUE.}
+
+\item{color}{Map Color. Default is "blue3"}
 }
 \value{
 A list containing: \itemize{

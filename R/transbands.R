@@ -6,6 +6,7 @@
 #' @param suggLOD Suggestive LOD threshold. Default is 6.
 #' @param outdir String to output directory where plots should be saved
 #' @param psave Whether or not to save plots to png. Default is TRUE.
+#' @param color Map Color. Default is "blue3"
 #'
 #' @return A list containing: \itemize{
 #'  \item{bands.rna}{A list of tibbles containing hotspot information for each tissue
@@ -25,7 +26,7 @@
 #' @importFrom dplyr select rename group_by summarize filter mutate
 #' @importFrom GenomicRanges GRanges countOverlaps seqnames start end slidingWindows nearest
 #'
-transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = T) {
+transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = TRUE, color = "blue3") {
   ## Set up chromosome midpoints and offset
   uchr <- c(as.character(1:19), "X")
   cl <- dplyr::select(map_dat, chr, pos_bp) |>
@@ -158,7 +159,7 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
     trans_band_plot[[tissue]] <- eqtl_counts |>
       ggplot2::ggplot() +
       ggplot2::aes(x = midpoint_offset, y = distant_rna) +
-      ggplot2::geom_bar(stat = "identity", width = 50, col = "blue3", fill = "blue3") +
+      ggplot2::geom_bar(stat = "identity", width = 50, col = color, fill = color) +
       ggpubr::theme_pubclean(base_size = 16) +
       ggplot2::scale_x_continuous(
         name = "Chr",

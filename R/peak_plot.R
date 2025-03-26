@@ -12,7 +12,6 @@
 #'
 #' @importFrom qtl2 scan1 scan1blup plot_coefCC
 #'
-#' @examples
 peak_plot <- function(mapping, tissue, pheno, saveDir, annots = NULL, effects = FALSE) {
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
