@@ -11,9 +11,9 @@
 #' @param n.perm Number of permutations to run - default 1000
 #' @param batch.size Number of genes in each parallelized batch
 #'
-#' @return A list containing: \itemize {
+#' @return A list containing: \itemize{
 #'  \item{`scan1perm` object of permutations for all selected genes}
-#'  \item{A list of: \itemize {
+#'  \item{A list of: \itemize{
 #'    \item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
 #'    \item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
 #' @export

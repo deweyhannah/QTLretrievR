@@ -20,9 +20,9 @@ LOD_thld(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.size = 5)
 \item{batch.size}{Number of genes in each parallelized batch}
 }
 \value{
-A list containing: \itemize {
+A list containing: \itemize{
 \item{\code{scan1perm} object of permutations for all selected genes}
-\item{A list of: \itemize {
+\item{A list of: \itemize{
 \item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
 \item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
 }

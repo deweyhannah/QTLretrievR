@@ -16,7 +16,7 @@
 #'  \item{results}{The mediation results from your hotspot with ranks}
 #'  \item{meds_ranked_sum}{A summary of the mediators and the number of times they are the top mediator for any given target}
 #'  \item{p}{Mediation Plot showing the LOD drop of the top 5 mediators for each target eQTL}}
-#' @export
+#'
 #'
 #' @importFrom dplyr inner_join filter left_join select group_by mutate arrange summarize ungroup n
 #' @import ggplot2
