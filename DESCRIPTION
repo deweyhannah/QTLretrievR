@@ -71,6 +71,7 @@ Collate:
     'runQTL.R'
     'transbands.R'
     'plot_map.R'
+    'pmap_mapQTL.R'
     'QTLretrievR-package.R'
 Depends: 
     R (>= 2.10)

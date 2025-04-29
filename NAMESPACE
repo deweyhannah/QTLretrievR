@@ -3,6 +3,7 @@
 export(LOD_thld)
 export(annotatePeaks)
 export(genoprobably)
+export(gxeQTL)
 export(mapQTL)
 export(mugaprobs)
 export(peak_plot)

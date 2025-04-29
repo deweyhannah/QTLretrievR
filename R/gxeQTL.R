@@ -30,6 +30,8 @@
 #'  \item{tissue_samp}{Metadata broken down for each tissue}}}
 #'  \item{peaks_list}{A list of peaks list for each tissue.}}
 #'
+#' @export
+#'
 #' @importFrom tidyr separate
 #' @importFrom dplyr mutate select
 #' @importFrom tibble as_tibble remove_rownames column_to_rownames lst
@@ -285,7 +287,7 @@ peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap, thrA = 5
   # covar_mat <- cbind(covar[[env]], exprZ_ctrl)
 
  out <- lapply(1:ncol(exprZ_env), function(x){
-    if(x %% 100 == 0){message(paste0("  --Trait ",x," out of ",ncol(tp)))}
+    if(x %% 100 == 0){message(paste0("  --Trait ",x," out of ",ncol(exprZ_env)))}
     ctrl_exp <- exprZ_ctrl[,x]
     # gather covariates
     covar <- cbind(covar[[env]], ctrl_exp)
@@ -338,7 +340,9 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
     cores_per_batch <- floor(cores_to_use/num.batches)
   }
 
-  # doParallel::registerDoParallel(cores = cores_to_use)
+  # message(cores_to_use)
+  # message(max_concurrent_batches)
+  doParallel::registerDoParallel(cores = cores_to_use)
 
   # message(paste0(names(exprZ_list), collapse = "\t"))
   # message(paste0(names(kinship_loco), collapse = "\t"))
@@ -357,63 +361,28 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
 
     # message(paste0(colnames(covars[[env]]), collapse = "\t"))
     # Run the current batch of tasks in parallel
-    # current_results <- foreach::foreach( i = current_batches)  %dopar% {
-    #   peak_gxe(i             = i,
-    #            ss            = ss,
-    #            exprZ         = exprZ_list,
-    #            kinship_loco  = kinship_loco[[env]],
-    #            genoprobs     = qtlprobs[[env]],
-    #            covar         = covars[[env]],
-    #            gmap          = gmap,
-    #            thrA          = thrA,
-    #            thrX          = thrX,
-    #            n.cores       = cores_per_batch,
-    #            ctrl          = ctrl,
-    #            env           = env,
-    #            covar_factors = covar_factors)
-    # }
-
-    current_results <- foreach::foreach( i = current_batches) %dopar% {
-      start <- ss[i] + 1
-      end <- ss[i + 1]
-
-      # message("start and end set")
-
-      exprZ_env <- exprZ_list[[env]][,start:end, drop = F]
-      exprZ_ctrl <- exprZ_list[[ctrl]][,colnames(exprZ_env), drop = F]
-
-      # message("environmental and control expressions set")
-
-      # covar_form_st <- paste("~", paste0(covar_factors, collapse = "+"), "+ exprZ_ctrl")
-      # covar_form <- as.formula(covar_form_st)
-
-      covar_mat <- cbind(covars[[env]], exprZ_ctrl)
-
-      out <- qtl2::scan1(
-        qtlprobs[[env]], #genoprobs,
-        exprZ_env,
-        kinship_loco[[env]],
-        addcovar = covar_mat,
-        cores = cores_per_batch # n.cores
-      )
-      message("Finished mapping")
-      message(timestamp())
-      peaks <- qtl2::find_peaks(out, gmap,
-                                drop = 1.5,
-                                threshold = thrA, thresholdX = thrX
-      )
-      peaks <- peaks %>%
-        dplyr::select(-lodindex) %>%
-        dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
-
-      # start_end <- tibble::lst(start, end)
+    current_results <- foreach::foreach( j = current_batches)  %dopar% {
+      # paste0("processing batch ", j)
+      peak_gxe(i             = j,
+               ss            = ss,
+               exprZ         = exprZ_list,
+               kinship_loco  = kinship_loco[[env]],
+               genoprobs     = qtlprobs[[env]],
+               covar         = covars,
+               gmap          = gmap,
+               thrA          = thrA,
+               thrX          = thrX,
+               n.cores       = cores_per_batch,
+               ctrl          = ctrl,
+               env           = env,
+               covar_factors = covar_factors)
     }
 
     # Append the current results to the overall results
     all_results <- c(all_results, current_results)
   }
 
-  # doParallel::stopImplicitCluster()
+  doParallel::stopImplicitCluster()
 
   peaks <- do.call("rbind", all_results)
 
