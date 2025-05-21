@@ -84,15 +84,15 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, psave = T, unit =
         inherit.aes = FALSE
       ) +
       ggpubr::theme_pubclean(base_size = 16) +
-      ggplot2::scale_x_discrete(
+      ggplot2::scale_x_continuous(
         name = "eQTL peak",
-        limits = chrom_lens_midpt,
+        breaks = chrom_lens_midpt,
         labels = names(chrom_lens),
         expand = ggplot2::expansion(mult = 0.02)
       ) +
-      ggplot2::scale_y_discrete(
+      ggplot2::scale_y_continuous(
         name = "Gene midpoint",
-        limits = chrom_lens_midpt,
+        breaks = chrom_lens_midpt,
         labels = names(chrom_lens),
         expand = ggplot2::expansion(mult = 0.02)
       ) +

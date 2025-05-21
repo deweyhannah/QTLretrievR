@@ -148,7 +148,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     stop("Chosen factors are not in sample metadata. Please check factors and sample metadata for missing or misspelled elements")
   }
   for (fact in covar_factors) {
-    sample_details[, fact] <- as.factor(sample_details[, fact])
+    sample_details[, fact] <- as.factor(sample_details[[fact]])
   }
 
   ## Reorganize and calculate rankZ for expression matrices
