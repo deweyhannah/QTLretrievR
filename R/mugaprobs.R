@@ -5,7 +5,8 @@
 #' @param covar_file covariate file including at minimum the sex (sex) and generation (ngen) of each sample, this needs to be a .csv file
 #' @param i.files either a string of the directory where the chromosome specific genotype files are or a list of final report files to process - if passing the final report files they need to be either unzipped or in .gz format
 #' @param genoPrefix prefix for the chromosome specific genotype files (excluding "_geno")
-#' @param probsOut file name to save probabilities, default is "muga_interpolated_genoprobs.rds". probs will save to directory that mugaprobs is called from.
+#' @param probsOut file name to save probabilities, default is "muga_interpolated_genoprobs.rds".
+#' @param saveDir complete path (**not** relative) to save directory. Default is current directory.
 #' @param tissues list of tissues included in analysis. If left blank tissue will be set to "a".
 #'
 #' @return none
@@ -17,7 +18,7 @@
 #' @importFrom qtl2 calc_genoprob
 #' @importFrom qtl2 genoprob_to_alleleprob
 #'
-mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_genoprobs.rds", tissues = c()) {
+mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_genoprobs.rds", saveDir = getwd(), tissues = c()) {
   ## Confirm type and set url to pull info from
   if(type == "GM") {
     message("Using GigaMUGA markers for calculating probabilities")
@@ -33,6 +34,8 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   if (length(tissues) == 0) {
     tissues <- "a"
   }
+
+  ogDir <- getwd()
 
   ## Pull relevant files for MUGA
   temp_dir <- tempdir()
@@ -50,7 +53,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   }
 
   ## Get current directory to go back after processing and move to temp directory
-  ogDir <- getwd()
+  # ogDir <- getwd()
   setwd(temp_dir)
 
   ## Bring chromosome specific genotype files to temp directory
@@ -90,8 +93,9 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
     probs_list[[tissue]] <- pr_allele
   }
 
-  saveRDS(probs_list, paste0(ogDir,"/", probsOut))
   setwd(ogDir)
+  saveRDS(probs_list, paste0(saveDir,"/", probsOut))
+  # setwd(ogDir)
 }
 
 
