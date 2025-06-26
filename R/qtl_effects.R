@@ -184,9 +184,9 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars, cor
   effects_blup <- (effects_blup_tmp[, haps])
   # effects_std <- (effects_coef_tmp[, haps])
 
-  # effect_out <- tibble::lst(tissue, effects_blup, effects_std)
-  # return(effect_out)
-  return(effects_blup)
+  effect_out <- tibble::lst(tissue, effects_blup)
+  return(effect_out)
+  # return(effects_blup)
 }
 
 blup_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars, cores) {
