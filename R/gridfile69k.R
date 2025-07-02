@@ -1,6 +1,6 @@
 #' Grid Map
 #'
-#' 69k grid map for mm39 genome assembly.
+#' 69k genetic and physical map for mm39 genome assembly.
 #'
 #' @docType data
 #' @name gridfile69k

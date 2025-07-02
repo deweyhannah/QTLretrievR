@@ -1,10 +1,10 @@
 #' Grid Map
 #'
-#' MegaMUGA grid map for mm39 genome assembly.
+#' MegaMUGA genetic and physical map for mm39 genome assembly.
 #'
 #' @docType data
 #' @name gridfile_MM
-#' @format A 11125 x 4 data frame with marker names included as row names:
+#' @format A 11125 x 3 data frame with marker names included as row names:
 #' \describe{
 #'   \item{chr}{Chromosome name}
 #'   \item{pos}{Marker position in basepairs}
