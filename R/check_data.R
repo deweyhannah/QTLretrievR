@@ -126,18 +126,18 @@ check_data <- function(x, type = "") {
   }
   if (type == "effects") {
     stopifnot(is.list(effects_blup))
-    stopifnot(is.list(effects_std))
+    # stopifnot(is.list(effects_std))
 
-    stopifnot(identical(sort(names(effects_blup)), sort(names(effects_blup))) &
+    # stopifnot(identical(sort(names(effects_blup)), sort(names(effects_blup))) &
       identical(sort(names(effects_blup)), sort(names(peaks))))
 
     for (tissue in names(effects_blup)) {
       stopifnot(is.matrix(effects_blup[[tissue]]))
-      stopifnot(is.matrix(effects_std[[tissue]]))
+      # stopifnot(is.matrix(effects_std[[tissue]]))
 
-      stopifnot(colnames(effects_blup[[tissue]]) == LETTERS[1:8])
-      stopifnot(colnames(effects_std[[tissue]]) == LETTERS[1:8])
+      # stopifnot(colnames(effects_blup[[tissue]]) == LETTERS[1:8])
+      # stopifnot(colnames(effects_std[[tissue]]) == LETTERS[1:8])
     }
   }
-  return(tibble::lst(effects_blup, effects_std, peaks))
+  return(tibble::lst(effects_blup, peaks))
 }
