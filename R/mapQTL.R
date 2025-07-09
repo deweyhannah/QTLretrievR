@@ -14,6 +14,7 @@
 #' @param annots String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
+#' @param rz Logical - is your phenotype data already rankZ transformed? Default is FALSE
 #'
 #' @return A list containing: \itemize{
 #'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
@@ -38,7 +39,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   annots = NULL, total_cores = NULL, save = "sr") {
+                   annots = NULL, total_cores = NULL, save = "sr", rz = F) {
   ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
   ## Load probs
   # message(paste("We are now checking your genoprobs. The genoprobs you are passing are a: ", class(genoprobs)))
@@ -50,6 +51,12 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
   probs_list <- tmp_probs
   rm(tmp_probs)
+
+  if (!is.null(annots)) {
+    if (is.character(annots)) {
+      annots <- read.delim(annots, stringsAsFactors = F, header = T)
+    }
+  }
 
   # message("Probabilities loaded")
 
@@ -135,7 +142,25 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     }
   }
 
+  if (rz) {
+    message("rankZ transformed counts provided")
+    for (tissue in names(expr_list)) {
+      expr_list[[tissue]] <- t(expr_list[[tissue]])
+    }
+  }
+
   message("expression loaded")
+
+  if (!is.null(annots)) {
+    for (tissue in names(expr_list)) {
+      if (length(intersect(rownames(expr_list[[tissue]]), annots$id)) == 0) {
+        stop(paste0("Phenotypes in ", tissue, " not present in annotations file. Please check phenotype names in counts."))
+      }
+      if (length(intersect(rownames(expr_list[[tissue]]), annots$id)) < nrow(expr_list[[tissue]])) {
+        message(paste0("Not all phenotypes in ", tissue, " are present in annotations file. Not all phenotypes will be annotated."))
+      }
+    }
+  }
 
   ## Sample Details
   if (is.character(samp_meta)) {
@@ -153,16 +178,21 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   ## Reorganize and calculate rankZ for expression matrices
   exprZ_list <- list()
-  for (tissue in names(expr_list)) {
-    samps_keep <- intersect(rownames(probs_list[[tissue]][[1]]), colnames(expr_list[[tissue]]))
-    message(paste0("Working with ", length(samps_keep), " samples and ", nrow(expr_list[[tissue]])," genes in ", tissue, "."))
-    expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
-    exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
+  if (rz) {
+    for (tissue in names(expr_list)) {
+      exprZ_list[[tissue]] <- t(expr_list[[tissue]])
+    }
+  } else {
+    for (tissue in names(expr_list)) {
+      samps_keep <- intersect(rownames(probs_list[[tissue]][[1]]), colnames(expr_list[[tissue]]))
+      message(paste0("Working with ", length(samps_keep), " samples and ", nrow(expr_list[[tissue]])," genes in ", tissue, "."))
+      expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
+      exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
+    }
   }
 
-  std <- standardize(expr_list, exprZ_list, sample_details, tissues = names(expr_list))
+  std <- standardize(expr_list, sample_details, tissues = names(expr_list))
   expr_list <- std$expr
-  exprZ_list <- std$exprZ
   tissue_samp <- std$tissue_samp
 
   message("rankZ normalized")

@@ -17,6 +17,7 @@
 #' @param localRange What is defined as "local". Default is 10e6.
 #' @param total_cores Number of available cores to use. Default is NULL.
 #' @param save_t Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
+#' @param rz_t Logical. Are the counts already rankZ transformed? Default is FALSE.
 #'
 #' @return A list containing \itemize{
 #' \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -32,7 +33,7 @@
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, annots, tissues = c(),
-                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL, save_t = "sr") {
+                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL, save_t = "sr", rz_t = F) {
   ## Check oudir
   if (length(outdir) == 0 | !dir.exists(outdir)) {
     message("Invalid or no directory provided. Making an output file directory in the current working directory.")

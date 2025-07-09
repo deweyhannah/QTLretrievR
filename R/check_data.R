@@ -128,8 +128,7 @@ check_data <- function(x, type = "") {
     stopifnot(is.list(effects_blup))
     # stopifnot(is.list(effects_std))
 
-    # stopifnot(identical(sort(names(effects_blup)), sort(names(effects_blup))) &
-      identical(sort(names(effects_blup)), sort(names(peaks))))
+    stopifnot(identical(sort(names(effects_blup)), sort(names(peaks))))
 
     for (tissue in names(effects_blup)) {
       stopifnot(is.matrix(effects_blup[[tissue]]))

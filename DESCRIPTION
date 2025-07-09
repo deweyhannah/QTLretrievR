@@ -60,6 +60,8 @@ Collate:
     'gridfile69k.R'
     'gridfile_GM.R'
     'gridfile_MM.R'
+    'gridfile_mini.R'
+    'gridfile_quilt.R'
     'gxeQTL.R'
     'LOD_thld.R'
     'mapQTL.R'
