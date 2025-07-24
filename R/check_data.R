@@ -113,7 +113,8 @@ check_data <- function(x, type = "") {
     stopifnot(is.list(peaks_list))
     for (tissue in names(peaks_list)) {
       stopifnot(is.data.frame(peaks_list[[tissue]]))
-      stopifnot(all(c("phenotype", "peak_chr", "peak_cM", "lod", "ci_lo", "ci_hi") %in% colnames(peaks_list[[tissue]])))
+      stopifnot(all(c("phenotype", "peak_chr", "lod", "ci_lo", "ci_hi") %in% colnames(peaks_list[[tissue]])))
+      stopifnot(any(c("peak_cM", "peak_bp") %in% colnames(peaks_list[[tissue]])))
     }
     return(peaks_list)
   }

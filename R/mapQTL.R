@@ -1,28 +1,33 @@
 #' Generate mapping data and peaks for QTL analysis
+#' @description
+#' This function performs QTL mapping across multiple tissues, generating genome-wide LOD scores and identifying significant peaks. It supports parallel processing and flexible input formats for expression data and covariates.
 #'
-#' @param outdir Output directory where files mapping and peaks lists should be saved.
-#' @param peaks_out String indicating the name for output peaks file. Should end in .rds.
-#' @param map_out String indicating the name for output mapping file. Should end in .rds.
-#' @param genoprobs Either a string with the name of the genoprobs file, or the genoprobs object.
+#'
+#' @param genoprobs A `qtl2`-formatted genotype probabilities object in list form, one probabilities object per tissue, or a character path to a saved `.rds` file containing one.
 #' @param samp_meta Sample metadata. Either a string pointing to the file, or the object itself.
-#' @param expr_mats Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.
-#' @param covar_factors Additive covariate factors. These need to be columns in the factor metadata.
+#' @param expr_mats List of expression matrices (objects), or character paths to the file. One matrix per tissue. The order *must match* the tissue order in `genoprobs`
+#' @param covar_factors Character vector of column names in `samp_meta` to be used as additive covariates.
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #' @param localRange What is defined as "local". Default is 10e6.
+#' @param outdir Output directory where files mapping and peaks lists should be saved. Default is NULL.
+#' @param peaks_out String indicating the name for output peaks file. Should end in ".rds". Default is "peaks.rds"
+#' @param map_out String indicating the name for output mapping file. Should end in ".rds". Default is "map.rds"
 #' @param annots String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
-#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
-#' @param rz Logical - is your phenotype data already rankZ transformed? Default is FALSE
+#' @param save Character. Determines output behavior: `"sr"` to save and return, `"so"` to save only, `"ro"` to return only. Default is `"sr"`.
+#' @param rz Logical. Set to `TRUE` if expression data is already rank Z-transformed. Default is `FALSE`.
+#' @param phys Logical. if `TRUE`, use the physical map for peak calling; otherwise use the genomic map. Default is `TRUE`.
+#'
 #'
 #' @return A list containing: \itemize{
 #'  \item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
 #'  \item{qtlprobs}{Genome probabilities in qtl2format}
 #'  \item{covar_list}{list of covariate matrices for each tissue}
 #'  \item{expr_list}{Original normalized expression data for each tissue}
-#'  \item{exprZ_list}{Rank Z normalized expression data for each tissue}
-#'  \item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option in `qtl2::calc_kinship`}
+#'  \item{exprZ_list}{Rank Z-transformed expression data for each tissue}
+#'  \item{kinship_loco}{Kinship matrix calculated using the "loco" option in `qtl2::calc_kinship`}
 #'  \item{gmap}{Genomic map of markers}
 #'  \item{map_dat2}{Combined genomic and physical map of markers}
 #'  \item{pmap}{Physical map of markers}
@@ -38,16 +43,24 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
-                   annots = NULL, total_cores = NULL, save = "sr", rz = F) {
-  ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
+mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile,
+                   localRange = 10e6, outdir = NULL, peaks_out = "peaks.rds", map_out = "map.rds",
+                   annots = NULL, total_cores = NULL, save = "sr", rz = F, phys = T) {
+
+  ## Check save conflicts
+  if (save %in% c("sr", "so")) {
+    if (is.null(outdir)) {
+      stop("Requested Save. No output directory provided, and no default.")
+    }
+  }
+
+  ## Expression Matrices should be listed in the same order as tissues in genoprobs list
   ## Load probs
-  # message(paste("We are now checking your genoprobs. The genoprobs you are passing are a: ", class(genoprobs)))
   if (is.list(genoprobs)) {
     tmp_probs <- check_data(genoprobs, type = "genoprobs")
   }
   if (is.character(genoprobs)) {
-    tmp_probs <- check_data(paste0(outdir, "/", genoprobs), type = "genoprobs")
+    tmp_probs <- check_data(genoprobs, type = "genoprobs")
   }
   probs_list <- tmp_probs
   rm(tmp_probs)
@@ -58,9 +71,8 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     }
   }
 
-  # message("Probabilities loaded")
-
   ## Check inputs
+  ## Assumes one expression matrix per tissue, matching the order of tissues in genoprobs
 
   if (length(expr_mats) == 0) {
     stop("Please provide at least one expression matrix")
@@ -75,22 +87,15 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     stop("Please provide at least one covariate for model")
   }
 
-  # message("Inputs Checked")
-
-  ## Modify Probs and Determine Kinship
-  #if( is.null(total_cores)) total_cores <- get_cores()
+  ## Convert genotype probabilities and calculate LOCO kinship matrices for each tissue
   qtlprobs <- probs_list
   kinship_loco <- list()
   for (tissue in names(probs_list)) {
     message(tissue)
-    # qtlprobs[[tissue]] <- probs_3d_to_qtl2(probs_list[[tissue]])
     kinship_loco[[tissue]] <- qtl2::calc_kinship(qtlprobs[[tissue]], "loco", cores = 1)
   }
 
-  # message("kinship_calculated")
-
   ## Create maps
-  # message(gridFile)
   if (is.character(gridFile)) {
     grid_map <- read.delim(gridFile, stringsAsFactors = F, row.names = 1)
   } else {
@@ -98,22 +103,16 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
   map_dat <- grid_map[, c("chr", "cM", "pos")]
 
-  # markers <- dimnames(probs_list[[1]])[[3]]
   markers <- c()
   for (chrom in names(qtlprobs[[1]])) {
     markers <- c(markers, dimnames(qtlprobs[[1]][[chrom]])[[3]])
   }
   map_dat <- map_dat[markers, ]
-  # assert_that(are_equal(rownames(map_dat), markers))
   gmap <- split_map(map_dat)
   map_dat$marker <- rownames(map_dat)
 
   message("gmap complete")
 
-  # map_dat2 <- map_dat |>
-  #   tidyr::separate(marker, into = c("chrom", "pos_bp"), convert = T, remove = F) |>
-  #   dplyr::mutate(n = 1:dplyr::n()) |>
-  #   tibble::as_tibble()
   map_dat2 <- map_dat |>
     dplyr::mutate(n = 1:dplyr::n(), chrom = chr) |>
     dplyr::rename(pos_bp = pos) |>
@@ -129,7 +128,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   message("pmap complete")
 
-  ## Load expression matrices
+  ## Load expression matrices for each tissue. If input is a file path, rad it; otherwise assume its already a matrix object
   expr_list <- list()
   for (i in 1:length(expr_mats)) {
     expr <- expr_mats[i]
@@ -176,7 +175,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     sample_details[, fact] <- as.factor(sample_details[[fact]])
   }
 
-  ## Reorganize and calculate rankZ for expression matrices
+  ## Normalize expression data using rankZ transformation (unless already transformed). Align samples with genotype data.
   exprZ_list <- list()
   if (rz) {
     for (tissue in names(expr_list)) {
@@ -223,22 +222,29 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Run Batchmap
   message("calculating peaks")
 
-  ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
 
-  if( is.null(total_cores)) total_cores <- get_cores()
   available_cores <- get_cores()
+  if( is.null(total_cores)) total_cores <- available_cores
   if( total_cores > available_cores) total_cores <- available_cores
   max_genes <- max(sapply(exprZ_list, ncol)) # Calculate the maximum number of rows across all data frames in exprZ_list
   num_tissues <-  length(names(exprZ_list))
   if( max_genes < 1000){
-    cores_needed <- 8 # Limiting #of cores if there are <1000 genes in total
+    cores_needed <- 8 # Limiting # of cores if there are <1000 genes in total
   }else{
     cores_needed <- total_cores
   }
 
+  if (phys) {
+    map <- pmap
+  } else {
+    map <- gmap
+  }
+
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
-  each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues ) # Divide cores per tissue and pass onto the foreach loop
+
+  ## Divide available cores evenly across tissues for parallel peak calling
+  each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues )
 
   message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s). Does that look right? If not please set total_cores parameter to the number of available cores." ) )
 
@@ -249,10 +255,11 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
       kinship_loco,
       qtlprobs,
       covar_list,
-      gmap,
+      map,
       thrA,
       thrX,
-      each_tissue
+      each_tissue,
+      phys
     )
   }
   doParallel::stopImplicitCluster()
@@ -260,11 +267,15 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   for (i in 1:length(peak_tmp)) {
     tissue <- peak_tmp[[i]]$tissue
     peaks_list[[tissue]] <- peak_tmp[[i]]$peaks
-    # message(paste0(tissue, colnames(peaks_list[[tissue]]), sep = " "))
   }
 
   if (!is.null(annots)) {
     message("adding annotations to peaks")
+    if (!phys) {
+      for(tissue in names(peaks_list)) {
+        peaks_list[[tissue]] <- interp_bp(peaks_list[[tissue]], gmap, pmap)
+      }
+    }
     peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
   }
 
@@ -274,6 +285,7 @@ mapQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     message("saved peaks")
   }
 
+  ## Return both mapping and peak results as a named list
   if(save %in% c("sr","ro")) {
     map_peaks <- tibble::lst(maps_list, peaks_list)
     return(map_peaks)

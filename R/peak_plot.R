@@ -10,15 +10,18 @@
 #' @return None
 #' @export
 #'
-#' @importFrom qtl2 scan1 scan1blup plot_coefCC
+#' @importFrom qtl2 scan1 scan1blup plot_coefCC plot_coef
 #'
-peak_plot <- function(mapping, tissue, pheno, saveDir, annots = NULL, effects = FALSE) {
+peak_plot <- function(mapping, tissue, pheno, saveDir, pop = "do", annots = NULL, effects = FALSE, founders = NULL, palette = NULL) {
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
   }
   if (is.character(mapping)) {
     tmp_map <- check_data(paste0(outdir, "/", mapping))
+  }
+  if (!is.null(founders) & length(founders) > 8 & is.null(palette)) {
+    stop(paste0(length(founders), " founders detected, please provide a palette that contains at least that many colors"))
   }
 
   if (!is.null(tmp_map)) {
@@ -52,19 +55,58 @@ peak_plot <- function(mapping, tissue, pheno, saveDir, annots = NULL, effects = 
     c2eff <- qtl2::scan1blup(genoprobs = qtlprobs[[tissue]][,as.character(chr)],
                              pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE])
 
-    png(paste0(saveDir, "/", tissue, "_", pheno, "_effects.png"), width = 1024, height = 1024)
-    qtl2::plot_coefCC(x            = c2eff,
-                      map          = pmap,
-                      scan1_output = scan1_out,
-                      bgcolor      = "gray95")
-    dev.off()
-
-    legend_plot <- paste0(saveDir,"/CC_effects_legend.png")
-    if (!file.exists(legend_plot)) {
-      png(legend_plot, bg = "transparent")
-      plot.new()
-      legend("center", c("AJ","B6","129","NOD","NZO","CAST","PWK","WSB"), lty = 1, col = qtl2::CCcolors, bty = "n", ncol = 4, lwd = 1.3)
+    if (pop %in% c("do", "cc")) {
+      png(paste0(saveDir, "/", tissue, "_", pheno, "_effects.png"), width = 1024, height = 1024)
+      qtl2::plot_coefCC(x            = c2eff,
+                        map          = pmap,
+                        scan1_output = scan1_out,
+                        bgcolor      = "gray95")
       dev.off()
+
+      legend_plot <- paste0(saveDir,"/CC_effects_legend.png")
+      if (!file.exists(legend_plot)) {
+        png(legend_plot, bg = "transparent")
+        plot.new()
+        legend("center", c("AJ","B6","129","NOD","NZO","CAST","PWK","WSB"), lty = 1, col = qtl2::CCcolors, bty = "n", ncol = 4, lwd = 1.3)
+        dev.off()
+      }
+
+    }
+
+    if (pop %notin% c("do", "cc")) {
+      if(!is.null(paltte)) {
+        png(paste0(saveDir, "/", tissue, "_", pheno, "_effects.png"), width = 1024, height = 1024)
+        qtl2::plot_coef(x            = c2eff,
+                        columns      = ncol(c2eff),
+                        col          = palette[1:ncol(c2eff)],
+                        map          = pmap,
+                        scan1_output = scan1_out,
+                        bgcolor      = "gray95")
+        dev.off()
+      }
+
+      if(!is.null(founders)) {
+        legend_plot <- paste0(saveDir,"/founder_effects_legend.png")
+        if (!file.exists(legend_plot) & is.null(palette)) {
+          if (length(founders) <= 3) {
+            cols <- c("slateblue","violetred", "green3")
+          }
+          if (length(founders) > 3 & length(founders) <= 8) {
+            cols <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A",
+                     "#66A61E", "#E6AB02", "#A6761D", "#666666")
+          }
+          png(legend_plot, bg = "transparent")
+          plot.new()
+          legend("center", founders, lty = 1, col = cols[1:length(founders)], bty = "n", ncol = 4, lwd = 1.3)
+          dev.off()
+        }
+        if (!file.exists(legend_plot) & !is.null(palette)) {
+          png(legend_plot, bg = "transparent")
+          plot.new()
+          legend("center", founders, lty = 1, col = palette[1:length(founders)], bty = "n", ncol = 4, lwd = 1.3)
+          dev.off()
+        }
+      }
     }
 
   } else {

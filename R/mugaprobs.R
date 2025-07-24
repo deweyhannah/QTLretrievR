@@ -1,5 +1,9 @@
 #' Convert and process MUGA probabilities to qtl2 format
 #'
+#' @description
+#' Converts MUGA genotyping final reports into a 3D array format compatible with `qtl2`, organized by tissue and sample, optionally saves the result as an RDS file
+#'
+#'
 #' @param type string indicating GigaMUGA (GM) or MegaMUGA (MM), default is "GM"
 #' @param covarLoc location of covariate file
 #' @param covar_file covariate file including at minimum the sex (sex) and generation (ngen) of each sample, this needs to be a .csv file
@@ -158,14 +162,3 @@ process_reports <- function(codefile, ifiles, ostem, dirOut) {
                            overwrite=TRUE)
   }
 }
-
-# read_reports <- function(file_path) {
-#   lines <- readLines(file_path)
-#   # Find the first non-comment line
-#   data_start <- which(grepl("^SNP", lines))[1]
-#   # Read the data starting from the first non-comment line
-#   # # data <- read.delim(text = paste(lines[data_start:length(lines)], collapse = "\n"), header = TRUE, check.names = F)
-#   # data <- readr::read_delim(file_path, delim = "\t", skip = data_start - 1, col_names = TRUE, comment = "#", show_col_types = FALSE)
-#
-#   return(data)
-# }

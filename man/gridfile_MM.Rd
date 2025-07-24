@@ -5,7 +5,7 @@
 \alias{gridfile_MM}
 \title{Grid Map}
 \format{
-A 11125 x 4 data frame with marker names included as row names:
+A 77808 x 3 data frame with marker names included as row names:
 \describe{
 \item{chr}{Chromosome name}
 \item{pos}{Marker position in basepairs}
@@ -13,11 +13,11 @@ A 11125 x 4 data frame with marker names included as row names:
 }
 }
 \source{
-https://raw.githubusercontent.com/kbroman/MUGAarrays/refs/heads/main/UWisc/mini_uwisc_v5.csv.
+https://raw.githubusercontent.com/kbroman/MUGAarrays/refs/heads/main/UWisc/mm_uwisc_v4.csv.
 }
 \usage{
 data(gridfile_MM)
 }
 \description{
-MegaMUGA grid map for mm39 genome assembly.
+MegaMUGA genetic and physical map for mm39 genome assembly.
 }

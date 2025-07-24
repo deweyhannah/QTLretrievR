@@ -70,16 +70,16 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
     ## Significant distant peaks
     distant_rna <- peaks[[tissue]] |>
       dplyr::filter(lod > sigLOD, local == 0) |>
-      dplyr::select(peak_chr, interp_bp_peak) |>
-      dplyr::rename(chrom = peak_chr, end = interp_bp_peak) |>
+      dplyr::select(peak_chr, peak_bp) |>
+      dplyr::rename(chrom = peak_chr, end = peak_bp) |>
       dplyr::mutate(start = end) |>
       GenomicRanges::GRanges()
 
     ## Suggestive distant peaks
     distant_rna_sugg <- peaks[[tissue]] |>
       dplyr::filter(lod > suggLOD, local == 0) |>
-      dplyr::select(peak_chr, interp_bp_peak) |>
-      dplyr::rename(chrom = peak_chr, end = interp_bp_peak) |>
+      dplyr::select(peak_chr, peak_bp) |>
+      dplyr::rename(chrom = peak_chr, end = peak_bp) |>
       dplyr::mutate(start = end) |>
       GenomicRanges::GRanges()
 

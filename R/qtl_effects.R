@@ -63,9 +63,12 @@ qtl_effects <- function(mapping, peaks, suggLOD = 6, outdir, outfile, total_core
 
   peaks2 <- list()
   for (tissue in names(peaks_list)) {
+    if ("peak_bp" %notin% colnames(peaks_list[[tissue]])) {
+      peaks_list[[tissue]] <- interp_bp(df = peaks_list[[tissue]], genmap = gmap, physmap = pmap)
+    }
     peaks2[[tissue]] <- peaks_list[[tissue]] |>
-      interp_bp(genmap = gmap, physmap = pmap) |>
-      dplyr::mutate(interp_bp_peak = ifelse(interp_bp_peak == 3e6, 3000001, interp_bp_peak))
+      # interp_bp(genmap = gmap, physmap = pmap) |>
+      dplyr::mutate(peak_bp = ifelse(peak_bp == 3e6, 3000001, peak_bp))
 
     # message(paste0(names(peaks2[[tissue]]), sep = " "))
   }
@@ -84,11 +87,11 @@ qtl_effects <- function(mapping, peaks, suggLOD = 6, outdir, outfile, total_core
     # message(paste0(names(peaks2[[tissue]]), sep = " "))
     peaksf[[tissue]] <- peaks2[[tissue]] |>
       dplyr::filter(lod > suggLOD) |>
-      dplyr::arrange(peak_chr, interp_bp_peak)
+      dplyr::arrange(peak_chr, peak_bp)
     # message(paste0(names(peaksf[[tissue]]), sep = " "))
     query <- peaksf[[tissue]] |>
-      dplyr::select(peak_chr, interp_bp_peak) |>
-      dplyr::rename(chrom = peak_chr, start = interp_bp_peak) |>
+      dplyr::select(peak_chr, peak_bp) |>
+      dplyr::rename(chrom = peak_chr, start = peak_bp) |>
       dplyr::mutate(end = start) |>
       GenomicRanges::GRanges()
     subject <- marker_list[[tissue]]

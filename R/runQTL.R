@@ -18,6 +18,7 @@
 #' @param total_cores Number of available cores to use. Default is NULL.
 #' @param save_t Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
 #' @param rz_t Logical. Are the counts already rankZ transformed? Default is FALSE.
+#' @param phys_t Logical. Do you want to return physical peak locations, or genomic? Default is TRUE.
 #'
 #' @return A list containing \itemize{
 #' \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -33,12 +34,18 @@
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm39_peaks.rds", map_out = "mm39_mapping.rds",
                    med_out = "mm39_mediation_res.rds", effects_out = "mm39_effects.rds", outdir, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, annots, tissues = c(),
-                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL, save_t = "sr", rz_t = F) {
+                   gridFile = gridfile, suggLOD = 7, localRange = 10e6, total_cores = NULL, save_t = "sr", rz_t = F, phys_t = T) {
   ## Check oudir
   if (length(outdir) == 0 | !dir.exists(outdir)) {
     message("Invalid or no directory provided. Making an output file directory in the current working directory.")
     dir.create("./QTL_mapping")
     outdir <- "./QTL_mapping"
+  }
+
+  save_og <- save_t
+
+  if (save_og == "so") {
+    save_t <- "sr"
   }
 
   ## Check if object or file location is passed. If object assign to genoprobs, if file location run geoprobably
@@ -66,7 +73,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
   map_peaks <- mapQTL(
     outdir = outdir, peaks_out = peaks_out, map_out = map_out, genoprobs = genoprobs,
     samp_meta = metadata, expr_mats = expr_mats, covar_factors = covar_factors,
-    gridFile = gridFile, localRange = localRange, annots = annots, total_cores = total_cores, save = save_t
+    gridFile = gridFile, localRange = localRange, annots = annots, total_cores = total_cores, save = save_t, phys = phys_t
   )
 
   peaks_list <- map_peaks$peaks_list
@@ -76,10 +83,12 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds", peaks_out = "mm
 
   ## Run Mediation and Effects
   message("running mediation")
-  res_list <- run_mediate(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, annots = annots, med_out = med_out, total_cores = total_cores, save = save_t)
+  res_list <- modiFinder(peaks = peaks_list, mapping = maps_list, suggLOD = suggLOD, outdir = outdir, annots = annots, med_out = med_out, total_cores = total_cores, save = save_t)
 
   message("running effects")
   effects_res <- qtl_effects(mapping = maps_list, peaks = peaks_list, suggLOD = suggLOD, outdir = outdir, outfile = effects_out, total_cores = total_cores, save = save_t)
+
+  save_t <- save_og
 
   if (save_t %in% c("sr", "ro")) {
     ## Return created objects

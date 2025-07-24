@@ -19,5 +19,5 @@ Updated GBRS software, see "https://github.com/TheJacksonLaboratory/cs-nf-pipeli
 data(gridfile69k)
 }
 \description{
-69k grid map for mm39 genome assembly.
+69k genetic and physical map for mm39 genome assembly.
 }

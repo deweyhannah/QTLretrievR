@@ -40,15 +40,15 @@ mediation_plot <- function(effects, mediation, trans.bands, annots = annot_105, 
     dplyr::filter(peak_chr == peak.chr,
                   lod > sigLOD,
                   local == 0,
-                  interp_bp_peak >= as.numeric(trans.bands$bands.rna[[tissue]][which(trans.bands$bands.rna[[tissue]]$chr == peak.chr), "start"][peak.num]),
-                  interp_bp_peak <= as.numeric(trans.bands$bands.rna[[tissue]][which(trans.bands$bands.rna[[tissue]]$chr == peak.chr), "end"][peak.num]))
+                  peak_bp >= as.numeric(trans.bands$bands.rna[[tissue]][which(trans.bands$bands.rna[[tissue]]$chr == peak.chr), "start"][peak.num]),
+                  peak_bp <= as.numeric(trans.bands$bands.rna[[tissue]][which(trans.bands$bands.rna[[tissue]]$chr == peak.chr), "end"][peak.num]))
 
   ## Pull the mediation results for the peaks in the transband of interest
   peak_meds <- mediation[[tissue]] |>
     dplyr::inner_join(band_peaks |>
                         dplyr::select(target_id = phenotype,
                                       qtl_chr = peak_chr,
-                                      target_pos = interp_bp_peak,
+                                      target_pos = peak_bp,
                                       target_chr = chr))
 
   ## Filter mediators

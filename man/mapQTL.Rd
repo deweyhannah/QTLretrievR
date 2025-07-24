@@ -5,9 +5,6 @@
 \title{Generate mapping data and peaks for QTL analysis}
 \usage{
 mapQTL(
-  outdir,
-  peaks_out,
-  map_out,
   genoprobs,
   samp_meta,
   expr_mats,
@@ -16,25 +13,24 @@ mapQTL(
   thrX = 5,
   gridFile = gridfile,
   localRange = 1e+07,
+  outdir = NULL,
+  peaks_out = "peaks.rds",
+  map_out = "map.rds",
   annots = NULL,
   total_cores = NULL,
-  save = "sr"
+  save = "sr",
+  rz = F,
+  phys = T
 )
 }
 \arguments{
-\item{outdir}{Output directory where files mapping and peaks lists should be saved.}
-
-\item{peaks_out}{String indicating the name for output peaks file. Should end in .rds.}
-
-\item{map_out}{String indicating the name for output mapping file. Should end in .rds.}
-
-\item{genoprobs}{Either a string with the name of the genoprobs file, or the genoprobs object.}
+\item{genoprobs}{A \code{qtl2}-formatted genotype probabilities object in list form, one probabilities object per tissue, or a character path to a saved \code{.rds} file containing one.}
 
 \item{samp_meta}{Sample metadata. Either a string pointing to the file, or the object itself.}
 
-\item{expr_mats}{Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.}
+\item{expr_mats}{List of expression matrices (objects), or character paths to the file. One matrix per tissue. The order \emph{must match} the tissue order in \code{genoprobs}}
 
-\item{covar_factors}{Additive covariate factors. These need to be columns in the factor metadata.}
+\item{covar_factors}{Character vector of column names in \code{samp_meta} to be used as additive covariates.}
 
 \item{thrA}{Minimum reported LOD threshold for autosomes. Default is 5.}
 
@@ -44,11 +40,21 @@ mapQTL(
 
 \item{localRange}{What is defined as "local". Default is 10e6.}
 
+\item{outdir}{Output directory where files mapping and peaks lists should be saved. Default is NULL.}
+
+\item{peaks_out}{String indicating the name for output peaks file. Should end in ".rds". Default is "peaks.rds"}
+
+\item{map_out}{String indicating the name for output mapping file. Should end in ".rds". Default is "map.rds"}
+
 \item{annots}{String pointing to annotations file or annotations object.}
 
 \item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
 
-\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+\item{save}{Character. Determines output behavior: \code{"sr"} to save and return, \code{"so"} to save only, \code{"ro"} to return only. Default is \code{"sr"}.}
+
+\item{rz}{Logical. Set to \code{TRUE} if expression data is already rank Z-transformed. Default is \code{FALSE}.}
+
+\item{phys}{Logical. if \code{TRUE}, use the physical map for peak calling; otherwise use the genomic map. Default is \code{TRUE}.}
 }
 \value{
 A list containing: \itemize{
@@ -56,8 +62,8 @@ A list containing: \itemize{
 \item{qtlprobs}{Genome probabilities in qtl2format}
 \item{covar_list}{list of covariate matrices for each tissue}
 \item{expr_list}{Original normalized expression data for each tissue}
-\item{exprZ_list}{Rank Z normalized expression data for each tissue}
-\item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option in \code{qtl2::calc_kinship}}
+\item{exprZ_list}{Rank Z-transformed expression data for each tissue}
+\item{kinship_loco}{Kinship matrix calculated using the "loco" option in \code{qtl2::calc_kinship}}
 \item{gmap}{Genomic map of markers}
 \item{map_dat2}{Combined genomic and physical map of markers}
 \item{pmap}{Physical map of markers}
@@ -65,5 +71,5 @@ A list containing: \itemize{
 \item{peaks_list}{A list of peaks list for each tissue.}}
 }
 \description{
-Generate mapping data and peaks for QTL analysis
+This function performs QTL mapping across multiple tissues, generating genome-wide LOD scores and identifying significant peaks. It supports parallel processing and flexible input formats for expression data and covariates.
 }

@@ -60,7 +60,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, psave = T, unit =
     }
     peaks[[tissue]] <- peaks[[tissue]] |>
       dplyr::mutate(
-        cumsum_bp_peak = interp_bp_peak + chrom_lens_offset[peaks[[tissue]]$peak_chr],
+        cumsum_bp_peak = peak_bp + chrom_lens_offset[peaks[[tissue]]$peak_chr],
         cumsum_bp_gene = midpoint + chrom_lens_offset[peaks[[tissue]]$chr]
       )
   }

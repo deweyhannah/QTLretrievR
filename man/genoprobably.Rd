@@ -13,19 +13,19 @@ genoprobably(
 )
 }
 \arguments{
-\item{outfile}{Name of file to save genoprobs to. Defaults to "gbrs_interpolated_genoprobs.rds"}
+\item{outfile}{File path to save the resulting genopbrobs list. Defaults to "gbrs_interpolated_genoprobs.rds".}
 
 \item{gbrsFileLoc}{File path to where the GBRS files are located.}
 
-\item{tissues}{List of tissues included in analysis. If left blank tissue will be set to "a".}
+\item{tissues}{Character vector of tissue names. These should match substrings in the GBRS file names. if empty, defaults fo "a".}
 
-\item{gridFile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
+\item{gridFile}{Either a data frame or file path to the genome grid used to assign marker names. Default is 75K grid loaded with the package.}
 
-\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+\item{save}{Character. Determines output behavior: "sr" to save and return, "so" to save only, "ro" to return only. Default is "sr".}
 }
 \value{
-List of three dimensional genome probabilities
+A named list of 3D genotype probability arrays (one per tissue), formatted for use with \code{qtl2}.
 }
 \description{
-Convert GBRS tsv genome probabilities to genoprobs format.
+Converts GBRS-formatted TSV genotype probability files into a 3D array format compatible with \code{qtl2}, organized by tissue and sample, optionally saves the result as an RDS file
 }

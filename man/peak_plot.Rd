@@ -4,7 +4,17 @@
 \alias{peak_plot}
 \title{Plot peaks associated with specific genes.}
 \usage{
-peak_plot(mapping, tissue, pheno, saveDir, annots = NULL, effects = FALSE)
+peak_plot(
+  mapping,
+  tissue,
+  pheno,
+  saveDir,
+  pop = "do",
+  annots = NULL,
+  effects = FALSE,
+  founders = NULL,
+  palette = NULL
+)
 }
 \arguments{
 \item{mapping}{Mapping list from \code{mapQTL}}

@@ -51,18 +51,6 @@ probs_3d_to_qtl2 <- function(probs) {
   newprobs
 }
 
-interp_bp <- function(df, genmap, physmap) {
-  chroms <- c(as.character(1:19), "X")
-  df <- dplyr::arrange(df, peak_chr, peak_cM)
-  peak_gpos <- select(df, peak_chr, peak_cM)
-  chr <- peak_gpos$peak_chr
-  f <- factor(chr, chroms)
-  peak_gcoord_list <- split(peak_gpos$peak_cM, f)
-  peak_pcoord_list <- qtl2::interp_map(peak_gcoord_list, genmap, physmap)
-  df$interp_bp_peak <- unsplit(peak_pcoord_list, f)
-  df
-}
-
 create_dt <- function(x) {
   DT::datatable(x,
     extensions = "Buttons",
@@ -88,6 +76,7 @@ standardize <- function(expr, details, tissues = c()) {
 }
 
 batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, ...) {
+  message("mediating the mediation of mediators")
   med.scan <- list()
 
   start <- ss[n] + 1
@@ -98,7 +87,7 @@ batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, 
   for (i in 1:nrow(lod.peaks)) {
     marker <- map_dat2 %>%
       dplyr::mutate(pos = as.numeric(pos_bp)) %>%
-      dplyr::filter(abs(pos - lod.peaks$peak_cM[i]) == min(abs(pos - lod.peaks$peak_cM[i])))
+      dplyr::filter(abs(pos - lod.peaks$peak_bp[i]) == min(abs(pos - lod.peaks$peak_bp[i])))
     qtl.chr <- marker$chr
     qtl.pos <- marker$pos_bp / 1e06
     annot <- med_annot %>% mutate(middle_point = pos)
@@ -154,7 +143,7 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4) {
+peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, phys) {
   # message("Started mapping")
   # message(timestamp())
   start <- ss[i] + 1
@@ -168,19 +157,27 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, 
   )
   # message("Finished mapping")
   # message(timestamp())
-  peaks <- qtl2::find_peaks(out, gmap,
-    drop = 1.5,
-    threshold = thrA, thresholdX = thrX
+  peaks <- qtl2::find_peaks(scan1_output = out,
+                            map          = gmap,
+                            prob         = 0.95,
+                            threshold    = thrA,
+                            thresholdX   = thrX
   )
-  peaks <- peaks %>%
-    dplyr::select(-lodindex) %>%
-    dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
+  if (phys) {
+    peaks <- peaks %>%
+      dplyr::select(-lodindex) %>%
+      dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_bp = pos)
+  } else {
+    peaks <- peaks %>%
+      dplyr::select(-lodindex) %>%
+      dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
+  }
 
   return(peaks)
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
-                       covar_list, gmap, thrA, thrX, cores) {
+                       covar_list, gmap, thrA, thrX, cores, phys) {
 
   num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
   nn <- ncol(exprZ_list[[tissue]])
@@ -221,7 +218,8 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
                gmap = gmap,
                thrA = thrA,
                thrX = thrX,
-               n.cores = cores_per_batch)
+               n.cores = cores_per_batch,
+               phys)
     }
 
     # Append the current results to the overall results

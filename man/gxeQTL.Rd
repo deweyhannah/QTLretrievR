@@ -2,12 +2,9 @@
 % Please edit documentation in R/gxeQTL.R
 \name{gxeQTL}
 \alias{gxeQTL}
-\title{Generate mapping data and peaks for QTL analysis}
+\title{Generate mapping data and peaks for G x E QTL analysis}
 \usage{
 gxeQTL(
-  outdir,
-  peaks_out,
-  map_out,
   genoprobs,
   samp_meta,
   expr_mats,
@@ -16,6 +13,9 @@ gxeQTL(
   thrX = 5,
   gridFile = gridfile,
   localRange = 1e+07,
+  outdir = NULL,
+  peaks_out = "gxe_peaks.rds",
+  map_out = "gxe_map.rds",
   annots = NULL,
   total_cores = NULL,
   save = "sr",
@@ -25,12 +25,6 @@ gxeQTL(
 )
 }
 \arguments{
-\item{outdir}{Output directory where files mapping and peaks lists should be saved.}
-
-\item{peaks_out}{String indicating the name for output peaks file. Should end in .rds.}
-
-\item{map_out}{String indicating the name for output mapping file. Should end in .rds.}
-
 \item{genoprobs}{Either a string with the name of the genoprobs file, or the genoprobs object.}
 
 \item{samp_meta}{Sample metadata. Either a string pointing to the file, or the object itself.}
@@ -46,6 +40,12 @@ gxeQTL(
 \item{gridFile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
 
 \item{localRange}{What is defined as "local". Default is 10e6.}
+
+\item{outdir}{Output directory where files mapping and peaks lists should be saved. Default is NULL.}
+
+\item{peaks_out}{String indicating the name for output peaks file. Should end in ".rds". Default is "gxe_peaks.rds"}
+
+\item{map_out}{String indicating the name for output mapping file. Should end in ".rds". Default is "gxe_map.rds"}
 
 \item{annots}{String pointing to annotations file or annotations object.}
 
@@ -72,5 +72,5 @@ A list containing: \itemize{
 \item{peaks_list}{A list of peaks list for each tissue.}}
 }
 \description{
-Generate mapping data and peaks for QTL analysis
+This function performs G x E QTL mapping across multiple tissues, generating genome-wide LOD scores and identifying significant peaks. It supports parallel processing and flexible input formats for expression data and covariates.
 }

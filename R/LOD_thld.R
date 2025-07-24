@@ -4,16 +4,16 @@
 #' Determine significant and suggestive LOD thresholds for your QTLs, using `scan1perm` from `qtl2`. Select the number of genes to permute, the number of permutations, and the number of genes to run in each batch.
 #'
 #'
-#' @param mapping Mapping list from `mapQTL`
+#' @param mapping Mapping list from `mapQTL`, or a full character path to a saved mapping object
 #' @param tissue Tissue to determine thresholds for
-#' @param annots annotations
+#' @param annots Data frame of gene annotations - use for filtering to autosomal phenotypes
 #' @param n.gene Number of genes to permute - default 10
 #' @param n.perm Number of permutations to run - default 1000
 #' @param batch.size Number of genes in each parallelized batch
 #'
-#' @return A list containing: \itemize{
+#' @return A list containing: \describe{
 #'  \item{`scan1perm` object of permutations for all selected genes}
-#'  \item{A list of: \itemize{
+#'  \item{A list with: \describe{
 #'    \item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
 #'    \item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
 #' @export
@@ -24,14 +24,14 @@
 #' @importFrom dplyr filter select slice_sample
 #' @importFrom tibble lst
 #'
-LOD_thld <- function(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.size = 5) {
+LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 10, n.perm = 1000, batch.size = 5) {
   ## Check that mapping object is valid
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
   }
   if (is.character(mapping)) {
-    tmp_map <- check_data(paste0(outdir, "/", mapping))
+    tmp_map <- check_data(mapping)
   }
 
   if (!is.null(tmp_map)) {
@@ -62,14 +62,20 @@ LOD_thld <- function(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.
   }
 
   ## Prepare for permutation calculations
-  annotations <- annots |>
-    dplyr::filter(id %in% colnames(exprZ_list[[tissue]]),
-                  chr %in% c(1:19)) |>
-    dplyr::select(id) |>
-    dplyr::slice_sample(n = n.gene)
-  genes <- annotations$id
-
+  if (!is.null(annots)) {
+    annotations <- annots |>
+      dplyr::filter(id %in% colnames(exprZ_list[[tissue]]),
+                    chr %in% c(1:19)) |>
+      dplyr::select(id) |>
+      dplyr::slice_sample(n = n.gene)
+    genes <- annotations$id
+  } else {
+    genes <- colnames(exprZ_list[[tissue]])
+    genes <- sample(genes, size = n.gene)
+  }
   batch_genes <- split(genes, ceiling(seq_along(genes) / batch.size))
+
+  message(paste0("Using ", n.gene, " phenotypes: ", paste0(genes, collapse = "  ")))
 
   message(paste0("Running ", n.perm, " permutations on ", n.gene, " genes in ", num_batches, " batches."))
 

@@ -1,6 +1,6 @@
 Package: QTLretrievR
 Title: Calculate the Map, Peaks, Mediation, and Effects for Quantitative Trait Loci
-Version: 1.0.0.0
+Version: 1.2.0.0
 Authors@R: c(
     person(given = "Hannah B.", family = "Dewey", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3009-0452")),
@@ -63,17 +63,19 @@ Collate:
     'gridfile_mini.R'
     'gridfile_quilt.R'
     'gxeQTL.R'
+    'interp_bp.R'
+    'interp_cM.R'
     'LOD_thld.R'
     'mapQTL.R'
     'mediation_plot.R'
     'mugaprobs.R'
+    'multi_mediate.R'
     'peak_plot.R'
     'qtl_effects.R'
     'qtl_mediate.R'
     'runQTL.R'
     'transbands.R'
     'plot_map.R'
-    'pmap_mapQTL.R'
     'QTLretrievR-package.R'
 Depends: 
     R (>= 2.10)

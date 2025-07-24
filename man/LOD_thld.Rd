@@ -4,14 +4,21 @@
 \alias{LOD_thld}
 \title{Determine significant and suggestive LOD thresholds}
 \usage{
-LOD_thld(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.size = 5)
+LOD_thld(
+  mapping,
+  tissue,
+  annots = NULL,
+  n.gene = 10,
+  n.perm = 1000,
+  batch.size = 5
+)
 }
 \arguments{
-\item{mapping}{Mapping list from \code{mapQTL}}
+\item{mapping}{Mapping list from \code{mapQTL}, or a full character path to a saved mapping object}
 
 \item{tissue}{Tissue to determine thresholds for}
 
-\item{annots}{annotations}
+\item{annots}{Data frame of gene annotations - use for filtering to autosomal phenotypes}
 
 \item{n.gene}{Number of genes to permute - default 10}
 
@@ -20,9 +27,9 @@ LOD_thld(mapping, tissue, annots, n.gene = 10, n.perm = 1000, batch.size = 5)
 \item{batch.size}{Number of genes in each parallelized batch}
 }
 \value{
-A list containing: \itemize{
+A list containing: \describe{
 \item{\code{scan1perm} object of permutations for all selected genes}
-\item{A list of: \itemize{
+\item{A list with: \describe{
 \item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
 \item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
 }

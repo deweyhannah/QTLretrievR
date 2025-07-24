@@ -37,8 +37,8 @@ annotatePeaks <- function(map, peaks, annots, localRange = 10e6) {
   for (tissue in names(peaks)) {
     # message(paste0(colnames(peaks[[tissue]]), sep = " "))
     peaks_pmap[[tissue]] <- peaks[[tissue]] |>
-      interp_bp(genmap = map$gmap, physmap = map$pmap) |>
-      dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
+      # interp_bp(genmap = map$gmap, physmap = map$pmap) |>
+      # dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
       dplyr::left_join(annots, by = c("phenotype" = "id"))
   }
 
@@ -46,7 +46,7 @@ annotatePeaks <- function(map, peaks, annots, localRange = 10e6) {
   annotated_peaks <- list()
   for (tissue in names(peaks_pmap)) {
     annotated_peaks[[tissue]] <- peaks_pmap[[tissue]] |>
-      dplyr::mutate(local = ifelse(abs(midpoint - interp_bp_peak) < localRange & chr == peak_chr, 1, 0))
+      dplyr::mutate(local = ifelse(abs(midpoint - peak_bp) < localRange & chr == peak_chr, 1, 0))
   }
 
   return(annotated_peaks)

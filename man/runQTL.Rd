@@ -21,7 +21,9 @@ runQTL(
   suggLOD = 7,
   localRange = 1e+07,
   total_cores = NULL,
-  save_t = "sr"
+  save_t = "sr",
+  rz_t = F,
+  phys_t = T
 )
 }
 \arguments{
@@ -58,6 +60,10 @@ runQTL(
 \item{total_cores}{Number of available cores to use. Default is NULL.}
 
 \item{save_t}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+
+\item{rz_t}{Logical. Are the counts already rankZ transformed? Default is FALSE.}
+
+\item{phys_t}{Logical. Do you want to return physical peak locations, or genomic? Default is TRUE.}
 }
 \value{
 A list containing \itemize{

@@ -1,8 +1,9 @@
-#' Generate mapping data and peaks for QTL analysis
+#' Generate mapping data and peaks for G x E QTL analysis
 #'
-#' @param outdir Output directory where files mapping and peaks lists should be saved.
-#' @param peaks_out String indicating the name for output peaks file. Should end in .rds.
-#' @param map_out String indicating the name for output mapping file. Should end in .rds.
+#' @description
+#' This function performs G x E QTL mapping across multiple tissues, generating genome-wide LOD scores and identifying significant peaks. It supports parallel processing and flexible input formats for expression data and covariates.
+#'
+#'
 #' @param genoprobs Either a string with the name of the genoprobs file, or the genoprobs object.
 #' @param samp_meta Sample metadata. Either a string pointing to the file, or the object itself.
 #' @param expr_mats Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.
@@ -11,6 +12,9 @@
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile File location for genome grid. Defaults to object loaded with package for 75k grid.
 #' @param localRange What is defined as "local". Default is 10e6.
+#' @param outdir Output directory where files mapping and peaks lists should be saved. Default is NULL.
+#' @param peaks_out String indicating the name for output peaks file. Should end in ".rds". Default is "gxe_peaks.rds"
+#' @param map_out String indicating the name for output mapping file. Should end in ".rds". Default is "gxe_map.rds"
 #' @param annots String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
@@ -40,9 +44,18 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile, localRange = 10e6,
+gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thrX = 5, gridFile = gridfile,
+                   localRange = 10e6, outdir = NULL, peaks_out = "gxe_peaks.rds", map_out = "gxe_map.rds",
                    annots = NULL, total_cores = NULL, save = "sr", delta = FALSE, ctrl, env) {
-  ## Expression Matrices should be listed in the same order as tissues were for tsv2genoprobs call
+
+  ## Check save conflicts
+  if (save %in% c("sr", "so")) {
+    if (is.null(outdir)) {
+      stop("Requested Save. No output directory provided, and no default.")
+    }
+  }
+
+  ## Expression Matrices should be listed in the same order as tissues in genoprobs list
   ## Load probs
   if (is.list(genoprobs)) {
     tmp_probs <- check_data(genoprobs, type = "genoprobs")
@@ -54,6 +67,7 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   rm(tmp_probs)
 
   ## Check inputs
+  ## Assumes one expression matrix per tissue, matching the order of tissues in genoprobs
 
   if (length(expr_mats) == 0) {
     stop("Please provide at least one expression matrix")
@@ -74,14 +88,12 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     stop("Please provide at least one covariate for model")
   }
 
-  ## Modify Probs and Determine Kinship
-  #if( is.null(total_cores)) total_cores <- get_cores()
+  ## Convert genotype probabilities and calculate LOCO kinship matrices for each tissue
   qtlprobs <- probs_list
   kinship_loco <- list()
   kinship_loco[[env]] <- qtl2::calc_kinship(qtlprobs[[env]], "loco", cores = 1)
 
   ## Create maps
-  # message(gridFile)
   if (is.character(gridFile)) {
     grid_map <- read.delim(gridFile, stringsAsFactors = F, row.names = 1)
   } else {
@@ -89,22 +101,16 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   }
   map_dat <- grid_map[, c("chr", "cM", "pos")]
 
-  # markers <- dimnames(probs_list[[1]])[[3]]
   markers <- c()
   for (chrom in names(qtlprobs[[1]])) {
     markers <- c(markers, dimnames(qtlprobs[[1]][[chrom]])[[3]])
   }
   map_dat <- map_dat[markers, ]
-  # assert_that(are_equal(rownames(map_dat), markers))
   gmap <- split_map(map_dat)
   map_dat$marker <- rownames(map_dat)
 
   message("gmap complete")
 
-  # map_dat2 <- map_dat |>
-  #   tidyr::separate(marker, into = c("chrom", "pos_bp"), convert = T, remove = F) |>
-  #   dplyr::mutate(n = 1:dplyr::n()) |>
-  #   tibble::as_tibble()
   map_dat2 <- map_dat |>
     dplyr::mutate(n = 1:dplyr::n(), chrom = chr) |>
     dplyr::rename(pos_bp = pos) |>
@@ -120,7 +126,7 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 
   message("pmap complete")
 
-  ## Load expression matrices
+  ## Load expression matrices for each tissue. If input is a file path, rad it; otherwise assume its already a matrix object
   expr_list <- list()
   for (i in names(expr_mats)) {
     expr <- expr_mats[[i]]
@@ -150,8 +156,7 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     sample_details[, fact] <- as.factor(sample_details[, fact])
   }
 
-  ## Reorganize and calculate rankZ for expression matrices
-  message("organizing the expression matrices. If the next message is 'rankZ nomalized' something has gone wrong.")
+  ## Normalize expression data using rankZ transformation (unless already transformed). Align samples with genotype data.
   exprZ_list <- list()
   for (tissue in names(expr_list)) {
     samps_keep <- intersect(rownames(probs_list[[tissue]][[1]]), colnames(expr_list[[tissue]]))
@@ -198,32 +203,24 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
   ## Run Batchmap
   message("calculating peaks")
 
-  ## Add functionality to save out files if wanted -- probably in the background functions file.
   peaks_list <- list()
 
-  # if( is.null(total_cores)) total_cores <- get_cores()
   available_cores <- get_cores()
   if( total_cores > available_cores) total_cores <- available_cores
   max_genes <- ncol(exprZ_gxe[[env]]) # Calculate the maximum number of rows across all data frames in exprZ_list
-  # num_tissues <-  length(names(exprZ_gxe))
   if( max_genes < 1000){
-    cores_needed <- 8 # Limiting #of cores if there are <1000 genes in total
+    cores_needed <- 8 # Limiting # of cores if there are <1000 genes in total
   }else{
     cores_needed <- total_cores
   }
   #
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
-  # each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues ) # Divide cores per tissue and pass onto the foreach loop
-  #
-  # message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s). Does that look right? If not please set total_cores parameter to the number of available cores." ) )
-  #
 
   message(paste0(names(exprZ_gxe), collapse = "\t"))
 
   if (delta) {
     exprZ_delta <- list()
     exprZ_delta[[env]] <- exprZ_gxe[[env]] - exprZ_gxe[[ctrl]]
-    # doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many genes!
     peaks_list[[env]] <- batch_wrap(env,
                                     exprZ_delta,
                                     kinship_loco,
@@ -233,7 +230,6 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
                                     thrA,
                                     thrX,
                                     min(total_cores, cores_needed))
-    # doParallel::stopImplicitCluster()
   }
   else {
     peaks_list[[env]] <- batch_gxe(
@@ -264,6 +260,7 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
     message("saved peaks")
   }
 
+  ## Return both mapping and peak results as a named list
   if(save %in% c("sr","ro")) {
     map_peaks <- tibble::lst(maps_list, peaks_list)
     return(map_peaks)
@@ -273,20 +270,13 @@ gxeQTL <- function(outdir, peaks_out, map_out, genoprobs, samp_meta, expr_mats, 
 }
 
 peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap, thrA = 5, thrX = 5, n.cores = 4, ctrl, env, covar_factors) {
-  # message("Started mapping")
-  # message(timestamp())
   start <- ss[i] + 1
   end <- ss[i + 1]
 
   exprZ_env <- exprZ[[env]][,start:end, drop = F]
   exprZ_ctrl <- exprZ[[ctrl]][,colnames(exprZ_env), drop = F]
 
-  # covar_form_st <- paste("~", paste0(covar_factors, collapse = "+"), "+ exprZ_ctrl")
-  # covar_form <- as.formula(covar_form_st)
-
-  # covar_mat <- cbind(covar[[env]], exprZ_ctrl)
-
- out <- lapply(1:ncol(exprZ_env), function(x){
+  out <- lapply(1:ncol(exprZ_env), function(x){
     if(x %% 100 == 0){message(paste0("  --Trait ",x," out of ",ncol(exprZ_env)))}
     ctrl_exp <- exprZ_ctrl[,x]
     # gather covariates
@@ -301,8 +291,6 @@ peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap, thrA = 5
   })
   out <- Reduce(cbind,out)
 
-  # message("Finished mapping")
-  # message(timestamp())
   peaks <- qtl2::find_peaks(out, gmap,
                             drop = 1.5,
                             threshold = thrA, thresholdX = thrX
@@ -320,7 +308,6 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
   num.batches <- max(c(round(ncol(exprZ_list[[env]])/1000), 2))
   nn <- ncol(exprZ_list[[env]])
   ss <- round(seq(0, nn, length.out=num.batches + 1))
-  # message(paste0(ss, collapse = " "))
 
   message(paste0("Mapping ", nn, " genes in ", num.batches + 1, " batches"))
 
@@ -340,29 +327,16 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
     cores_per_batch <- floor(cores_to_use/num.batches)
   }
 
-  # message(cores_to_use)
-  # message(max_concurrent_batches)
   doParallel::registerDoParallel(cores = cores_to_use)
-
-  # message(paste0(names(exprZ_list), collapse = "\t"))
-  # message(paste0(names(kinship_loco), collapse = "\t"))
-  # message(paste0(names(qtlprobs), collapse = "\t"))
-  # message(paste0(names(covars), collapse = "\t"))
 
   # Initialize an empty list to store the results
   all_results <- list()
   for (i in seq(1, num.batches, by = max_concurrent_batches)) {
-  # for (i in 1:1) {
-    # message(i)
-
     # Determine the current batch range
     current_batches <- i:min(i + max_concurrent_batches - 1, num.batches)
-    # message(paste0(current_batches, collapse = " "))
 
-    # message(paste0(colnames(covars[[env]]), collapse = "\t"))
     # Run the current batch of tasks in parallel
     current_results <- foreach::foreach( j = current_batches)  %dopar% {
-      # paste0("processing batch ", j)
       peak_gxe(i             = j,
                ss            = ss,
                exprZ         = exprZ_list,
@@ -386,10 +360,5 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
 
   peaks <- do.call("rbind", all_results)
 
-  # message(paste0(colnames(peaks), sep = " "))
-
-  # tissue_peaks2 <- tibble::lst(tissue, peaks)
-
   return(peaks)
-
 }

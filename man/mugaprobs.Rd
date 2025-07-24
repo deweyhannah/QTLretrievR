@@ -11,6 +11,7 @@ mugaprobs(
   i.files,
   genoPrefix = "gm4qtl2",
   probsOut = "muga_interpolated_genoprobs.rds",
+  saveDir = getwd(),
   tissues = c()
 )
 }
@@ -25,7 +26,9 @@ mugaprobs(
 
 \item{genoPrefix}{prefix for the chromosome specific genotype files (excluding "_geno")}
 
-\item{probsOut}{file name to save probabilities, default is "muga_interpolated_genoprobs.rds". probs will save to directory that mugaprobs is called from.}
+\item{probsOut}{file name to save probabilities, default is "muga_interpolated_genoprobs.rds".}
+
+\item{saveDir}{complete path (\strong{not} relative) to save directory. Default is current directory.}
 
 \item{tissues}{list of tissues included in analysis. If left blank tissue will be set to "a".}
 }
@@ -33,5 +36,5 @@ mugaprobs(
 none
 }
 \description{
-Convert and process MUGA probabilities to qtl2 format
+Converts MUGA genotyping final reports into a 3D array format compatible with \code{qtl2}, organized by tissue and sample, optionally saves the result as an RDS file
 }
