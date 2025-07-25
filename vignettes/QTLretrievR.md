@@ -262,7 +262,7 @@ For mediation we use the peaks, mapping information (which includes the rankZ no
 
 ```r
 ## Unevaluated Code Chunk
-med_res <- run_mediate(peaks   = map_peaks$peaks_list, 
+med_res <- modiFinder(peaks   = map_peaks$peaks_list, 
                        mapping = map_peaks$maps_list,
                        outdir  = "../../vignette", 
                        annots  = demo_annot,
