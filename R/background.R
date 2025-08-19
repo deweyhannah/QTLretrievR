@@ -10,6 +10,8 @@
 #' @importFrom stats qnorm
 #'
 
+#' @param map grid map of markers, chromosomes, and positions of markers
+#' @param chr_names vector of chromosome names
 split_map <- function(map, chr_names = NULL) {
   map <- reorder_map_table(map, chr_names = chr_names)
   pos <- as.numeric(map[, 2])

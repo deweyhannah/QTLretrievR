@@ -18,6 +18,7 @@
 #' @param annots String pointing to annotations file or annotations object.
 #' @param total_cores Number of available cores to use for parallelization. Default is NULL.
 #' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
+#' @param delta Use the delta method for G x E analysis (env - ctrl)? Default is FALSE.
 #' @param ctrl String indicating your control or background gene name (ex: "ctrl" or "CTRL")
 #' @param env String indicating your exposed/treated samples (ex: "trt" or "treated" or "<your_treatment_here>")
 #'
@@ -165,10 +166,9 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thr
     exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
 
-  std <- standardize(expr_list, exprZ_list, sample_details, tissues = names(expr_list))
-  expr_list <- std$expr
-  exprZ_list <- std$exprZ
-  tissue_samp <- std$tissue_samp
+  expr_list <- standardize(expr_list, sample_details, tissues = names(expr_list))$expr
+  exprZ_list <- standardize(exprZ_list, sample_details, tissues = names(exprZ_list))$expr
+  tissue_samp <- standardize(exprZ_list, sample_details, tissues = names(exprZ_list))$tissue_samp
 
   message("rankZ normalized")
 

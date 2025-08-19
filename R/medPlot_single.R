@@ -20,6 +20,7 @@
 #' @importFrom tidyr pivot_wider
 #' @importFrom tibble lst column_to_rownames
 #' @importFrom grid gpar
+#' @importFrom grDevices png dev.off
 #'
 medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n = 5, psave = T, pname = NULL, outdir = NULL, plot = "padj") {
   if (psave & is.null(outdir)) {
@@ -52,9 +53,6 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n =
     tibble::column_to_rownames(var = "target_id") |>
     as.matrix()
 
-  palette <- viridis::viridis(100)
-  col_fun <- circlize::colorRamp2(c(0, 0.1), c(palette[100], palette[1]))
-
   ht <- ComplexHeatmap::Heatmap(l2p_wide,
                           col = rev(viridis::viridis(100)),
                           na_col = "gray95",
@@ -78,7 +76,6 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n =
     dplyr::ungroup()
 
   if (psave) {
-    # png(past0(outdir, "/", pname))
     n_rows <- nrow(l2p_wide)
     n_cols <- ncol(l2p_wide)
 
@@ -91,7 +88,7 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n =
     width <- base_width + col_scale * n_cols
     height <- base_height + row_scale * n_rows
 
-    png(past0(outdir, "/", pname), width = width, height = height)
+    png(paste0(outdir, "/", pname), width = width, height = height)
     ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
     dev.off()
   }
@@ -136,13 +133,13 @@ med_sig <- function(df, x, pos, feat, chr) {
       ranks <- rank(all_drops, ties.method = "average")
       percentile <- ranks[length(ranks)] / length(ranks)
       z <- qnorm(percentile)
-      p <- 1 - pnorm(abs(z))
+      p <- 1 - stats::pnorm(abs(z))
       peak_sp_df$pval[which(peak_sp_df$target_id == feature & peak_sp_df$mediator == mediator & peak_sp_df$qtl_chr == chr)] <- p
     }
   }
   peak_sp_df <- peak_sp_df |>
     dplyr::group_by(target_id) |>
-    dplyr::mutate(padj = p.adjust(pval, method = "BH"))
+    dplyr::mutate(padj = stats::p.adjust(pval, method = "BH"))
   return(peak_sp_df)
 }
 

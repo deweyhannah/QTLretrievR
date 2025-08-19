@@ -25,9 +25,15 @@ peak_plot(
 
 \item{saveDir}{Directory to save plots to}
 
+\item{pop}{Are you using a "do", "cc", or "other" population? Default is "do"}
+
 \item{annots}{Annotations (example \code{annot_105}), required if plotting effects on chromosome}
 
 \item{effects}{Boolean - Plotting effects on chromosome, default FALSE}
+
+\item{founders}{If not using DO or CC mice, what are the founders of your population?}
+
+\item{palette}{If using a population with more than 8 founders please provide colors to go with each founder.}
 }
 \value{
 None

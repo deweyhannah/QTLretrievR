@@ -59,6 +59,7 @@ Collate:
     'demo_meta.R'
     'demo_probs.R'
     'genoprobably.R'
+    'GlobalVariables.R'
     'gridfile.R'
     'gridfile69k.R'
     'gridfile_GM.R'

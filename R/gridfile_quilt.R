@@ -3,7 +3,7 @@
 #' Genetic and Physical Maps to be used with genotypes from Genotyping by lcWGS.
 #'
 #' @docType data
-#' @name gridfile
+#' @name gridfile_quilt
 #' @format A 999999 x 3 data frame with marker names included as row names:
 #' \describe{
 #'   \item{chr}{Chromosome name}

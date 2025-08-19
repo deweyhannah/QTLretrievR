@@ -53,6 +53,8 @@ gxeQTL(
 
 \item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
 
+\item{delta}{Use the delta method for G x E analysis (env - ctrl)? Default is FALSE.}
+
 \item{ctrl}{String indicating your control or background gene name (ex: "ctrl" or "CTRL")}
 
 \item{env}{String indicating your exposed/treated samples (ex: "trt" or "treated" or "<your_treatment_here>")}

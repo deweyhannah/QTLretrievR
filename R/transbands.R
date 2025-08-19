@@ -23,7 +23,8 @@
 #' @importFrom ggplot2 ggplot aes geom_bar scale_x_continuous expansion xlab ylab theme element_text ggsave
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom tibble lst as_tibble
-#' @importFrom dplyr select rename group_by summarize filter mutate
+#' @importFrom dplyr select rename group_by summarize filter mutate starts_with
+#' @importFrom stats quantile
 #' @importFrom GenomicRanges GRanges countOverlaps seqnames start end slidingWindows nearest
 #'
 transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = TRUE, color = "blue3") {

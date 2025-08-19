@@ -28,8 +28,9 @@ This is the easiest way to run QTLretrievR. There are several input files requir
 ```r
 ## Passing a Genoprobs object - list of probabilities for each tissue
 ## Using internal data for expr, gridFile, metadata, annots
+## Unevaluated Code Chunk
 
-qtl_res <- runQTL(outdir = "../vignettes/", 
+qtl_res <- runQTL(outdir = "../../vignette/", 
                   gbrs_fileLoc = list("mESC" = demo_probs),
                   geno_out = "mESC_mm10_probs.rds", 
                   peaks_out = "mESC_mm10_peaks.rds", 
@@ -122,20 +123,13 @@ Although the variable is named `expr_mats` any quantified molecular data can be 
 class(demo_counts)
 #> [1] "matrix" "array"
 head(demo_counts)
-#>                    PB357.02_repA PB357.12_repA PB357.16_repA PB357.18_repA PB357.19_repA PB357.20_repA PB357.21_repA PB357.22_repA PB357.28_repA
-#> ENSMUSG00000030402      90.27620      47.49881      65.92215      60.68472       50.6948      43.98085      68.98128      57.27735      42.11575
-#> ENSMUSG00000025473      55.33058      61.24847      59.68627      26.61611       24.3725      45.02802      55.41119      37.55891      14.03858
-#> ENSMUSG00000029246    2333.74400    5135.62454    2341.10901    2701.05069     3481.3853    2611.54250    1373.65252    3451.91477    3130.74325
-#> ENSMUSG00000051413     218.41017     162.49593     209.34736     223.57530      230.0764     158.12164     211.46720     217.84171     161.91166
-#> ENSMUSG00000026356    3244.11907   11302.21694    2892.56671    4801.55973     5616.3992    4653.59323    2312.56906    5754.02576    6941.61141
-#> ENSMUSG00000042505     317.42278     554.98610     316.24815     300.22969      348.0393     347.65818     360.73816     294.83748     440.81151
-#>                    PB357.29_repA
-#> ENSMUSG00000030402      52.36949
-#> ENSMUSG00000025473      44.38093
-#> ENSMUSG00000029246    2534.28661
-#> ENSMUSG00000051413     260.95984
-#> ENSMUSG00000026356    4452.29448
-#> ENSMUSG00000042505     286.70078
+#>                    PB357.02_repA PB357.12_repA PB357.16_repA PB357.18_repA PB357.19_repA PB357.20_repA PB357.21_repA PB357.22_repA PB357.28_repA PB357.29_repA
+#> ENSMUSG00000030402      90.27620      47.49881      65.92215      60.68472       50.6948      43.98085      68.98128      57.27735      42.11575      52.36949
+#> ENSMUSG00000025473      55.33058      61.24847      59.68627      26.61611       24.3725      45.02802      55.41119      37.55891      14.03858      44.38093
+#> ENSMUSG00000029246    2333.74400    5135.62454    2341.10901    2701.05069     3481.3853    2611.54250    1373.65252    3451.91477    3130.74325    2534.28661
+#> ENSMUSG00000051413     218.41017     162.49593     209.34736     223.57530      230.0764     158.12164     211.46720     217.84171     161.91166     260.95984
+#> ENSMUSG00000026356    3244.11907   11302.21694    2892.56671    4801.55973     5616.3992    4653.59323    2312.56906    5754.02576    6941.61141    4452.29448
+#> ENSMUSG00000042505     317.42278     554.98610     316.24815     300.22969      348.0393     347.65818     360.73816     294.83748     440.81151     286.70078
 ```
 
 ## Marker Grid
@@ -262,7 +256,7 @@ For mediation we use the peaks, mapping information (which includes the rankZ no
 
 ```r
 ## Unevaluated Code Chunk
-med_res <- modiFinder(peaks   = map_peaks$peaks_list, 
+med_res <- run_mediate(peaks   = map_peaks$peaks_list, 
                        mapping = map_peaks$maps_list,
                        outdir  = "../../vignette", 
                        annots  = demo_annot,

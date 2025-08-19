@@ -19,6 +19,7 @@
 #' @importFrom tidyr pivot_wider
 #' @importFrom tibble lst column_to_rownames
 #' @importFrom grid gpar
+#' @importFrom grDevices png dev.off
 #'
 #' @export
 #'
@@ -88,7 +89,6 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, hsNum = 1, top_n = 
     dplyr::ungroup()
 
   if (psave) {
-    # png(past0(outdir, "/", pname))
     n_rows <- nrow(l2p_wide)
     n_cols <- ncol(l2p_wide)
 
@@ -143,13 +143,13 @@ hs_sig <- function(df, start, stop, feat, chr) {
       ranks <- rank(all_drops, ties.method = "average")
       percentile <- ranks[length(ranks)] / length(ranks)
       z <- qnorm(percentile)
-      p <- 1 - pnorm(abs(z))
+      p <- 1 - stats::pnorm(abs(z))
       peak_sp_df$pval[which(peak_sp_df$target_id == feature & peak_sp_df$mediator == mediator & peak_sp_df$qtl_chr == chr)] <- p
     }
   }
   peak_sp_df <- peak_sp_df |>
     dplyr::group_by(target_id) |>
-    dplyr::mutate(padj = p.adjust(pval, method = "BH"))
+    dplyr::mutate(padj = stats::p.adjust(pval, method = "BH"))
   return(peak_sp_df)
 }
 

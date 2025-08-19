@@ -4,13 +4,18 @@
 #' @param tissue Tissue to derive plots from
 #' @param pheno Phenotype to derive plots from
 #' @param saveDir Directory to save plots to
+#' @param pop Are you using a "do", "cc", or "other" population? Default is "do"
 #' @param annots Annotations (example `annot_105`), required if plotting effects on chromosome
 #' @param effects Boolean - Plotting effects on chromosome, default FALSE
+#' @param founders If not using DO or CC mice, what are the founders of your population?
+#' @param palette If using a population with more than 8 founders please provide colors to go with each founder.
 #'
 #' @return None
 #' @export
 #'
 #' @importFrom qtl2 scan1 scan1blup plot_coefCC plot_coef
+#' @importFrom grDevices png dev.off
+#' @importFrom graphics plot.new legend
 #'
 peak_plot <- function(mapping, tissue, pheno, saveDir, pop = "do", annots = NULL, effects = FALSE, founders = NULL, palette = NULL) {
   if (is.list(mapping)) {

@@ -27,11 +27,16 @@ LOD_thld(
 \item{batch.size}{Number of genes in each parallelized batch}
 }
 \value{
-A list containing: \describe{
-\item{\code{scan1perm} object of permutations for all selected genes}
-\item{A list with: \describe{
-\item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
-\item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
+A list containing:
+\describe{
+\item{perms}{A \code{scan1perm} object of permutations for all selected genes.}
+\item{thresholds}{A list with two elements:
+\describe{
+\item{significant}{Median LOD threshold at alpha = 0.05.}
+\item{suggestive}{Median LOD threshold at alpha = 0.4.}
+}
+}
+}
 }
 \description{
 Determine significant and suggestive LOD thresholds for your QTLs, using \code{scan1perm} from \code{qtl2}. Select the number of genes to permute, the number of permutations, and the number of genes to run in each batch.

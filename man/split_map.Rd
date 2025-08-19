@@ -6,6 +6,11 @@
 \usage{
 split_map(map, chr_names = NULL)
 }
+\arguments{
+\item{map}{grid map of markers, chromosomes, and positions of markers}
+
+\item{chr_names}{vector of chromosome names}
+}
 \description{
 Background functions for QTLretrievR that will be called by the primary functions
 }

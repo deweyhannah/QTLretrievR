@@ -46,7 +46,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   temp_zip <- tempfile(fileext = ".zip")
 
   response <- httr::GET(url, httr::write_disk(temp_zip, overwrite = TRUE))
-  unzip(temp_zip, exdir = temp_dir, overwrite = T)
+  utils::unzip(temp_zip, exdir = temp_dir, overwrite = T)
 
   file.copy(paste0(covarLoc, "/" , covar_file), to = temp_dir)
 
@@ -105,6 +105,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
 
 #' @import qtl2convert
 #' @importFrom data.table fread
+#' @importFrom utils read.csv
 process_reports <- function(codefile, ifiles, ostem, dirOut) {
   codes <- read.csv(codefile, comment.char = "#")
 

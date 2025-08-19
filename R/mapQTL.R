@@ -190,7 +190,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5, thr
     }
   }
 
-  std <- standardize(expr_list, sample_details, tissues = names(expr_list))
+  std <- standardize(expr = expr_list, details = sample_details, tissues = names(expr_list))
   expr_list <- std$expr
   tissue_samp <- std$tissue_samp
 

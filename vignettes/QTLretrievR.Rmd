@@ -28,9 +28,10 @@ library(QTLretrievR)
 
 This is the easiest way to run QTLretrievR. There are several input files required for `runQTL` as described in detail below. This function will return the list of all the objects used in QTL mapping, annotated QTL peaks, QTL effects, and mediation results. Note in the example below that the objects will be only be returned, not saved. If you wish to have the objects saved for later use you can change `save` to "so" (save only), or "sr" (save and return).
 
-```{r quick_start}
+```{r quick_start, eval=FALSE}
 ## Passing a Genoprobs object - list of probabilities for each tissue
 ## Using internal data for expr, gridFile, metadata, annots
+## Unevaluated Code Chunk
 
 qtl_res <- runQTL(outdir = "../../vignette/", 
                   gbrs_fileLoc = list("mESC" = demo_probs),

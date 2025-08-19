@@ -11,11 +11,16 @@
 #' @param n.perm Number of permutations to run - default 1000
 #' @param batch.size Number of genes in each parallelized batch
 #'
-#' @return A list containing: \describe{
-#'  \item{`scan1perm` object of permutations for all selected genes}
-#'  \item{A list with: \describe{
-#'    \item{Significant LOD threshold (median of alpha = 0.05 summary for all genes)}
-#'    \item{Suggestive LOD threshold (median of alpha = 0.4 summary for all genes)}}}}
+#' @return A list containing:
+#' \describe{
+#'   \item{perms}{A `scan1perm` object of permutations for all selected genes.}
+#'   \item{thresholds}{A list with two elements:
+#'     \describe{
+#'       \item{significant}{Median LOD threshold at alpha = 0.05.}
+#'       \item{suggestive}{Median LOD threshold at alpha = 0.4.}
+#'     }
+#'   }
+#' }
 #' @export
 #'
 #' @importFrom qtl2 scan1perm
@@ -94,8 +99,8 @@ LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 10, n.perm = 1000,
   ## Prepare data for return
   perms_df <- do.call(cbind, perms_out2)
 
-  sigLOD <- median(summary(perms_df, alpha = 0.05))
-  suggLOD <- median(summary(perms_df, alpha = 0.4))
+  sigLOD <- stats::median(summary(perms_df, alpha = 0.05))
+  suggLOD <- stats::median(summary(perms_df, alpha = 0.4))
 
   thlds <- tibble::lst(sigLOD, suggLOD)
   out <- tibble::lst(perms_df, thlds)
