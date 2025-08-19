@@ -5,19 +5,19 @@
 \title{Calculate founder effects for significant peaks}
 \usage{
 qtl_effects(
-  mapping,
   peaks,
+  mapping,
   suggLOD = 6,
-  outdir,
-  outfile,
+  outdir = NULL,
+  outfile = "effects.rds",
   total_cores = NULL,
   save = "sr"
 )
 }
 \arguments{
-\item{mapping}{List of relevant mapping information for overall project}
-
 \item{peaks}{List of dataframes containing QTL peaks for each tissue}
+
+\item{mapping}{List of relevant mapping information for overall project}
 
 \item{suggLOD}{Suggestive LOD threshold. Default is 6.}
 

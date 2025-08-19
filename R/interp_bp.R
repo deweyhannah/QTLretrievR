@@ -12,7 +12,7 @@
 #' @export
 #'
 interp_bp <- function(df, genmap, physmap) {
-  if(peak_bp %in% colnames(df)) {
+  if("peak_bp" %in% colnames(df)) {
     message("physical peak locations already calculated, did you mean to use interp_cM?")
     return(df)
   }

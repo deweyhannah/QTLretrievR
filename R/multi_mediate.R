@@ -98,7 +98,7 @@ multi_modiFinder <- function(peaks, mapping, exprZ, suggLOD = 7, annots, outdir 
     qtl_peaks[[tissue]] <- peaks_list[[tissue]] |>
       dplyr::filter(lod > suggLOD) |>
       dplyr::mutate(target_id = phenotype)
-    qtl_target[[tissue]] <- exprZ_list[[tissue]][common_samples[[tissue]],] ## Quantification of phenotypes being mediated
+    qtl_target[[tissue]] <- exprZ_list[[tissue]][common_samples[[tissue]],, drop = F] ## Quantification of phenotypes being mediated
   }
 
   message("filtered peaks")
@@ -147,6 +147,12 @@ multi_modiFinder <- function(peaks, mapping, exprZ, suggLOD = 7, annots, outdir 
   }else{
     cores_needed <- total_cores
   }
+
+  message(paste0(dim(qtl_peaks[[1]]), collapse = "\t"))
+  message(paste0(dim(med_annot), collapse = "\t"))
+  message(paste0(dim(qtl_mediator[[1]]), collapse = "\t"))
+  message(paste0(str(qtl_target), collapse = "\t"))
+
   doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
   each_tissue <- floor( min(total_cores, cores_needed) / num_tissues) # Divide cores per tissue and pass onto the foreach loop
   message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )

@@ -3,7 +3,8 @@
 #' @param map_dat Mapping information for each marker used to determine genoprobs
 #' @param peaks List of annotated peaks for each tissue
 #' @param sigLOD Significant LOD threshold. Default is 7.5.
-#' @param outdir String to output directory where plots should be saved
+#' @param outdir String to output directory where plots should be saved. Default NULL.
+#' @param pname String for plot name to save, must end in `.png`. Default NULL.
 #' @param psave Whether or not to save plots to png. Default is TRUE.
 #' @param unit Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"
 #' @param map_col Map Color. Default is "blue3"
@@ -17,14 +18,16 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, psave = T, unit = "bp", map_col = "blue3") {
-  if (psave == TRUE) {
-    if (is.null(outdir)) {
-      stop("Attempting to save plot and missing output directory")
-    }
-    if (!is.null(outdir)) {
-      message(paste0("saving plots to: ", outdir, "/", "eqtl_map_lod", sigLOD, "_<tissue>.png"))
-    }
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NULL, psave = T, unit = "bp", map_col = "blue3") {
+  if (psave & is.null(outdir)) {
+    stop("Plot to be saved, but no directory provided")
+  }
+  if (psave & !is.null(pname)) {
+    message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
+  }
+  if (psave & is.null(pname)) {
+    pname <- paste0("mediation_plot_", range, "Mb_chr_", chromosome, "_", position, "_top_", top_n, ".png")
+    message(paste0("Plot to be saved, but name not provided. Saving as ", pname, " in ", outdir))
   }
 
   ## Set up chromosome midpoints and offset
@@ -108,7 +111,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir, psave = T, unit =
 
     ## Save file if wanted
     if (psave == TRUE) {
-      ggplot2::ggsave(paste0("eqtl_map_lod", sigLOD, "_", tissue, ".png"), eqtl_map, device = "png", path = outdir, width = 3072, height = 3072, units = "px")
+      ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir, width = 3072, height = 3072, units = "px")
     }
   }
   return(peak_map)

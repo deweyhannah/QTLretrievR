@@ -8,7 +8,8 @@ plot_eqtlmap(
   map_dat,
   peaks,
   sigLOD = 7.5,
-  outdir,
+  outdir = NULL,
+  pname = NULL,
   psave = T,
   unit = "bp",
   map_col = "blue3"
@@ -21,7 +22,9 @@ plot_eqtlmap(
 
 \item{sigLOD}{Significant LOD threshold. Default is 7.5.}
 
-\item{outdir}{String to output directory where plots should be saved}
+\item{outdir}{String to output directory where plots should be saved. Default NULL.}
+
+\item{pname}{String for plot name to save, must end in \code{.png}. Default NULL.}
 
 \item{psave}{Whether or not to save plots to png. Default is TRUE.}
 

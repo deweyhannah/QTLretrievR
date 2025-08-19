@@ -1,0 +1,149 @@
+#' Identify mediators for provided features +/- x Mb from a given position on a given chromosome
+#'
+#' @param meds Dataframe of mediation to pull potential mediators from (output from `modiFinder`, then select `$tissue`).
+#' @param range The range from the position which mediatiors should be pulled.
+#' @param position The position of the peak(s) to be investigated (single position only).
+#' @param feats Vector of targets to identify mediators for.
+#' @param chromosome The chromosome that the peak(s) fall on.
+#' @param top_n The number of top mediators per target to show. Default 5.
+#' @param psave Should the plot be saved? Default TRUE.
+#' @param pname String indicating the name of plot to save as a .png. Default "mediation_plot_<range>_chr<chromosome>_<position>_top_<top_n>.png".
+#' @param outdir String indicating the location to save the plot to. Default NULL, required if `psave == TRUE`.
+#' @param plot One of c("padj", "pval", "per_drop", "ranks") depending on what statistic should be plotted in the heatmap. Default "padj".
+#'
+#' @return A list containing a dataframe representing the ranking of each mediator within the region for each of the provided targets and the heatmap object.
+#' @export
+#'
+#' @importFrom dplyr filter group_by mutate ungroup arrange select between anti_join join_by case_when if_else
+#' @importFrom ComplexHeatmap Heatmap draw
+#' @importFrom viridis viridis
+#' @importFrom tidyr pivot_wider
+#' @importFrom tibble lst column_to_rownames
+#' @importFrom grid gpar
+#'
+medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n = 5, psave = T, pname = NULL, outdir = NULL, plot = "padj") {
+  if (psave & is.null(outdir)) {
+    stop("Plot to be saved, but no directory provided")
+  }
+  if (psave & !is.null(pname)) {
+    message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
+  }
+  if (psave & is.null(pname)) {
+    pname <- paste0("mediation_plot_", range, "Mb_chr", chromosome, "_", position, "_top_", top_n, ".png")
+    message(paste0("Plot to be saved, but name not provided. Saving as ", pname, " in ", outdir))
+  }
+
+  peak_med <- med_sig(df   = meds,
+                      x    = range,
+                      pos  = position,
+                      feat = feats,
+                      chr  = chromosome)
+
+  l2p_wide <- peak_med |>
+    dplyr::group_by(target_id) |>
+    dplyr::mutate(ranks = rank(-LOD_drop, ties.method = "average")) |>
+    dplyr::ungroup() |>
+    dplyr::mutate(padj = dplyr::case_when(ranks <= top_n ~ padj,
+                                          ranks > top_n ~ NA)) |>
+    dplyr::mutate(padj = dplyr::if_else(padj == 0.0000, 1e-15, padj)) |>
+    dplyr::arrange(mediator_midpoint) |>
+    dplyr::select(target_id, mediator, as.name(plot)) |>
+    tidyr::pivot_wider(names_from = mediator, values_from = as.name(plot)) |>
+    tibble::column_to_rownames(var = "target_id") |>
+    as.matrix()
+
+  palette <- viridis::viridis(100)
+  col_fun <- circlize::colorRamp2(c(0, 0.1), c(palette[100], palette[1]))
+
+  ht <- ComplexHeatmap::Heatmap(l2p_wide,
+                          col = rev(viridis::viridis(100)),
+                          na_col = "gray95",
+                          cluster_rows = F,
+                          cluster_columns = F,
+                          rect_gp = grid::gpar(col = "white", lwd = 2),
+                          row_names_gp = grid::gpar(fontsize = 10),
+                          column_names_gp = grid::gpar(fontsize = 10),
+                          row_title = "Target",
+                          column_title = "Mediator",
+                          column_title_side = "bottom",
+                          heatmap_legend_param = list(title = plot),
+                          show_row_names = T,
+                          show_column_names = T)
+  ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
+
+  rank_return <- peak_med |>
+    dplyr::group_by(target_id) |>
+    dplyr::mutate(per_drop = LOD_drop / qtl_lod,
+                  ranks = rank(-LOD_drop, ties.method = "average")) |>
+    dplyr::ungroup()
+
+  if (psave) {
+    # png(past0(outdir, "/", pname))
+    n_rows <- nrow(l2p_wide)
+    n_cols <- ncol(l2p_wide)
+
+    # Define base size and scaling
+    base_width <- 400
+    base_height <- 400
+    col_scale <- 20
+    row_scale <- 15
+
+    width <- base_width + col_scale * n_cols
+    height <- base_height + row_scale * n_rows
+
+    png(past0(outdir, "/", pname), width = width, height = height)
+    ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
+    dev.off()
+  }
+
+  return(tibble::lst("meds_ranked" = rank_return, "heatmap" = ht))
+
+}
+
+
+med_filter <- function(df, x, pos, feat) {
+  if(pos < 1000) {
+    stop("position must be in bp to match mediator_midpoint value")
+  }
+  ## filter mediation results to +/- x Mb from peak location
+  filtered_df <- df |>
+    dplyr::filter(qtl_chr == mediator_chr) |>
+    dplyr::filter(target_id %in% feat) |>
+    dplyr::filter(dplyr::between(mediator_midpoint, left = (pos - x*1e6), right = (pos + x*1e6)))
+
+  return(filtered_df)
+}
+
+
+med_sig <- function(df, x, pos, feat, chr) {
+  filtered_df <- df |> dplyr::filter(target_id %in% feat, qtl_chr == chr)
+  filtered_df$LOD_drop <- filtered_df$qtl_lod - filtered_df$LOD
+  peak_sp_df <- med_filter(filtered_df, x, pos, feat)
+  # peak_sp_df <- peak_sp_df |> dplyr::filter(mediator_chr == chr,
+  #                                           qtl_chr == chr)
+
+  peak_sp_df$pval <- NA
+
+  for(feature in unique(peak_sp_df$target_id)) {
+    feature_df <- filtered_df |> dplyr::filter(target_id == feature)
+    feature_peak_df <- peak_sp_df |> dplyr::filter(target_id == feature)
+
+    nullDist <- dplyr::anti_join(feature_df, feature_peak_df)
+    nullDist_drop <- nullDist$LOD_drop
+    for(mediator in feature_peak_df$mediator) {
+      med_drop <- feature_peak_df$LOD_drop[which(feature_peak_df$mediator == mediator & feature_peak_df$qtl_chr == chr)]
+      all_drops <- c(nullDist_drop, med_drop)
+      ranks <- rank(all_drops, ties.method = "average")
+      percentile <- ranks[length(ranks)] / length(ranks)
+      z <- qnorm(percentile)
+      p <- 1 - pnorm(abs(z))
+      peak_sp_df$pval[which(peak_sp_df$target_id == feature & peak_sp_df$mediator == mediator & peak_sp_df$qtl_chr == chr)] <- p
+    }
+  }
+  peak_sp_df <- peak_sp_df |>
+    dplyr::group_by(target_id) |>
+    dplyr::mutate(padj = p.adjust(pval, method = "BH"))
+  return(peak_sp_df)
+}
+
+

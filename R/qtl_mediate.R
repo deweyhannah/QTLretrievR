@@ -163,6 +163,8 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   for (i in 1:length(res_out)) {
     tissue <- res_out[[i]]$tissue
     res_list[[tissue]] <- res_out[[i]]$res_list
+    res_list[[tissue]] <- res_list[[tissue]] |>
+      dplyr::left_join(annots |> dplyr::select(target_id = id, target = symbol))
   }
   if(save %in% c("sr","so")) {
     outfile <- paste0(outdir, "/", med_out)

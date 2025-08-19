@@ -22,7 +22,7 @@
 #' @importFrom tibble lst
 #'
 
-qtl_effects <- function(mapping, peaks, suggLOD = 6, outdir, outfile, total_cores = NULL, save = "sr") {
+qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL, outfile = "effects.rds", total_cores = NULL, save = "sr") {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")
