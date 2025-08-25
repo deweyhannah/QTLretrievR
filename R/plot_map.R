@@ -26,7 +26,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
     message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
   }
   if (psave & is.null(pname)) {
-    pname <- paste0("mediation_plot_", range, "Mb_chr_", chromosome, "_", position, "_top_", top_n, ".png")
+    pname <- paste0("eqtl_map_LOD",sigLOD,"_<tissue>.png")
     message(paste0("Plot to be saved, but name not provided. Saving as ", pname, " in ", outdir))
   }
 
@@ -111,6 +111,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
 
     ## Save file if wanted
     if (psave == TRUE) {
+      pname <- paste0("eqtl_map_LOD",sigLOD,"_",tissue,".png")
       ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir, width = 3072, height = 3072, units = "px")
     }
   }

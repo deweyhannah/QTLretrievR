@@ -42,7 +42,8 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n =
 
   l2p_wide <- peak_med |>
     dplyr::group_by(target_id) |>
-    dplyr::mutate(ranks = rank(-LOD_drop, ties.method = "average")) |>
+    dplyr::mutate(per_drop = LOD_drop / qtl_lod,
+                  ranks = rank(-LOD_drop, ties.method = "average")) |>
     dplyr::ungroup() |>
     dplyr::mutate(padj = dplyr::case_when(ranks <= top_n ~ padj,
                                           ranks > top_n ~ NA)) |>
@@ -64,6 +65,8 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome, top_n =
                           row_title = "Target",
                           column_title = "Mediator",
                           column_title_side = "bottom",
+                          row_title_gp = grid::gpar(fontsize = 20),
+                          column_title_gp = grid::gpar(fontsize = 20),
                           heatmap_legend_param = list(title = plot),
                           show_row_names = T,
                           show_column_names = T)
