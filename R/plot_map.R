@@ -26,8 +26,9 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
     message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
   }
   if (psave & is.null(pname)) {
-    pname <- paste0("eqtl_map_LOD",sigLOD,"_<tissue>.png")
-    message(paste0("Plot to be saved, but name not provided. Saving as ", pname, " in ", outdir))
+    temp_name <- paste0("eqtl_map_LOD",sigLOD,"_<tissue>.png")
+    message(paste0("Plot to be saved, but name not provided. Saving as ", temp_name, " in ", outdir))
+
   }
 
   ## Set up chromosome midpoints and offset
