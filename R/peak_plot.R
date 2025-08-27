@@ -7,7 +7,7 @@
 #' @param outdir Directory to save plot to (string). Default is NULL
 #' @param pname Name to save plot as
 #' @param psave Should the plot be saved, or returned only? Default is TRUE
-#' @param annots Annotations (example `annot_105`), required if plotting effects on chromosome
+#' @param chrom The chromosome of the peak you are interested in.
 #' @param effects Boolean - Plotting effects on chromosome. Default is FALSE
 #' @param founders If not using DO or CC mice, what are the founders of your population?
 #' @param palette If using a population with more than 8 founders please provide colors to go with each founder.
@@ -19,7 +19,7 @@
 #' @importFrom grDevices png dev.off
 #' @importFrom graphics plot.new legend
 #'
-peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname = NULL, psave = T, annots = NULL, effects = FALSE, founders = NULL, palette = NULL) {
+peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname = NULL, psave = T, chrom = NULL, effects = FALSE, founders = NULL, palette = NULL) {
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
@@ -60,8 +60,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
   rm(tmp_map)
   rm(mapping)
 
-  if (is.null(annots) & effects) {
-    stop("Annotations needed to produce effects plot")
+  if (is.null(chrom) & effects) {
+    stop("Peak chromosome needed to produce effects plot")
   }
 
   avail_cores <- get_cores()
@@ -73,8 +73,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
                            cores     = min(4, avail_cores))
 
   if (effects) {
-    chr <- annots$chr[annots$id == pheno]
-    c2eff <- qtl2::scan1blup(genoprobs = qtlprobs[[tissue]][,as.character(chr)],
+    message("calculating effects")
+    c2eff <- qtl2::scan1blup(genoprobs = qtlprobs[[tissue]][,as.character(chrom)],
                              pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE])
 
 
