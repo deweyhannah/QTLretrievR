@@ -9,37 +9,51 @@ medPlot_hotSpot(
   meds,
   tbands,
   chromosome,
+  sigLOD,
   hsNum = 1,
   top_n = 5,
-  psave = T,
+  plot = "padj",
+  topFeats = NULL,
+  psave = TRUE,
   pname = NULL,
-  outdir = NULL,
-  plot = "padj"
+  outdir = NULL
 )
 }
 \arguments{
-\item{peaks}{Dataframe of peaks to pull targets from (output of \code{mapQTL}, then select \code{peaks_list$tissue}).}
+\item{peaks}{Dataframe of peaks to pull targets from (output of \code{mapQTL},
+then select \code{peaks_list$tissue}).}
 
-\item{meds}{Dataframe of mediation to pull potential mediators from (output from \code{modiFinder}, then select \verb{$tissue}).}
+\item{meds}{Dataframe of mediation to pull potential mediators from (output
+from \code{modiFinder}, then select \verb{$tissue}).}
 
-\item{tbands}{Dataframe of all transbands (output of \code{transbands}, then select \code{bands.rna$tissue}).}
+\item{tbands}{Dataframe of all transbands (output of \code{transbands}, then
+select \code{bands.rna$tissue}).}
 
-\item{chromosome}{The chromosome that the hotspot falls on}
+\item{chromosome}{Chromosome that the transband (hotspot) is present on.}
 
-\item{hsNum}{If there is more than one hotspot on the chromosome, which one do you want? Default 1.}
+\item{sigLOD}{Significant LOD threshold to use for filtering phenotypes.}
 
-\item{top_n}{The number of top mediators per target to show. Default 5.}
+\item{hsNum}{If there are multiple hotspots on a chromosome, indicate which
+one. Default is 1.}
 
-\item{psave}{Should the plot be saved? Default TRUE.}
+\item{top_n}{The number of top mediators per target to show. Default is 5.}
 
-\item{pname}{String indicating the name of plot to save as a .png. Default "mediation_plot_chr\if{html}{\out{<chromosome>}}\emph{\if{html}{\out{<start>}}}\if{html}{\out{<stop>}}\emph{top}<top_n>.png".}
+\item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what
+statistic should be plotted in the heatmap. Default "padj".}
 
-\item{outdir}{String indicating the location to save the plot to. Default NULL, required if \code{psave == TRUE}.}
+\item{topFeats}{Optional. Top hotspot features based on PC analysis.}
 
-\item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what statistic should be plotted in the heatmap. Default "padj".}
+\item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
+
+\item{pname}{String indicating the name of plot to save as a .png. Default
+"mediation_plot_chr\if{html}{\out{<chromosome>}}\emph{\if{html}{\out{<start>}}}\if{html}{\out{<stop>}}\emph{top}<top_n>.png".}
+
+\item{outdir}{Directory to save plots. Default is \code{NULL}.}
 }
 \value{
-A list containing a dataframe representing the ranking of each mediator within the hotspot for each target of the hotspot and the heatmap object.
+A list containing a dataframe representing the ranking of each
+mediator within the hotspot for each target of the hotspot and the
+heatmap object.
 }
 \description{
 Identify top mediators within a hotspot (molecular QTL)

@@ -10,27 +10,31 @@ plot_eqtlmap(
   sigLOD = 7.5,
   outdir = NULL,
   pname = NULL,
-  psave = T,
+  psave = TRUE,
   unit = "bp",
-  map_col = "blue3"
+  map_col = "#0073C2FF"
 )
 }
 \arguments{
-\item{map_dat}{Mapping information for each marker used to determine genoprobs}
+\item{map_dat}{\code{map_dat2} from \code{mapQTL} mapping list.}
 
-\item{peaks}{List of annotated peaks for each tissue}
+\item{peaks}{List of dataframes containing QTL peaks for each tissue
+(annotated).}
 
-\item{sigLOD}{Significant LOD threshold. Default is 7.5.}
+\item{sigLOD}{Significant LOD threshold to use for filtering phenotypes.
+Default is 7.5}
 
-\item{outdir}{String to output directory where plots should be saved. Default NULL.}
+\item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
-\item{pname}{String for plot name to save, must end in \code{.png}. Default NULL.}
+\item{pname}{File name to save plot (needs to end in \code{.png}).
+Default is "eqtl_map_LOD\if{html}{\out{<sigLOD>}}_\if{html}{\out{<tissue>}}.png".}
 
-\item{psave}{Whether or not to save plots to png. Default is TRUE.}
+\item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
 
-\item{unit}{Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"}
+\item{unit}{One of \code{c("bp", "mbp")}; annotation position units.
+Default is "bp".}
 
-\item{map_col}{Map Color. Default is "blue3"}
+\item{map_col}{Plot color. Default is "#0073C2FF"}
 }
 \value{
 A list of peak maps (ggplot objects) for each tissue

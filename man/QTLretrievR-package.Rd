@@ -20,6 +20,7 @@ Other contributors:
 \itemize{
   \item Daniel Skelly \email{dan.skelly@jax.org} (\href{https://orcid.org/0000-0002-2329-2216}{ORCID}) [contributor]
   \item Daniel Gatti \email{dan.gatti@jax.org} (\href{https://orcid.org/0000-0003-0667-9926}{ORCID}) [contributor]
+  \item Samuel Widmayer \email{samuel.widmayer@jax.org} (\href{https://orcid.org/0000-0002-1200-4768}{ORCID}) [contributor]
 }
 
 }

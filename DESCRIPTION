@@ -2,14 +2,31 @@ Package: QTLretrievR
 Title: Calculate the Map, Peaks, Mediation, and Effects for Quantitative Trait Loci
 Version: 1.2.0.0
 Authors@R: c(
-    person(given = "Hannah B.", family = "Dewey", email = "hannah.dewey@jax.org", role = c("aut", "cre"),
+    person(given   = "Hannah B.",
+           family  = "Dewey",
+           email   = "hannah.dewey@jax.org",
+           role    = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3009-0452")),
-    person(given = "Selcan", family = "Aydin", email = "selcan.aydin@jax.org", role = "aut",
+    person(given   = "Selcan",
+           family  = "Aydin", 
+           email   = "selcan.aydin@jax.org", 
+           role    = "aut",
            comment = c(ORCID = "0000-0002-0457-9641")),
-    person(given = "Daniel", family = "Skelly", email = "dan.skelly@jax.org", role = "ctb",
+    person(given   = "Daniel", 
+           family  = "Skelly",
+           email   = "dan.skelly@jax.org",
+           role    = "ctb",
            comment = c(ORCID = "0000-0002-2329-2216")),
-    person(given = "Daniel", family = "Gatti", email = "dan.gatti@jax.org", role = "ctb",
-           comment = c(ORCID = "0000-0003-0667-9926")))
+    person(given   = "Daniel",
+           family  = "Gatti",
+           email   = "dan.gatti@jax.org",
+           role    = "ctb",
+           comment = c(ORCID = "0000-0003-0667-9926")),
+    person(given = "Samuel", 
+           family = "Widmayer",
+           email = "samuel.widmayer@jax.org",
+           role = "ctb",
+           comment = c(ORCID = "0000-0002-1200-4768")))
 Description: An integration of 'qtl2' and 'intermediate' to map genotypes to probes
     (genoprobs), calculate Quantitative Trait Loci (QTL) peaks, identify mediators 
     of the peaks, and identify the phenotypic effects within experimental data
@@ -29,6 +46,7 @@ Imports:
     grid,
     httr,
     intermediate,
+    patchwork,
     purrr,
     qtl2,
     qtl2convert,
@@ -38,7 +56,6 @@ Imports:
     viridis,
     foreach,
     ggpubr,
-    magrittr,
     doParallel,
     stats
 Remotes:
@@ -67,6 +84,7 @@ Collate:
     'gridfile_mini.R'
     'gridfile_quilt.R'
     'gxeQTL.R'
+    'hsHapEffects.R'
     'interp_bp.R'
     'interp_cM.R'
     'LOD_thld.R'
@@ -74,15 +92,18 @@ Collate:
     'medPlot_hotspot.R'
     'medPlot_single.R'
     'mugaprobs.R'
-    'multi_mediate.R'
+    'multi_modiFinder.R'
+    'pcPeakPlot.R'
     'peak_plot.R'
     'qtl_effects.R'
-    'qtl_mediate.R'
+    'modiFinder.R'
     'runQTL.R'
+    'tailWag.R'
     'transbands.R'
     'plot_map.R'
     'QTLretrievR-package.R'
 Depends: 
     R (>= 2.10)
 LazyData: true
+LazyDataCompression: xz
 VignetteBuilder: knitr

@@ -14,17 +14,19 @@ LOD_thld(
 )
 }
 \arguments{
-\item{mapping}{Mapping list from \code{mapQTL}, or a full character path to a saved mapping object}
+\item{mapping}{Mapping list from \code{mapQTL}, or full path to \code{.rds}
+containing one.}
 
-\item{tissue}{Tissue to determine thresholds for}
+\item{tissue}{Tissue to determine thresholds for.}
 
-\item{annots}{Data frame of gene annotations - use for filtering to autosomal phenotypes}
+\item{annots}{Data frame of phenotype annotations for filtering to
+autosomal phenotypes. Columns must include "id", "symbol", "start", "end".}
 
-\item{n.gene}{Number of genes to permute - default 10}
+\item{n.gene}{Number of phenotypes to run permutations on. Default is 10.}
 
-\item{n.perm}{Number of permutations to run - default 1000}
+\item{n.perm}{Number of permutations to run per phenotype.  Default is 1000.}
 
-\item{batch.size}{Number of genes in each parallelized batch}
+\item{batch.size}{Number of genes in each parallelized batch.}
 }
 \value{
 A list containing:
@@ -39,5 +41,7 @@ A list containing:
 }
 }
 \description{
-Determine significant and suggestive LOD thresholds for your QTLs, using \code{scan1perm} from \code{qtl2}. Select the number of genes to permute, the number of permutations, and the number of genes to run in each batch.
+Determine significant and suggestive LOD thresholds for your QTLs, using
+\code{scan1perm} from \code{qtl2}. Select the number of genes to permute, the number of
+permutations, and the number of genes to run in each batch.
 }

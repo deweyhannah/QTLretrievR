@@ -9,29 +9,37 @@ transbands(
   peaks,
   sigLOD = 7.5,
   suggLOD = 6,
-  outdir,
   psave = TRUE,
-  color = "blue3"
+  pname = NULL,
+  outdir = NULL,
+  color = "#0073C2FF"
 )
 }
 \arguments{
-\item{map_dat}{Mapping information for each marker used to determine genoprobs}
+\item{map_dat}{\code{map_dat2} from \code{mapQTL} mapping list.}
 
-\item{peaks}{List of annotated peaks for each tissue}
+\item{peaks}{List of dataframes containing QTL peaks for each
+tissue (annotated).}
 
-\item{sigLOD}{Significant LOD threshold. Default is 7.5.}
+\item{sigLOD}{Significant LOD threshold to use for filtering phenotypes.
+Default is 7.5}
 
-\item{suggLOD}{Suggestive LOD threshold. Default is 6.}
+\item{suggLOD}{Suggestive LOD threshold to use for filtering phenotypes.
+Default is 6.}
 
-\item{outdir}{String to output directory where plots should be saved}
+\item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
 
-\item{psave}{Whether or not to save plots to png. Default is TRUE.}
+\item{pname}{File name to save plot (needs to end in \code{.png}).
+Default is \verb{hotspots_<tissue>.png}}
 
-\item{color}{Map Color. Default is "blue3"}
+\item{outdir}{Directory to save plots. Default is \code{NULL}.}
+
+\item{color}{Plot color. Default is "#0073C2FF".}
 }
 \value{
 A list containing: \itemize{
-\item{bands.rna}{A list of tibbles containing hotspot information for each tissue
+\item{bands.rna}{A list of tibbles containing hotspot information for
+each tissue
 Information includes the following for each hotspot:
 \itemize{
 \item Chromosome of the hotspot

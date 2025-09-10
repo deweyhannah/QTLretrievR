@@ -9,4 +9,4 @@
 library(testthat)
 library(QTLretrievR)
 
-# test_check("QTLretrievR")
+test_check("QTLretrievR")

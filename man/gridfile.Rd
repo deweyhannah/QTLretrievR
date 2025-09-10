@@ -13,7 +13,9 @@ A 74165 x 4 data frame with marker names included as row names:
 }
 }
 \source{
-Updated GBRS software, see "https://github.com/TheJacksonLaboratory/cs-nf-pipelines/wiki/GBRS-Pipeline-ReadMe" for details.
+Updated GBRS software, see
+"https://github.com/TheJacksonLaboratory/cs-nf-pipelines/wiki/GBRS-Pipeline-ReadMe"
+for details.
 }
 \usage{
 data(gridfile)

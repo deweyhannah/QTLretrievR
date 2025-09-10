@@ -1,15 +1,21 @@
 #' Identify distal hotspots above a suggestive and significant LOD score.
 #'
-#' @param map_dat Mapping information for each marker used to determine genoprobs
-#' @param peaks List of annotated peaks for each tissue
-#' @param sigLOD Significant LOD threshold. Default is 7.5.
-#' @param suggLOD Suggestive LOD threshold. Default is 6.
-#' @param outdir String to output directory where plots should be saved
-#' @param psave Whether or not to save plots to png. Default is TRUE.
-#' @param color Map Color. Default is "blue3"
+#' @param map_dat `map_dat2` from `mapQTL` mapping list.
+#' @param peaks List of dataframes containing QTL peaks for each
+#'  tissue (annotated).
+#' @param sigLOD Significant LOD threshold to use for filtering phenotypes.
+#'  Default is 7.5
+#' @param suggLOD Suggestive LOD threshold to use for filtering phenotypes.
+#' Default is 6.
+#' @param psave Logical. Save the plot as `.png`. Default `TRUE`.
+#' @param pname File name to save plot (needs to end in `.png`).
+#'  Default is `hotspots_<tissue>.png`
+#' @param outdir Directory to save plots. Default is `NULL`.
+#' @param color Plot color. Default is "#0073C2FF".
 #'
 #' @return A list containing: \itemize{
-#'  \item{bands.rna}{A list of tibbles containing hotspot information for each tissue
+#'  \item{bands.rna}{A list of tibbles containing hotspot information for
+#'   each tissue
 #'  Information includes the following for each hotspot:
 #'  - Chromosome of the hotspot
 #'  - Start and Stop (bp) of the hotspot
@@ -20,14 +26,25 @@
 #'
 #' @export
 #'
-#' @importFrom ggplot2 ggplot aes geom_bar scale_x_continuous expansion xlab ylab theme element_text ggsave
+#' @importFrom ggplot2 ggplot aes geom_bar scale_x_continuous expansion
+#' xlab ylab theme element_text ggsave
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom tibble lst as_tibble
 #' @importFrom dplyr select rename group_by summarize filter mutate starts_with
 #' @importFrom stats quantile
-#' @importFrom GenomicRanges GRanges countOverlaps seqnames start end slidingWindows nearest
+#' @importFrom GenomicRanges GRanges countOverlaps seqnames start end
+#' slidingWindows nearest
 #'
-transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave = TRUE, color = "blue3") {
+transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
+                       pname = NULL, outdir = NULL, color = "#0073C2FF") {
+  if (psave & is.null(outdir)) {
+    stop("Plot to be saved, but no directory provided")
+  }
+  if (psave & !is.null(pname)) {
+    ptemp <- "hotspots_<tissue>.png"
+    message(paste0("Plot to be saved. Saving as ", ptemp, " in ", outdir))
+  }
+
   ## Set up chromosome midpoints and offset
   uchr <- c(as.character(1:19), "X")
   cl <- dplyr::select(map_dat, chr, pos_bp) |>
@@ -61,7 +78,8 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
     GenomicRanges::GRanges()
 
   ## Sliding windows of chromosome based markers - 50 <> windows 10 <> step
-  windows <- unlist(GenomicRanges::slidingWindows(chrom_markers, width = 50, step = 10))
+  windows <- unlist(GenomicRanges::slidingWindows(chrom_markers, width = 50,
+                                                  step = 10))
 
   ## Start per tissue analysis with annotated peaks (suggestive only)
 
@@ -89,8 +107,10 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
     hotspot_sugg <- GenomicRanges::nearest(distant_rna_sugg, markers)
 
     ## Add hotspots to windows
-    windows$distant_rna <- GenomicRanges::countOverlaps(windows, markers_bynum[hotspot])
-    windows$distant_rna_sugg <- GenomicRanges::countOverlaps(windows, markers_bynum[hotspot_sugg])
+    windows$distant_rna <- GenomicRanges::countOverlaps(windows,
+                                                        markers_bynum[hotspot])
+    windows$distant_rna_sugg <- GenomicRanges::countOverlaps(
+      windows, markers_bynum[hotspot_sugg])
 
     ## Fill out data for all windows
     window_counts <- tibble(
@@ -111,7 +131,8 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
     window_counts <- window_counts |>
       dplyr::mutate(midpoint = (pos_cM_end + pos_cM_start) / 2, 4)
 
-    x <- select(window_counts, chrom, starts_with("pos_bp"), starts_with("distant")) |>
+    x <- select(window_counts, chrom, starts_with("pos_bp"),
+                starts_with("distant")) |>
       filter(
         distant_rna >= quantile(distant_rna, 0.995)
       )
@@ -123,7 +144,8 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
       GenomicRanges::reduce()
 
     bands$distant_rna <- GenomicRanges::countOverlaps(bands, distant_rna)
-    bands$distant_rna_sugg <- GenomicRanges::countOverlaps(bands, distant_rna_sugg)
+    bands$distant_rna_sugg <- GenomicRanges::countOverlaps(bands,
+                                                           distant_rna_sugg)
 
     ## Convert to tibble and save to list
     bands.rna[[tissue]] <- bands |>
@@ -150,17 +172,22 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
         ) |>
         dplyr::mutate(chrom = factor(chrom, levels = c(seq(1:19), "X")))))
 
-    message(paste0(eqtl_counts$hotspot_midpoint[which(eqtl_counts$distant_rna != 0)], sep = " "))
+    message(paste0(eqtl_counts$hotspot_midpoint[which(
+      eqtl_counts$distant_rna != 0)], sep = " "))
 
-    eqtl_counts$midpoint_offset <- eqtl_counts$hotspot_midpoint + chrom_lens_offset[eqtl_counts$chrom]
+    eqtl_counts$midpoint_offset <- eqtl_counts$hotspot_midpoint +
+      chrom_lens_offset[eqtl_counts$chrom]
 
-    message(paste0(unique(eqtl_counts$chrom[which(eqtl_counts$distant_rna != 0)]), sep = " "))
-    message(paste0(eqtl_counts$midpoint_offset[which(eqtl_counts$distant_rna != 0)], sep = " "))
+    message(paste0(unique(eqtl_counts$chrom[which(
+      eqtl_counts$distant_rna != 0)]), sep = " "))
+    message(paste0(eqtl_counts$midpoint_offset[which(
+      eqtl_counts$distant_rna != 0)], sep = " "))
 
     trans_band_plot[[tissue]] <- eqtl_counts |>
       ggplot2::ggplot() +
       ggplot2::aes(x = midpoint_offset, y = distant_rna) +
-      ggplot2::geom_bar(stat = "identity", width = 50, col = color, fill = color) +
+      ggplot2::geom_bar(stat = "identity", width = 50, col = color,
+                        fill = color) +
       ggpubr::theme_pubclean(base_size = 16) +
       ggplot2::scale_x_continuous(
         name = "Chr",
@@ -173,7 +200,11 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, outdir, psave 
       ggplot2::theme(axis.text = ggplot2::element_text(size = 10))
 
     if (psave == TRUE) {
-      ggplot2::ggsave(paste0("hotspots_", tissue, ".png"), plot = trans_band_plot[[tissue]], device = "png", path = outdir)
+      if (is.null(pname)) {
+        pname <- paste0("hotspots_", tissue, ".png")
+      }
+      ggplot2::ggsave(pname, plot = trans_band_plot[[tissue]], device = "png",
+                      path = outdir)
     }
   }
   table_plot <- tibble::lst(bands.rna, trans_band_plot)

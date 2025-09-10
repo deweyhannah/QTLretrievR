@@ -1,14 +1,26 @@
 #' Prepare and run mediation for a set of QTL peaks
 #'
-#' @param peaks List of dataframes containing QTL peaks for each tissue, or full path pointing to saved peaks object.
-#' @param mapping List of relevant mapping information for overall project, or full path pointing to saved peaks object.
-#' @param suggLOD Suggestive LOD to use as filter for mediation. Default is 7.
-#' @param annots String pointing to annotations file or annotations object.
-#' @param outdir String of path to output directory where mediation lists will be saved. Default is NULL.
-#' @param med_out String indicating the name for output mediation file. Should end in ".rds". Default is "mediation.rds"
-#' @param total_cores Number of available cores to use for parallelization. Default is NULL.
-#' @param save Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".
-#' @param distOnly Logical. Mediate only the distal peaks? Default is TRUE
+#' @param peaks List of dataframes containing QTL peaks for each tissue, or
+#' full path to `.rds` containing one.
+#' @param mapping Mapping list from `mapQTL`, or full path to `.rds`
+#'  containing one.
+#' @param sigLOD Significant LOD threshold to use to filter phenotypes for
+#'  mediation. Default is 7.5
+#' @param annots Annotations file. Contains mapping information for phenotypes.
+#'  Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".
+#' @param outdir Directory to save output files. Default is `NULL`.
+#' @param med_out String indicating the name of the output file containing
+#'  mediation results for mediation within a phenotype. This file will be
+#'   saved in `.rds` format and used for downstream analysis and visualization.
+#'    Should end in `.rds`. Default is "`mediation.rds`"
+#' @param total_cores Number of available cores to use for parallelization.
+#'  Default is `NULL`.
+#' @param save Indicates object return/save behavior. One of
+#'  `c("sr", "so", "ro")`; save & return, save only, return only.
+#'   Default is "sr".
+#' @param distOnly Logical. Mediate only the distal peaks? Default is `TRUE`.
+#' @param hsOnly Logical. Mediate only on peaks identified within a hotspot.
+#'  Default is `FALSE`.
 #'
 #' @return A list containing mediation results for each tissue
 #'
@@ -19,7 +31,9 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_out = "mediation.rds", total_cores = NULL, save = "sr", distOnly = T) {
+modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
+                       med_out = "mediation.rds", total_cores = NULL,
+                       save = "sr", distOnly = TRUE, hsOnly = FALSE) {
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
     if (is.null(outdir)) {
@@ -34,7 +48,9 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   if ("Gene.start..bp." %in% colnames(annots)) {
     message("renaming annots columns")
     annots <- annots |>
-      dplyr::rename(id = Gene.stable.ID, symbol = MGI.symbol, start = Gene.start..bp., end = Gene.end..bp., chr = Chromosome.scaffold.name)
+      dplyr::rename(id = Gene.stable.ID, symbol = MGI.symbol,
+                    start = Gene.start..bp., end = Gene.end..bp.,
+                    chr = Chromosome.scaffold.name)
   }
   if ("gene.id" %in% colnames(annots)) {
     colnames(annots)[which(colnames(annots) == "gene.id")] <- "id"
@@ -47,7 +63,8 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   }
 
   message("checking peaks and mapping")
-  if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) & is.character(mapping))) {
+  if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) &
+                                                  is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")
   }
 
@@ -88,12 +105,25 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
       dplyr::mutate(midpoint = (start + stop) / 2)
   }
 
+  if (hsOnly) {
+    tbands <- transbands(map_dat = map_dat2,
+                         peaks   = peaks_list,
+                         sigLOD  = sigLOD,
+                         psave   = FALSE)
+
+    peaks_og <- peaks_list
+    for (tissue in names(peaks_list)) {
+      peaks_list[[tissue]] <- filter_peaks(peaks_list[[tissue]],
+                                           tbands$bands.rna[[tissue]])
+    }
+  }
+
   ## Identify tissues and targets
   qtl_peaks <- list()
   qtl_target <- list()
   for (tissue in names(peaks_list)) {
     qtl_peaks[[tissue]] <- peaks_list[[tissue]] |>
-      dplyr::filter(lod > suggLOD) |>
+      dplyr::filter(lod > sigLOD) |>
       # interp_bp(.) |>
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
       dplyr::mutate(target_id = phenotype) |>
@@ -121,9 +151,14 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   for (tissue in names(exprZ_list)) {
     med_annot[[tissue]] <- targ_annot[[tissue]] |>
       dplyr::rename(mediator_id = target_id)
-    qtl_mediator[[tissue]] <- exprZ_list[[tissue]][, annots_list[[tissue]]$id]
-    qtl_mediator[[tissue]] <- qtl_mediator[[tissue]][, med_annot[[tissue]]$id, drop = FALSE]
-    qtl_target[[tissue]] <- qtl_target[[tissue]][, targ_annot[[tissue]]$target_id, drop = FALSE]
+    qtl_mediator[[tissue]] <- exprZ_list[[tissue]][,
+                                                   annots_list[[tissue]]$id]
+    qtl_mediator[[tissue]] <- qtl_mediator[[tissue]][,
+                                                     med_annot[[tissue]]$id,
+                                                     drop = FALSE]
+    qtl_target[[tissue]] <- qtl_target[[tissue]][,
+                                                 targ_annot[[tissue]]$target_id,
+                                                 drop = FALSE]
     qtl_peaks[[tissue]] <- qtl_peaks[[tissue]] |>
       dplyr::filter(target_id %in% targ_annot[[tissue]]$target_id)
   }
@@ -134,16 +169,19 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   available_cores <- get_cores()
   if( is.null(total_cores)) total_cores <- available_cores
   if( total_cores > available_cores) total_cores <- available_cores
-  max_peaks <- max(sapply(qtl_peaks, nrow)) # get the maximum number of peaks
+  # get the maximum number of peaks
+  max_peaks <- max(vapply(qtl_peaks, nrow, integer(1)))
   num_tissues <-  length(names(qtl_peaks)) # number of tissues
   if( max_peaks < 1000){
     cores_needed <- 8 # Limiting # of cores if there are <1000 peaks in total
   }else{
     cores_needed <- total_cores
   }
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed)) # no need for a lot of cores if there aren't that many peaks!
-  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues) # Divide cores per tissue and pass onto the foreach loop
-  message(paste0("Registering ", min(total_cores, cores_needed), " cores and passing ", each_tissue ," cores per tissue to ", num_tissues ," tissue(s)." ) )
+  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
+  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues)
+  message(paste0("Registering ", min(total_cores, cores_needed),
+                 " cores and passing ", each_tissue ," cores per tissue to ",
+                 num_tissues ," tissue(s)." ) )
   res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
     qtl_mediate(tissue,
                 QTL.peaks    = qtl_peaks,
@@ -160,7 +198,7 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   doParallel::stopImplicitCluster()
 
   res_list <- list()
-  for (i in 1:length(res_out)) {
+  for (i in seq_len(length(res_out))) {
     tissue <- res_out[[i]]$tissue
     res_list[[tissue]] <- res_out[[i]]$res_list
     res_list[[tissue]] <- res_list[[tissue]] |>
@@ -175,15 +213,16 @@ modiFinder <- function(peaks, mapping, suggLOD = 7, annots, outdir = NULL, med_o
   }
 }
 
-qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, mapDat, cores, pmap) {
+qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar,
+                        QTL.target, probs, mapDat, cores, pmap) {
 
   n.batches <- max(c(round(nrow(QTL.peaks[[tissue]]) / 1000)))
-  if( n.batches %in% c(0,1)) n.batches = 2
+  if( n.batches %in% c(0,1)) n.batches <- 2
   nn <- nrow(QTL.peaks[[tissue]])
   ss <- round(seq(0, nn, length.out = n.batches))
 
   doParallel::registerDoParallel(cores = cores)
-  med_res <- foreach::foreach(i = 1:(n.batches - 1)) %dopar% {
+  med_res <- foreach::foreach(i = seq_len(n.batches - 1)) %dopar% {
     purrr::compact(batchmediate(
       batch        = i,
       QTL.peaks    = QTL.peaks[[tissue]],
@@ -205,7 +244,9 @@ qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar, 
   return(res_list)
 }
 
-batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, mapDat, probs, ss, pmap, ...) {
+batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks,
+                         med_annot, QTL.mediator, targ_covar, QTL.target,
+                         mapDat, probs, ss, pmap, ...) {
 
   med.scan <- list()
 
@@ -214,14 +255,16 @@ batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks, med_ann
   lod.peaks <- QTL.peaks[start:end, ]
   # cat(sprintf("batch %d: %d-%d\n", batch, start, end))
 
-  for (i in 1:nrow(lod.peaks)) {
+  for (i in seq_len(nrow(lod.peaks))) {
     marker <- mapDat |>
       mutate(pos = as.numeric(pos_bp)) |>
-      filter(abs(pos - lod.peaks$peak_bp[i]) == min(abs(pos - lod.peaks$peak_bp[i])))
+      filter(abs(pos - lod.peaks$peak_bp[i]) ==
+               min(abs(pos - lod.peaks$peak_bp[i])))
     qtl.chr <- unique(marker$chr)
     qtl.pos <- unique(marker$pos_bp)
     annot <- med_annot |> mutate(middle_point = pos)
-    geno <- qtl2::pull_genoprobpos(probs, chr = qtl.chr, pos = qtl.pos, map = pmap)
+    geno <- qtl2::pull_genoprobpos(probs, chr = qtl.chr,
+                                   pos = qtl.pos, map = pmap)
     geno <- geno[rownames(geno) %in% rownames(QTL.target), ]
     target <- lod.peaks$phenotype[i]
 
@@ -252,11 +295,8 @@ batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks, med_ann
         LOD
       )
 
-    # return(med)
     med.scan[[i]] <- med
-    #   }
   }
   med.scan2 <- dplyr::bind_rows(med.scan)
   return(med.scan2)
-  # parallel::stopCluster(cl)
 }

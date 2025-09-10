@@ -1,5 +1,4 @@
 #' Background functions for QTLretrievR that will be called by the primary functions
-#' @importFrom magrittr %>%
 #' @importFrom foreach foreach %dopar%
 #' @importFrom dplyr rename select arrange
 #' @importFrom DT datatable
@@ -21,7 +20,8 @@ split_map <- function(map, chr_names = NULL) {
   lapply(split(pos, factor(chr, uchr)), sort)
 }
 
-reorder_map_table <- function(map_tab, chr_col = 1, pos_col = 2, chr_names = NULL) {
+reorder_map_table <- function(map_tab, chr_col = 1,
+                              pos_col = 2, chr_names = NULL) {
   chr <- map_tab[, chr_col]
   if (is.null(chr_names)) {
     chr_names <- unique(chr)
@@ -41,7 +41,7 @@ probs_3d_to_qtl2 <- function(probs) {
   # Convert to qtl2 genoprobs format
   # Similar to qtl2convert::probs_doqtl_to_qtl2()
   markers <- dimnames(probs)[[3]]
-  chroms <- sapply(strsplit(markers, "_"), "[[", 1)
+  vapply(strsplit(markers, "_"), function(x) x[[1]], character(1))
   newprobs <- vector("list", length(uchroms))
   names(newprobs) <- uchroms
   for (chrom in uchroms) newprobs[[chrom]] <- probs[, , chroms == chrom]
@@ -70,14 +70,16 @@ create_dt <- function(x) {
 standardize <- function(expr, details, tissues = c()) {
   tissue_samp <- list()
   for (tissue in tissues) {
-    tissue_samp[[tissue]] <- details[which(details$ID %in% colnames(expr[[tissue]])) ,] # & details$tissue == tissue), ]
+    tissue_samp[[tissue]] <- details[which(details$ID %in%
+                                             colnames(expr[[tissue]])) ,]
   }
   std <- tibble::lst(expr, tissue_samp)
   # names(std) <- c("expr","exprZ","tissue_samp")
   return(std)
 }
 
-batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, QTL.mediator, targ_covar, QTL.target, probs, ...) {
+batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot,
+                         QTL.mediator, targ_covar, QTL.target, probs, ...) {
   message("mediating the mediation of mediators")
   med.scan <- list()
 
@@ -86,13 +88,14 @@ batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, 
   lod.peaks <- QTL.peaks[start:end, ]
   cat(sprintf("batch %d: %d-%d\n", n, start, end))
 
-  for (i in 1:nrow(lod.peaks)) {
-    marker <- map_dat2 %>%
-      dplyr::mutate(pos = as.numeric(pos_bp)) %>%
-      dplyr::filter(abs(pos - lod.peaks$peak_bp[i]) == min(abs(pos - lod.peaks$peak_bp[i])))
+  for (i in seq_along(lod.peaks)) {
+    marker <- map_dat2 |>
+      dplyr::mutate(pos = as.numeric(pos_bp)) |>
+      dplyr::filter(abs(pos - lod.peaks$peak_bp[i]) ==
+                      min(abs(pos - lod.peaks$peak_bp[i])))
     qtl.chr <- marker$chr
     qtl.pos <- marker$pos_bp / 1e06
-    annot <- med_annot %>% mutate(middle_point = pos)
+    annot <- med_annot |> mutate(middle_point = pos)
     geno <- qtl2::pull_genoprobpos(probs, marker$marker)
     geno <- geno[rownames(geno) %in% rownames(QTL.target), ]
     target <- lod.peaks$phenotype[i]
@@ -107,12 +110,12 @@ batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot, 
       method = "double-lod-diff"
     )
 
-    med <- med %>%
+    med <- med |>
       mutate(
         target_id = lod.peaks$phenotype[i],
         qtl_lod = lod.peaks$lod[i],
         qtl_chr = lod.peaks$peak_chr[i]
-      ) %>%
+      ) |>
       select(
         target_id,
         qtl_lod,
@@ -145,7 +148,8 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, thrA = 5, thrX = 5, n.cores = 4, phys) {
+peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
+                     thrA = 5, thrX = 5, n.cores = 4, phys) {
   # message("Started mapping")
   # message(timestamp())
   start <- ss[i] + 1
@@ -166,12 +170,12 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap, 
                             thresholdX   = thrX
   )
   if (phys) {
-    peaks <- peaks %>%
-      dplyr::select(-lodindex) %>%
+    peaks <- peaks |>
+      dplyr::select(-lodindex) |>
       dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_bp = pos)
   } else {
-    peaks <- peaks %>%
-      dplyr::select(-lodindex) %>%
+    peaks <- peaks |>
+      dplyr::select(-lodindex) |>
       dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_cM = pos)
   }
 
@@ -241,29 +245,35 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
 
 get_cores <- function(){
-  if (Sys.getenv("SLURM_NTASKS") != "" && Sys.getenv("SLURM_CPUS_PER_TASK") != "") {
+  if (Sys.getenv("SLURM_NTASKS") != "" &&
+      Sys.getenv("SLURM_CPUS_PER_TASK") != "") {
     # Get the number of tasks and the number of CPUs per task
     num_tasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
     cpus_per_task <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK"))
 
     # Calculate total number of cores
     num_cores <- num_tasks * cpus_per_task
-    message(paste0("SLURM job detected, using ", num_cores, " cores (", num_tasks, " tasks, ", cpus_per_task, " cores per task)."))
+    message(paste0("SLURM job detected, using ", num_cores,
+                   " cores (", num_tasks, " tasks, ", cpus_per_task,
+                   " cores per task)."))
 
   }
   else {
     # get the total number of cores that are available for each OS
     if (Sys.info()['sysname'] == "Windows") {
       num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-      message(paste0("Working in Windows and there are ", num_cores, " cores in total."))
+      message(paste0("Working in Windows and there are ", num_cores,
+                     " cores in total."))
     }
     else if (Sys.info()['sysname'] == "Linux"){
       num_cores <- as.numeric(system("nproc", intern = TRUE))
-      message(paste0("Working in Linux and there are ", num_cores, " cores in total."))
+      message(paste0("Working in Linux and there are ", num_cores,
+                     " cores in total."))
     }
     else if(Sys.info()['sysname'] == "Darwin" ){
       num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-      message(paste0("Working in MacOS and there are ", num_cores, " cores in total."))
+      message(paste0("Working in MacOS and there are ", num_cores,
+                     " cores in total."))
     }
     else{
       num_cores <- 1
@@ -274,3 +284,14 @@ get_cores <- function(){
 }
 
 `%notin%` <- Negate(`%in%`)
+
+filter_peaks <- function(peaks_df, bands_df) {
+  purrr::map_dfr(seq_len(nrow(bands_df)), function(i) {
+    band <- bands_df[i, ]
+    peaks_df |>
+      dplyr::filter(
+        as.character(peak_chr) == as.character(band$chr),
+        dplyr::between(peak_bp, band$start, band$end)
+      )
+  })
+}

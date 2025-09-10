@@ -1,24 +1,32 @@
 #' Plot QTL maps (peak vs gene)
 #'
-#' @param map_dat Mapping information for each marker used to determine genoprobs
-#' @param peaks List of annotated peaks for each tissue
-#' @param sigLOD Significant LOD threshold. Default is 7.5.
-#' @param outdir String to output directory where plots should be saved. Default NULL.
-#' @param pname String for plot name to save, must end in `.png`. Default NULL.
-#' @param psave Whether or not to save plots to png. Default is TRUE.
-#' @param unit Units for start/stop/midpoint from annotations. One of "bp" or "mbp". Default is "bp"
-#' @param map_col Map Color. Default is "blue3"
+#' @param map_dat `map_dat2` from `mapQTL` mapping list.
+#' @param peaks List of dataframes containing QTL peaks for each tissue
+#'  (annotated).
+#' @param sigLOD Significant LOD threshold to use for filtering phenotypes.
+#'  Default is 7.5
+#' @param psave Logical. Save the plot as `.png`. Default `TRUE`.
+#' @param pname File name to save plot (needs to end in `.png`).
+#'  Default is "eqtl_map_LOD<sigLOD>_<tissue>.png".
+#' @param outdir Directory to save plots. Default is `NULL`.
+#' @param unit One of `c("bp", "mbp")`; annotation position units.
+#'  Default is "bp".
+#' @param map_col Plot color. Default is "#0073C2FF"
 #'
 #' @return A list of peak maps (ggplot objects) for each tissue
 #'
 #' @export
 #'
-#' @importFrom ggplot2 ggplot aes scale_x_discrete scale_y_discrete expansion theme element_text element_blank ggsave geom_rect geom_point scale_fill_manual
+#' @importFrom ggplot2 ggplot aes scale_x_discrete scale_y_discrete expansion
+#' theme element_text element_blank ggsave geom_rect geom_point
+#' scale_fill_manual
 #' @importFrom ggpubr theme_pubclean
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NULL, psave = T, unit = "bp", map_col = "blue3") {
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
+                         pname = NULL, psave = TRUE, unit = "bp",
+                         map_col = "#0073C2FF") {
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
   }
@@ -27,7 +35,8 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
   }
   if (psave & is.null(pname)) {
     temp_name <- paste0("eqtl_map_LOD",sigLOD,"_<tissue>.png")
-    message(paste0("Plot to be saved, but name not provided. Saving as ", temp_name, " in ", outdir))
+    message(paste0("Plot to be saved, but name not provided. Saving as ",
+                   temp_name, " in ", outdir))
 
   }
 
@@ -49,8 +58,10 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
     chr = chroms,
     type = as.character(rep(c(0, 1), 10))
   )
-  chrom_segments$start <- chrom_segments$start + chrom_lens_offset[chrom_segments$chr]
-  chrom_segments$end <- chrom_segments$end + chrom_lens_offset[chrom_segments$chr]
+  chrom_segments$start <- chrom_segments$start +
+    chrom_lens_offset[chrom_segments$chr]
+  chrom_segments$end <- chrom_segments$end +
+    chrom_lens_offset[chrom_segments$chr]
 
   ## Generate the plots to a list of all tissues. Option to save as png.
   for (tissue in names(peaks)) {
@@ -74,7 +85,8 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
     eqtl_map <- ggplot2::ggplot() +
       ## Add vertical rectangles to distinguish between each chromosome
       ggplot2::geom_rect(
-        data = chrom_segments, ggplot2::aes(xmin = start, xmax = end, ymin = 0, ymax = max(end), fill = type),
+        data = chrom_segments, ggplot2::aes(xmin = start, xmax = end, ymin = 0,
+                                            ymax = max(end), fill = type),
         inherit.aes = FALSE, alpha = 0.2, show.legend = FALSE
       ) +
       ggplot2::scale_fill_manual(values = c("dark gray", "white")) +
@@ -111,9 +123,10 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL, pname = NU
     peak_map[[tissue]] <- eqtl_map
 
     ## Save file if wanted
-    if (psave == TRUE) {
+    if (psave) {
       pname <- paste0("eqtl_map_LOD",sigLOD,"_",tissue,".png")
-      ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir, width = 3072, height = 3072, units = "px")
+      ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir,
+                      width = 3072, height = 3072, units = "px")
     }
   }
   return(peak_map)

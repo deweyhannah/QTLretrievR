@@ -8,35 +8,44 @@ peak_plot(
   mapping,
   tissue,
   pheno,
-  saveDir,
   pop = "do",
-  annots = NULL,
+  outdir = NULL,
+  pname = NULL,
+  psave = TRUE,
+  chromosome = NULL,
   effects = FALSE,
   founders = NULL,
   palette = NULL
 )
 }
 \arguments{
-\item{mapping}{Mapping list from \code{mapQTL}}
+\item{mapping}{Mapping list from \code{mapQTL}, or full path to \code{.rds} containing
+one.}
 
 \item{tissue}{Tissue to derive plots from}
 
-\item{pheno}{Phenotype to derive plots from}
+\item{pheno}{Phenotype to plot}
 
-\item{saveDir}{Directory to save plots to}
+\item{pop}{One of \code{c("do", "cc", "other")} to indicate founder population.
+Default is "\code{do}".}
 
-\item{pop}{Are you using a "do", "cc", or "other" population? Default is "do"}
+\item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
-\item{annots}{Annotations (example \code{annot_105}), required if plotting effects on chromosome}
+\item{pname}{File name to save plot (needs to end in \code{.png}).}
 
-\item{effects}{Boolean - Plotting effects on chromosome, default FALSE}
+\item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
 
-\item{founders}{If not using DO or CC mice, what are the founders of your population?}
+\item{chromosome}{Chromosome that the peaks is present on.}
 
-\item{palette}{If using a population with more than 8 founders please provide colors to go with each founder.}
+\item{effects}{Logical. Plotting effects on chromosome. Default is \code{FALSE}.}
+
+\item{founders}{If \code{pop == "other"}, list of founders in haplotype order.}
+
+\item{palette}{Founder color map (> 8 founders).}
 }
 \value{
-None
+Plot of phenotype specific peaks, or phenotype specific peak with
+effects
 }
 \description{
 Plot peaks associated with specific genes.

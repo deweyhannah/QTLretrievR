@@ -7,11 +7,11 @@
 interp_cM(df, genmap, physmap)
 }
 \arguments{
-\item{df}{A peak dataframe with the peak position in cM}
+\item{df}{A peak dataframe with the peak position in bp.}
 
-\item{genmap}{Genetic map - found in \code{maps_list} (gmap)}
+\item{genmap}{Genetic map - found in \code{maps_list} (gmap).}
 
-\item{physmap}{Physical map - found in \code{maps_list} (pmap)}
+\item{physmap}{Physical map - found in \code{maps_list} (pmap).}
 }
 \value{
 Peak dataframe with interpolated bp column appended

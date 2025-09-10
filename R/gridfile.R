@@ -11,7 +11,9 @@
 #'   \item{cM}{Marker position in centiMorgan}
 #' }
 #'
-#' @source Updated GBRS software, see "https://github.com/TheJacksonLaboratory/cs-nf-pipelines/wiki/GBRS-Pipeline-ReadMe" for details.
+#' @source Updated GBRS software, see
+#' "https://github.com/TheJacksonLaboratory/cs-nf-pipelines/wiki/GBRS-Pipeline-ReadMe"
+#' for details.
 #' @usage data(gridfile)
 #'
 NULL

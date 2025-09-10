@@ -9,29 +9,39 @@ qtl_effects(
   mapping,
   suggLOD = 6,
   outdir = NULL,
-  outfile = "effects.rds",
+  effects_out = "effects.rds",
   total_cores = NULL,
   save = "sr"
 )
 }
 \arguments{
-\item{peaks}{List of dataframes containing QTL peaks for each tissue}
+\item{peaks}{List of dataframes containing annotated QTL peaks for each
+tissue, or full path to \code{.rds} containing one.}
 
-\item{mapping}{List of relevant mapping information for overall project}
+\item{mapping}{Mapping list from \code{mapQTL}, or full path to \code{.rds}
+containing one.}
 
-\item{suggLOD}{Suggestive LOD threshold. Default is 6.}
+\item{suggLOD}{Suggestive LOD threshold to use for filtering phenotypes.
+Default is 6.}
 
-\item{outdir}{String of path to output directory where effects lists will be saved.}
+\item{outdir}{Directory to save effects output files. Default is \code{NULL}.}
 
-\item{outfile}{Output file name to save mediation results for later use}
+\item{effects_out}{String indicating the name of the output file containing
+founder haplotype effects results. This file will be saved in \code{.rds} format
+and used for downstream analysis and visualization. Should end in \code{.rds}.
+Default is "\code{effects.rds}"}
 
-\item{total_cores}{Number of available cores to use. Default is NULL.}
+\item{total_cores}{Number of available cores to use for parallelization.
+Default is \code{NULL}.}
 
-\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+\item{save}{Indicates object return/save behavior. One of
+\code{c("sr", "so", "ro")}; save & return, save only, return only.
+Default is "sr".}
 }
 \value{
 A list containing: \itemize{
-\item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
+\item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output
+from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
 \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
 }
 \description{

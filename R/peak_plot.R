@@ -1,25 +1,30 @@
 #' Plot peaks associated with specific genes.
 #'
-#' @param mapping Mapping list from `mapQTL`, or string with full path to mapping object
+#' @param mapping Mapping list from `mapQTL`, or full path to `.rds` containing
+#' one.
 #' @param tissue Tissue to derive plots from
-#' @param pheno Phenotype to derive plots from
-#' @param pop Are you using a "do", "cc", or "other" population? Default is "do"
-#' @param outdir Directory to save plot to (string). Default is NULL
-#' @param pname Name to save plot as
-#' @param psave Should the plot be saved, or returned only? Default is TRUE
-#' @param chrom The chromosome of the peak you are interested in.
-#' @param effects Boolean - Plotting effects on chromosome. Default is FALSE
-#' @param founders If not using DO or CC mice, what are the founders of your population?
-#' @param palette If using a population with more than 8 founders please provide colors to go with each founder.
+#' @param pheno Phenotype to plot
+#' @param pop One of `c("do", "cc", "other")` to indicate founder population.
+#' Default is "`do`".
+#' @param psave Logical. Save the plot as `.png`. Default `TRUE`.
+#' @param pname File name to save plot (needs to end in `.png`).
+#' @param outdir Directory to save plots. Default is `NULL`.
+#' @param chromosome Chromosome that the peaks is present on.
+#' @param effects Logical. Plotting effects on chromosome. Default is `FALSE`.
+#' @param founders If `pop == "other"`, list of founders in haplotype order.
+#' @param palette Founder color map (> 8 founders).
 #'
-#' @return None
+#' @return Plot of phenotype specific peaks, or phenotype specific peak with
+#'  effects
 #' @export
 #'
 #' @importFrom qtl2 scan1 scan1blup plot_coefCC plot_coef
 #' @importFrom grDevices png dev.off
 #' @importFrom graphics plot.new legend
 #'
-peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname = NULL, psave = T, chrom = NULL, effects = FALSE, founders = NULL, palette = NULL) {
+peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
+                      pname = NULL, psave = TRUE, chromosome = NULL,
+                      effects = FALSE, founders = NULL, palette = NULL) {
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
@@ -28,7 +33,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
     tmp_map <- check_data(mapping)
   }
   if (!is.null(founders) & length(founders) > 8 & is.null(palette)) {
-    stop(paste0(length(founders), " founders detected, please provide a palette that contains at least that many colors"))
+    stop(paste0(length(founders), " founders detected, please provide a palette
+                that contains at least that many colors"))
   }
 
   if (psave & is.null(outdir)) {
@@ -43,7 +49,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
     } else {
       temp_name <- paste0(tissue,"_",pheno,"_LOD.png")
     }
-    message(paste0("Plot to be saved, but name not provided. Saving as ", temp_name, " in ", outdir))
+    message(paste0("Plot to be saved, but name not provided. Saving as ",
+                   temp_name, " in ", outdir))
   }
 
   if (!is.null(tmp_map)) {
@@ -67,15 +74,17 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
   avail_cores <- get_cores()
 
   scan1_out <- qtl2::scan1(genoprobs = qtlprobs[[tissue]],
-                           pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE],
+                           pheno     = exprZ_list[[tissue]][, pheno,
+                                                            drop = FALSE],
                            kinship   = kinship_loco[[tissue]],
                            addcovar  = covar_list[[tissue]],
                            cores     = min(4, avail_cores))
 
   if (effects) {
     message("calculating effects")
-    c2eff <- qtl2::scan1blup(genoprobs = qtlprobs[[tissue]][,as.character(chrom)],
-                             pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE])
+    c2eff <- qtl2::scan1blup(
+      genoprobs = qtlprobs[[tissue]][,as.character(chrom)],
+      pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE])
 
 
     if (pop %in% c("do", "cc")) {
@@ -95,7 +104,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
         if (!file.exists(legend_plot)) {
           png(legend_plot, bg = "transparent")
           plot.new()
-          legend("center", c("AJ","B6","129","NOD","NZO","CAST","PWK","WSB"), lty = 1, col = qtl2::CCcolors, bty = "n", ncol = 4, lwd = 1.3)
+          legend("center", c("AJ","B6","129","NOD","NZO","CAST","PWK","WSB"),
+                 lty = 1, col = qtl2::CCcolors, bty = "n", ncol = 4, lwd = 1.3)
           dev.off()
         }
 
@@ -105,7 +115,7 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
     if (pop %notin% c("do", "cc")) {
       p <- qtl2::plot_coef(x            = c2eff,
                            columns      = ncol(c2eff),
-                           col          = palette[1:ncol(c2eff)],
+                           col          = palette[seq_len(ncol(c2eff))],
                            map          = pmap,
                            scan1_output = scan1_out,
                            bgcolor      = "gray95")
@@ -114,7 +124,8 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
           pname <- paste0(tissue, "_", pheno, "_effects.png")
         }
         if(!is.null(paltte)) {
-          png(paste0(outdir, "/", tissue, "_", pheno, "_effects.png"), width = 1024, height = 1024)
+          png(paste0(outdir, "/", tissue, "_", pheno, "_effects.png"),
+              width = 1024, height = 1024)
           print(p)
           dev.off()
         }
@@ -131,13 +142,16 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL, pname =
             }
             png(legend_plot, bg = "transparent")
             plot.new()
-            legend("center", founders, lty = 1, col = cols[1:length(founders)], bty = "n", ncol = 4, lwd = 1.3)
+            legend("center", founders, lty = 1, col = cols[seq_len(length(founders))],
+                   bty = "n", ncol = 4, lwd = 1.3)
             dev.off()
           }
           if (!file.exists(legend_plot) & !is.null(palette)) {
             png(legend_plot, bg = "transparent")
             plot.new()
-            legend("center", founders, lty = 1, col = palette[1:length(founders)], bty = "n", ncol = 4, lwd = 1.3)
+            legend("center", founders, lty = 1, col =
+                     palette[seq_len(length(founders))], bty = "n", ncol = 4,
+                   lwd = 1.3)
             dev.off()
           }
         }

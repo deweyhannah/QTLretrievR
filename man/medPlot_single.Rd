@@ -2,7 +2,8 @@
 % Please edit documentation in R/medPlot_single.R
 \name{medPlot_single}
 \alias{medPlot_single}
-\title{Identify mediators for provided features +/- x Mb from a given position on a given chromosome}
+\title{Identify mediators for provided features +/- x Mb from a given position on a
+given chromosome}
 \usage{
 medPlot_single(
   meds,
@@ -11,36 +12,44 @@ medPlot_single(
   feats,
   chromosome,
   top_n = 5,
-  psave = T,
+  psave = TRUE,
   pname = NULL,
   outdir = NULL,
   plot = "padj"
 )
 }
 \arguments{
-\item{meds}{Dataframe of mediation to pull potential mediators from (output from \code{modiFinder}, then select \verb{$tissue}).}
+\item{meds}{Dataframe of mediation to pull potential mediators from
+(output from \code{modiFinder}, then select \verb{$tissue}).}
 
-\item{range}{The range from the position which mediatiors should be pulled.}
+\item{range}{The range from the position which mediatiors should be pulled.
+In Mbp.}
 
-\item{position}{The position of the peak(s) to be investigated (single position only).}
+\item{position}{The position of the peak(s) to be investigated
+(single position only). In bp.}
 
 \item{feats}{Vector of targets to identify mediators for.}
 
-\item{chromosome}{The chromosome that the peak(s) fall on.}
+\item{chromosome}{Chromosome that the peaks(s) is present on.}
 
 \item{top_n}{The number of top mediators per target to show. Default 5.}
 
-\item{psave}{Should the plot be saved? Default TRUE.}
+\item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
 
-\item{pname}{String indicating the name of plot to save as a .png. Default "mediation_plot_\if{html}{\out{<range>}}\emph{chr\if{html}{\out{<chromosome>}}}\if{html}{\out{<position>}}\emph{top}<top_n>.png".}
+\item{pname}{String indicating the name of plot to save as a .png. Default
+"mediation_plot_\if{html}{\out{<range>}}\emph{chr\if{html}{\out{<chromosome>}}}\if{html}{\out{<position>}}\emph{top}<top_n>.png".}
 
-\item{outdir}{String indicating the location to save the plot to. Default NULL, required if \code{psave == TRUE}.}
+\item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
-\item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what statistic should be plotted in the heatmap. Default "padj".}
+\item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what
+statistic should be plotted in the heatmap. Default "padj".}
 }
 \value{
-A list containing a dataframe representing the ranking of each mediator within the region for each of the provided targets and the heatmap object.
+A list containing a dataframe representing the ranking of each
+mediator within the region for each of the provided targets and the heatmap
+object.
 }
 \description{
-Identify mediators for provided features +/- x Mb from a given position on a given chromosome
+Identify mediators for provided features +/- x Mb from a given position on a
+given chromosome
 }

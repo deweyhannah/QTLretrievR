@@ -21,52 +21,76 @@ gxeQTL(
   save = "sr",
   delta = FALSE,
   ctrl,
-  env
+  env,
+  rz = FALSE
 )
 }
 \arguments{
-\item{genoprobs}{Either a string with the name of the genoprobs file, or the genoprobs object.}
+\item{genoprobs}{Genotype probabilities object (qtl2-formatted), or path to
+.rds file containing one.}
 
-\item{samp_meta}{Sample metadata. Either a string pointing to the file, or the object itself.}
+\item{samp_meta}{Sample metadata. Either a string pointing to the file, or
+the object itself.}
 
-\item{expr_mats}{Vector of expression matrix files. One for each tissue, in the order that tissues were supplied to genoprobs.}
+\item{expr_mats}{List of normalized count matrices (objects), or character
+paths to the file. One matrix per tissue. The order \emph{must match} the
+tissue order in \code{genoprobs}.}
 
-\item{covar_factors}{Additive covariate factors. These need to be columns in the factor metadata.}
+\item{covar_factors}{Additive covariate factors. These need to be columns
+in the factor metadata.}
 
 \item{thrA}{Minimum reported LOD threshold for autosomes. Default is 5.}
 
 \item{thrX}{Minimum reported LOD threshold for X chromosome. Default is 5.}
 
-\item{gridFile}{File location for genome grid. Defaults to object loaded with package for 75k grid.}
+\item{gridFile}{Genome Grid. Path to location or object. Defaults to
+75k grid loaded with package.}
 
-\item{localRange}{What is defined as "local". Default is 10e6.}
+\item{localRange}{Definition of "local" in bp. Default is 10e6.}
 
-\item{outdir}{Output directory where files mapping and peaks lists should be saved. Default is NULL.}
+\item{outdir}{Directory to save output files. Default is \code{NULL}.}
 
-\item{peaks_out}{String indicating the name for output peaks file. Should end in ".rds". Default is "gxe_peaks.rds"}
+\item{peaks_out}{String indicating the name for output peaks file. This file
+will be saved in \code{.rds} format and and be used as an input for downstream
+analysis. Should end  in \code{.rds}. Default is "\code{gxe_peaks.rds}"}
 
-\item{map_out}{String indicating the name for output mapping file. Should end in ".rds". Default is "gxe_map.rds"}
+\item{map_out}{String indicating the name of the output file containing
+G x E QTL mapping results. This file will be saved in \code{.rds} format and
+will be used in downstream analyses. Should end in \code{.rds}.
+Default is "\code{gxe_map.rds}"}
 
-\item{annots}{String pointing to annotations file or annotations object.}
+\item{annots}{Annotations file. Contains mapping information for phenotypes.
+Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".}
 
-\item{total_cores}{Number of available cores to use for parallelization. Default is NULL.}
+\item{total_cores}{Number of available cores to use for parallelization.
+Default is \code{NULL}.}
 
-\item{save}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
+\item{save}{Indicates object return/save behavior. One of
+\code{c("sr", "so", "ro")}; save & return, save only, return only.
+Default is "sr".}
 
-\item{delta}{Use the delta method for G x E analysis (env - ctrl)? Default is FALSE.}
+\item{delta}{Logical. The delta method for G x E analysis (env - ctrl)
+should be used. Default is \code{FALSE}.}
 
-\item{ctrl}{String indicating your control or background gene name (ex: "ctrl" or "CTRL")}
+\item{ctrl}{String indicating your control or background gene name
+(ex: "ctrl" or "CTRL").}
 
-\item{env}{String indicating your exposed/treated samples (ex: "trt" or "treated" or "<your_treatment_here>")}
+\item{env}{String indicating your exposed/treated samples
+(ex: "trt" or "treated" or "<your_treatment_here>").}
+
+\item{rz}{Logical. Set to \code{TRUE} if expression data is already
+rankZ-transformed. Default is \code{FALSE}.}
 }
 \value{
 A list containing: \itemize{
-\item{maps_list}{A list of dataframes and lists to that can be used for future analyses and in other functions \itemize{
+\item{maps_list}{A list of dataframes and lists to that can be used for
+future analyses and in other functions \itemize{
 \item{qtlprobs}{Genome probabilities in qtl2format}
 \item{covar_list}{list of covariate matrices for each tissue}
 \item{expr_list}{Original normalized expression data for each tissue}
 \item{exprZ_list}{Rank Z normalized expression data for each tissue}
-\item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option in \code{qtl2::calc_kinship}}
+\item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option
+in \code{qtl2::calc_kinship}}
 \item{gmap}{Genomic map of markers}
 \item{map_dat2}{Combined genomic and physical map of markers}
 \item{pmap}{Physical map of markers}
@@ -74,5 +98,8 @@ A list containing: \itemize{
 \item{peaks_list}{A list of peaks list for each tissue.}}
 }
 \description{
-This function performs G x E QTL mapping across multiple tissues, generating genome-wide LOD scores and identifying significant peaks. It supports parallel processing and flexible input formats for expression data and covariates.
+This function performs G x E QTL mapping across multiple tissues,
+generating genome-wide LOD scores and identifying significant peaks.
+It supports parallel processing and flexible input formats for expression
+data and covariates.
 }

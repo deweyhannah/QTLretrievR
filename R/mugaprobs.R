@@ -1,17 +1,26 @@
 #' Convert and process MUGA probabilities to qtl2 format
 #'
 #' @description
-#' Converts MUGA genotyping final reports into a 3D array format compatible with `qtl2`, organized by tissue and sample, optionally saves the result as an RDS file
+#' Converts MUGA genotyping final reports into a 3D array format compatible with
+#'  `qtl2`, organized by tissue and sample, optionally saves the result as an
+#'  RDS file
 #'
 #'
-#' @param type string indicating GigaMUGA (GM) or MegaMUGA (MM), default is "GM"
-#' @param covarLoc location of covariate file
-#' @param covar_file covariate file including at minimum the sex (sex) and generation (ngen) of each sample, this needs to be a .csv file
-#' @param i.files either a string of the directory where the chromosome specific genotype files are or a list of final report files to process - if passing the final report files they need to be either unzipped or in .gz format
-#' @param genoPrefix prefix for the chromosome specific genotype files (excluding "_geno")
-#' @param probsOut file name to save probabilities, default is "muga_interpolated_genoprobs.rds".
-#' @param saveDir complete path (**not** relative) to save directory. Default is current directory.
-#' @param tissues list of tissues included in analysis. If left blank tissue will be set to "a".
+#' @param type One of `c("GM", or "MM")`; GigaMUGA or MegaMUGA. Default is "GM".
+#' @param covarLoc Location of covariate file.
+#' @param covar_file Covariate file including at minimum the sex (sex) and
+#'  generation (ngen) of each sample, this needs to be a .csv file
+#' @param i.files Either a string of the directory where the chromosome specific
+#'  genotype files are or a list of final report files to process - if passing
+#'   the final report files they need to be either unzipped or in .gz format
+#' @param genoPrefix Prefix for the chromosome specific genotype files
+#' (excluding "_geno")
+#' @param probsOut File name to save probabilities, default is
+#'  "muga_interpolated_genoprobs.rds".
+#' @param saveDir Directory to save genome probability object.
+#' Default is the current working directory.
+#' @param tissues List of tissues included in analysis. If left blank tissue
+#'  will be set to "a".
 #'
 #' @return none
 #' @export
@@ -22,7 +31,10 @@
 #' @importFrom qtl2 calc_genoprob
 #' @importFrom qtl2 genoprob_to_alleleprob
 #'
-mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "gm4qtl2", probsOut = "muga_interpolated_genoprobs.rds", saveDir = getwd(), tissues = c()) {
+mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
+                      genoPrefix = "gm4qtl2",
+                      probsOut = "muga_interpolated_genoprobs.rds",
+                      saveDir = getwd(), tissues = c()) {
   ## Confirm type and set url to pull info from
   if(type == "GM") {
     message("Using GigaMUGA markers for calculating probabilities")
@@ -53,16 +65,19 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   ## If passed files are not a directory process final reports
   if(!dir.exists(i.files)) {
     message("processing final reports")
-    process_reports(paste0(temp_dir,"/",code_file), i.files, genoPrefix, temp_dir)
+    process_reports(paste0(temp_dir,"/",code_file), i.files, genoPrefix,
+                    temp_dir)
   }
 
-  ## Get current directory to go back after processing and move to temp directory
-  # ogDir <- getwd()
+  ## Get current directory to go back after processing and move to
+  ## temp directory
+  on.exit(setwd(ogDir))
   setwd(temp_dir)
 
   ## Bring chromosome specific genotype files to temp directory
   if(dir.exists(i.files)) {
-    files_to_copy <- list.files(i.files, pattern = paste0(genoPrefix,"_geno"), full.names = T)
+    files_to_copy <- list.files(i.files, pattern = paste0(genoPrefix,"_geno"),
+                                full.names = TRUE)
     file.copy(files_to_copy, to = temp_dir)
   }
 
@@ -72,7 +87,8 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
   write_control_file(paste0("forqtl2.json"),
                      crosstype = "do",
                      description = "DO Project",
-                     founder_geno_file = paste0(type, "/", type, "_foundergeno", chr, ".csv"),
+                     founder_geno_file = paste0(type, "/", type, "_foundergeno",
+                                                chr, ".csv"),
                      founder_geno_transposed = TRUE,
                      gmap_file = paste0(type, "/", type, "_gmap", chr, ".csv"),
                      pmap_file = paste0(type, "/", type, "_pmap", chr, ".csv"),
@@ -82,7 +98,8 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
                      xchr = "X",
                      covar_file = covar_file,
                      sex_covar = "sex",
-                     sex_codes = list(F="Female", M="Male", f = "Female", m = "Male"),
+                     sex_codes = list(F="Female", M="Male", f = "Female",
+                                      m = "Male"),
                      crossinfo_covar = "ngen",
                      overwrite = TRUE)
 
@@ -97,7 +114,6 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files, genoPrefix = "
     probs_list[[tissue]] <- pr_allele
   }
 
-  setwd(ogDir)
   saveRDS(probs_list, paste0(saveDir,"/", probsOut))
   # setwd(ogDir)
 }
@@ -121,7 +137,7 @@ process_reports <- function(codefile, ifiles, ostem, dirOut) {
 
     message(paste0("reading: ", ifile))
     # g <- read_reports(ifile)
-    g <- data.table::fread(ifile, skip = 8, data.table = F)
+    g <- data.table::fread(ifile, skip = 8, data.table = FALSE)
     g <- g[g[,"SNP Name"] %in% codes[,"marker"],]
 
     # NOTE: may need to revise the IDs in the 2nd column
@@ -135,7 +151,8 @@ process_reports <- function(codefile, ifiles, ostem, dirOut) {
     for(i in seq(along=samples)) {
       if(i==round(i,-1)) cat(" --Sample", i, "of", length(samples), "\n")
       wh <- (g[,"Sample ID"]==samples[i])
-      geno[g[wh,"SNP Name"],i] <- paste0(g[wh,"Allele1 - Forward"], g[wh,"Allele2 - Forward"])
+      geno[g[wh,"SNP Name"],i] <- paste0(g[wh,"Allele1 - Forward"],
+                                         g[wh,"Allele2 - Forward"])
     }
 
     geno <- qtl2convert::encode_geno(geno, as.matrix(codes[,c("A","B")]))

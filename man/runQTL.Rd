@@ -6,11 +6,11 @@
 \usage{
 runQTL(
   geno_out = "gbrs_interpolated_genoprobs.rds",
-  peaks_out = "mm39_peaks.rds",
-  map_out = "mm39_mapping.rds",
-  med_out = "mm39_mediation_res.rds",
-  effects_out = "mm39_effects.rds",
-  outdir,
+  peaks_out = "peaks.rds",
+  map_out = "mapping.rds",
+  med_out = "mediation_res.rds",
+  effects_out = "effects.rds",
+  outdir = NULL,
   gbrs_fileLoc,
   metadata,
   expr_mats,
@@ -18,59 +18,74 @@ runQTL(
   annots,
   tissues = c(),
   gridFile = gridfile,
-  suggLOD = 7,
-  localRange = 1e+07,
   total_cores = NULL,
   save_t = "sr",
-  rz_t = F,
-  phys_t = T
+  ...
 )
 }
 \arguments{
-\item{geno_out}{Output file name to save gbrs interpolated genoprobs. Default is "gbrs_interpolated_genoprobs.rds".}
+\item{geno_out}{String indicating the name of the output file containing
+interpolated genotype probabilities. This file will be saved in \code{.rds}
+format and used for QTL mapping. Should end in \code{.rds}. Default is
+"\code{gbrs_interpolated_genoprobs.rds}".}
 
-\item{peaks_out}{Output file name to save peaks. Default is "mm39_peaks.rds".}
+\item{peaks_out}{String indicating the name for output peaks file.
+This file will be saved in \code{.rds} format and will be used as an input
+for downstream analysis. Should end  in \code{.rds}. Default is "\code{peaks.rds}"}
 
-\item{map_out}{Output file name to save mapping. Default is "mm39_mapping.rds".}
+\item{map_out}{String indicating the name of the output file containing QTL
+mapping results. This file will be saved in \code{.rds} format and will be used
+in downstream analyses. Should end in \code{.rds}. Default is "\code{map.rds}"}
 
-\item{med_out}{Output file name to save mediation. Default is "mm39_mediation_res.rds".}
+\item{med_out}{String indicating the name of the output file containing
+mediation results for mediation within a phenotype. This file will be saved
+in \code{.rds} format and used for downstream analysis and visualization. Should
+end in \code{.rds}. Default is "\code{mediation.rds}"}
 
-\item{effects_out}{Output file name to save effects. Default is "mm39_effects.rds".}
+\item{effects_out}{String indicating the name of the output file containing
+founder haplotype effects results. This file will be saved in \code{.rds}
+format and used for downstream analysis and visualization. Should end in
+\code{.rds}. Default is "\code{effects.rds}"}
 
-\item{outdir}{Output directory to save results.}
+\item{outdir}{Directory to save output files. Default is \code{NULL}.}
 
-\item{gbrs_fileLoc}{Path to GBRS interpolated tsv files}
+\item{gbrs_fileLoc}{Path to GBRS interpolated tsv files.}
 
-\item{metadata}{Sample metadata. Path to location or object.}
+\item{metadata}{Sample metadata. Either a string pointing to the file,
+or the object itself.}
 
-\item{expr_mats}{Vector of expression matrices. Path to locations or objects.}
+\item{expr_mats}{List of normalized count matrices (objects), or character
+paths to the file. One matrix per tissue. The order \emph{must match} the
+tissue order in \code{genoprobs}.}
 
-\item{covar_factors}{Vector of strings indicating additive covariates.}
+\item{covar_factors}{Additive covariate factors. These need to be columns
+in the sample metadata.}
 
-\item{annots}{Annotations file. Path to location or object.}
+\item{annots}{Annotations file. Contains mapping information for phenotypes.
+Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".}
 
-\item{tissues}{Vector of strings indicating tissues in project. Ex: c("Kd","Lv") for "kidney" and "liver".}
+\item{tissues}{Vector of strings indicating tissues or conditions in project.}
 
-\item{gridFile}{Genome Grid. Path to location or object. Defaults to 75k grid loaded with package.}
+\item{gridFile}{Genome Grid. Path to location or object. Defaults to
+75k grid loaded with package.}
 
-\item{suggLOD}{Suggestive LOD to use as filter for mediation. Default is 7.}
+\item{total_cores}{Number of available cores to use for parallelization.
+Default is \code{NULL}.}
 
-\item{localRange}{What is defined as "local". Default is 10e6.}
+\item{save_t}{Indicates object return/save behavior. One of
+\code{c("sr", "so", "ro")}; save & return, save only, return only.
+Default is "sr".}
 
-\item{total_cores}{Number of available cores to use. Default is NULL.}
-
-\item{save_t}{Should files be saved, returned, or both. Default is "sr" (save and return). To save only use "so", to return only use "ro".}
-
-\item{rz_t}{Logical. Are the counts already rankZ transformed? Default is FALSE.}
-
-\item{phys_t}{Logical. Do you want to return physical peak locations, or genomic? Default is TRUE.}
+\item{...}{Additional arguments}
 }
 \value{
 A list containing \itemize{
 \item{peaks_list}{Unfiltered peaks for each tissue.}
-\item{maps_list}{List of objects associated with mapping. See \link{mapQTL} help for details.}
+\item{maps_list}{List of objects associated with mapping. See \link{mapQTL}
+help for details.}
 \item{res_list}{List containing mediation results for each tissue.}
-\item{effects_res}{List of objects associated with effects. See \link{qtl_effects} help for details.}}
+\item{effects_res}{List of objects associated with effects. See \link{qtl_effects}
+help for details.}}
 }
 \description{
 Wrapper function to generate mapping, peaks, mediation, and effects data
