@@ -4,7 +4,7 @@
 #' @param peaks List of un-annotated peaks.
 #' @param annots Annotations file. Contains mapping information for phenotypes.
 #'  Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".
-#' @param localRange Definition of "local" in bp. Default is 10e6.
+#' @param localRange Definition of "local" in bp. Default is 2e6.
 #'
 #' @return List of annotated peaks for each tissue.
 #'
@@ -14,7 +14,7 @@
 #' @importFrom dplyr left_join mutate select rename
 #'
 #'
-annotatePeaks <- function(mapping, peaks, annots, localRange = 10e6) {
+annotatePeaks <- function(mapping, peaks, annots, localRange = 2e6) {
   ## Get annots columnnames to wanted format from base download
   if (is.character(annots)) {
     annots <- read.delim(annots)

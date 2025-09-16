@@ -17,7 +17,8 @@ hsHapEffects(
   topFeats = NULL,
   psave = TRUE,
   pname = NULL,
-  outdir = NULL
+  outdir = NULL,
+  ...
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ Default is "\code{do}".}
 \verb{haplotype_effects_<tissue>_transband_<hsNum>_chromosome_<chromosome>.png}}
 
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
+
+\item{...}{Additional arguments to pass to ComplexHeatmap}
 }
 \description{
 Map founder haplotype effects for a given hotspot.

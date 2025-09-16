@@ -12,7 +12,7 @@ gxeQTL(
   thrA = 5,
   thrX = 5,
   gridFile = gridfile,
-  localRange = 1e+07,
+  localRange = 2e+06,
   outdir = NULL,
   peaks_out = "gxe_peaks.rds",
   map_out = "gxe_map.rds",
@@ -46,7 +46,7 @@ in the factor metadata.}
 \item{gridFile}{Genome Grid. Path to location or object. Defaults to
 75k grid loaded with package.}
 
-\item{localRange}{Definition of "local" in bp. Default is 10e6.}
+\item{localRange}{Definition of "local" in bp. Default is 2e6.}
 
 \item{outdir}{Directory to save output files. Default is \code{NULL}.}
 

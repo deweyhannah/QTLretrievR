@@ -183,7 +183,7 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
-                       covar_list, gmap, thrA, thrX, cores, phys) {
+                       covar_list, gmap, thrA, thrX, cores, phys, min_cores = 4) {
 
   num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
   nn <- ncol(exprZ_list[[tissue]])
@@ -191,13 +191,14 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
   # Calculate the maximum number of concurrent batches
   # Each batch should at least have 4 cores.
-  max_concurrent_batches <- max(1, floor(cores / 4) )
+  max_concurrent_batches <- max(1, floor(cores / min_cores) )
   # if the #of batches > max_concurrent_batches adjust the cores
   if( num.batches > max_concurrent_batches){
     # Adjust the number of cores to use based on concurrency limit
-    cores_to_use <- min(cores, max_concurrent_batches * 4)
+    cores_to_use <- min(cores, max_concurrent_batches * min_cores)
     # get the cores to use per batch, minimum 4
-    cores_per_batch <- max(4, floor(cores_to_use/max_concurrent_batches))
+    cores_per_batch <- max(min_cores,
+                           floor(cores_to_use/max_concurrent_batches))
   } else{
     # can use all the cores
     cores_to_use <- cores

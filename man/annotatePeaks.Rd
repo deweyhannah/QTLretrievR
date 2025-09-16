@@ -4,17 +4,17 @@
 \alias{annotatePeaks}
 \title{Interpolate peak positions and attach annotations}
 \usage{
-annotatePeaks(mapping, peaks, annots, localRange = 1e+07)
+annotatePeaks(mapping, peaks, annots, localRange = 2e+06)
 }
 \arguments{
-\item{mapping}{Mapping list from \code{mapQTL}..}
+\item{mapping}{Mapping list from \code{mapQTL}.}
 
-\item{peaks}{List of un-annotated peaks}
+\item{peaks}{List of un-annotated peaks.}
 
 \item{annots}{Annotations file. Contains mapping information for phenotypes.
 Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".}
 
-\item{localRange}{Definition of "local" in bp. Default is 10e6..}
+\item{localRange}{Definition of "local" in bp. Default is 2e6.}
 }
 \value{
 List of annotated peaks for each tissue.

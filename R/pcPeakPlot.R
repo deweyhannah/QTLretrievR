@@ -340,7 +340,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
   }
   if (wag) {
     if(pc) {
-      return(tibble::lst(pca_rz, top_genes, pwork))
+      return(tibble::lst(pca_rz, top_genes, pwork, peaks))
     } else {
       return(pwork)
     }

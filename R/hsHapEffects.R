@@ -17,13 +17,14 @@
 #' @param pname File name to save plot (needs to end in `.png`). Default is
 #'  `haplotype_effects_<tissue>_transband_<hsNum>_chromosome_<chromosome>.png`
 #' @param outdir Directory to save plots. Default is `NULL`.
+#' @param ... Additional arguments to pass to ComplexHeatmap
 #'
 #' @export
 #'
 hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                          pop = "do", founders = NULL, palette = NULL,
                          topFeats = NULL, psave = TRUE, pname = NULL,
-                         outdir = NULL) {
+                         outdir = NULL, ...) {
   if (!is.null(founders) & length(founders) > 8 & is.null(palette)) {
     stop(paste0(length(founders), " founders detected,
                 please provide a palette that contains at
@@ -94,8 +95,8 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
 
   ht <- ComplexHeatmap::Heatmap(hs_mat,
                                 name = "Haplotype Effects",
-                                cluster_rows = FALSE,
-                                cluster_columns = FALSE,
+                                cluster_rows = TRUE,
+                                cluster_columns = TRUE,
                                 rect_gp = grid::gpar(col = "white", lwd = 2),
                                 row_names_gp = grid::gpar(fontsize = 10),
                                 row_order = LETTERS[seq_len(num_founders)],
@@ -111,8 +112,8 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
   ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
 
   if (psave == TRUE) {
-    n_rows <- nrow(l2p_wide)
-    n_cols <- ncol(l2p_wide)
+    n_rows <- nrow(hs_mat)
+    n_cols <- ncol(hs_mat)
 
     # Define base size and scaling
     base_width <- 450

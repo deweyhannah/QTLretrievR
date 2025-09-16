@@ -20,7 +20,7 @@
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile Genome Grid. Path to location or object. Defaults to
 #'  75k grid loaded with package.
-#' @param localRange Definition of "local" in bp. Default is 10e6.
+#' @param localRange Definition of "local" in bp. Default is 2e6.
 #' @param outdir Directory to save output files. Default is `NULL`.
 #' @param peaks_out String indicating the name for output peaks file. This file
 #'  will be saved in `.rds` format and and be used as an input for downstream
@@ -71,7 +71,7 @@
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
-                   thrX = 5, gridFile = gridfile, localRange = 10e6,
+                   thrX = 5, gridFile = gridfile, localRange = 2e6,
                    outdir = NULL, peaks_out = "gxe_peaks.rds",
                    map_out = "gxe_map.rds", annots = NULL, total_cores = NULL,
                    save = "sr", delta = FALSE, ctrl, env, rz = FALSE) {

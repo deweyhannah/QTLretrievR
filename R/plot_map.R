@@ -34,10 +34,30 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
     message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
   }
   if (psave & is.null(pname)) {
-    temp_name <- paste0("eqtl_map_LOD",sigLOD,"_<tissue>.png")
+    temp_name <- paste0("eqtl_map_LOD",round(sigLOD, 2),"_<tissue>.png")
     message(paste0("Plot to be saved, but name not provided. Saving as ",
                    temp_name, " in ", outdir))
 
+  }
+  if (length(names(peaks)) < length(sigLOD)) {
+    warning(paste0(
+      "WARNING: passed more significant LOD scores than tissues. Using only the first ",
+      length(names(peaks)), " LOD scores"))
+  }
+  if (length(names(peaks)) > length(sigLOD) & length(sigLOD) != 1) {
+    warning(paste0(
+      "WARNING: more tissues than significant LOD scores. Using only the first LOD score"))
+    sigLOD <- sigLOD[1]
+  }
+  if (length(names(peaks)) < length(map_col)) {
+    warning(paste0(
+      "WARNING: passed more map colors than tissues. Using only the first ",
+      length(names(peaks)), " map colors"))
+  }
+  if (length(names(peaks)) > length(map_col) & length(map_col) != 1) {
+    warning(paste0(
+      "WARNING: more tissues than map colors. Using only the first color"))
+    map_col <- map_col[1]
   }
 
   ## Set up chromosome midpoints and offset
@@ -82,6 +102,18 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
 
   peak_map <- list()
   for (tissue in names(peaks)) {
+    iter <- which(names(peaks) == tissue)
+    if (length(sigLOD) > 1) {
+      sig_lod <- sigLOD[iter]
+    } else {
+      sig_lod <- sigLOD
+    }
+
+    if (length(map_col) > 1) {
+      map_col2 <- map_col[iter]
+    } else {
+      map_col2 <- map_col
+    }
     eqtl_map <- ggplot2::ggplot() +
       ## Add vertical rectangles to distinguish between each chromosome
       ggplot2::geom_rect(
@@ -93,10 +125,10 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
       ## Add peaks data and filter to significant
       ggplot2::geom_point(
         data = peaks[[tissue]] |>
-          dplyr::filter(lod > sigLOD),
+          dplyr::filter(lod > sig_lod),
         ggplot2::aes(x = cumsum_bp_peak, y = cumsum_bp_gene),
         size = 2,
-        col = map_col,
+        col = map_col2,
         inherit.aes = FALSE
       ) +
       ggpubr::theme_pubclean(base_size = 16) +
@@ -124,7 +156,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
 
     ## Save file if wanted
     if (psave) {
-      pname <- paste0("eqtl_map_LOD",sigLOD,"_",tissue,".png")
+      pname <- paste0("eqtl_map_LOD",round(sigLOD,2),"_",tissue,".png")
       ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir,
                       width = 3072, height = 3072, units = "px")
     }

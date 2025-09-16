@@ -135,7 +135,7 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
                  " cores and passing ", each_tissue ," cores per tissue to ",
                  num_tissues ," tissue(s)." ) )
 
-  effects_out <- foreach::foreach( tissue = names(peaksf))  %dopar% {
+  effects_res <- foreach::foreach( tissue = names(peaksf))  %dopar% {
     call_effects(tissue  = tissue,
                  peaks   = peaksf[[tissue]],
                  probs   = qtlprobs[[tissue]],
@@ -149,9 +149,9 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
 
   message("effects calculated. saving to RDS")
   effects_blup <- list()
-  for (i in seq_len(length(effects_out))) {
-    tissue <- effects_out[[i]]$tissue
-    effects_blup[[tissue]] <- effects_out[[i]]$effects_blup
+  for (i in seq_len(length(effects_res))) {
+    tissue <- effects_res[[i]]$tissue
+    effects_blup[[tissue]] <- effects_res[[i]]$effects_blup
   }
   peaks <- peaksf
 

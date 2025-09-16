@@ -67,7 +67,7 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
   rm(tmp_map)
   rm(mapping)
 
-  if (is.null(chrom) & effects) {
+  if (is.null(chromosome) & effects) {
     stop("Peak chromosome needed to produce effects plot")
   }
 
@@ -83,7 +83,7 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
   if (effects) {
     message("calculating effects")
     c2eff <- qtl2::scan1blup(
-      genoprobs = qtlprobs[[tissue]][,as.character(chrom)],
+      genoprobs = qtlprobs[[tissue]][,as.character(chromosome)],
       pheno     = exprZ_list[[tissue]][, pheno, drop = FALSE])
 
 
