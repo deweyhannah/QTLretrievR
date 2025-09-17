@@ -74,7 +74,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    thrX = 5, gridFile = gridfile, localRange = 2e6,
                    outdir = NULL, peaks_out = "gxe_peaks.rds",
                    map_out = "gxe_map.rds", annots = NULL, total_cores = NULL,
-                   save = "sr", delta = FALSE, ctrl, env, rz = FALSE) {
+                   save = "sr", delta = FALSE, ctrl, env, rz = FALSE, ...) {
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -116,6 +116,11 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }
   if (length(covar_factors) == 0) {
     stop("Please provide at least one covariate for model")
+  }
+
+  opt_args <- list(...)
+  if("min_cores" %notin% names(opt_args)) {
+    min_cores <- 4
   }
 
   ## Convert genotype probabilities and calculate LOCO kinship matrices for
@@ -290,7 +295,8 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                                     gmap,
                                     thrA,
                                     thrX,
-                                    min(total_cores, cores_needed))
+                                    min(total_cores, cores_needed),
+                                    min_cores)
   }
   else {
     peaks_list[[env]] <- batch_gxe(
@@ -304,7 +310,8 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       cores         = min(total_cores, cores_needed),
       ctrl          = ctrl,
       env           = env,
-      covar_factors = covar_factors
+      covar_factors = covar_factors,
+      min_cores     = min_cores
     )
   }
 
@@ -368,7 +375,7 @@ peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap,
 
 batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
                        covars, gmap, thrA, thrX, cores, ctrl,
-                      env, covar_factors) {
+                      env, covar_factors, min_cores = 4) {
 
   num.batches <- max(c(round(ncol(exprZ_list[[env]])/1000), 2))
   nn <- ncol(exprZ_list[[env]])
@@ -378,13 +385,13 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
 
   # Calculate the maximum number of concurrent batches
   # Each batch should at least have 4 cores.
-  max_concurrent_batches <- max(1, floor(cores / 4) )
+  max_concurrent_batches <- max(1, floor(cores / min_cores) )
   # if the #of batches > max_concurrent_batches adjust the cores
   if( num.batches > max_concurrent_batches){
     # Adjust the number of cores to use based on concurrency limit
-    cores_to_use <- min(cores, max_concurrent_batches * 4)
+    cores_to_use <- min(cores, max_concurrent_batches * min_cores)
     # get the cores to use per batch, minimum 4
-    cores_per_batch <- max(4, floor(cores_to_use/max_concurrent_batches))
+    cores_per_batch <- max(min_cores, floor(cores_to_use/max_concurrent_batches))
   } else{
     # can use all the cores
     cores_to_use <- cores

@@ -22,7 +22,8 @@ gxeQTL(
   delta = FALSE,
   ctrl,
   env,
-  rz = FALSE
+  rz = FALSE,
+  ...
 )
 }
 \arguments{

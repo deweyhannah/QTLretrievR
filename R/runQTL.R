@@ -37,7 +37,6 @@
 #' @param save_t Indicates object return/save behavior. One of
 #' `c("sr", "so", "ro")`; save & return, save only, return only.
 #'  Default is "sr".
-#' @param ... Additional arguments
 #'
 #' @return A list containing \itemize{
 #' \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -79,6 +78,22 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
     save_t <- "sr"
   }
 
+  opt_args <- list(...)
+  if("thrA" %notin% names(opt_args)) {
+    thrA <- 5
+  }
+  if("thrX" %notin% names(opt_args)) {
+    thrX <- 5
+  }
+  if("localRange" %notin% names(opt_args)) {
+    localRange <- 2e6
+  }
+  if("rz" %notin% names(opt_args)) {
+    rz <- FALSE
+  }
+  if("phys" %notin% names(opt_args)) {
+    phys = TRUE
+  }
   ## Check if object or file location is passed. If object assign to genoprobs,
   ## if file location run geoprobably
   if (is.list(gbrs_fileLoc)) {
@@ -115,7 +130,14 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
     gridFile      = gridFile,
     annots        = annots,
     total_cores   = total_cores,
-    ...)
+    save          = save_t,
+    thrA          = thrA,
+    thrX          = thrX,
+    localRange    = localRange,
+    rz            = rz,
+    phys          = phys,
+    ...
+    )
 
   peaks_list <- map_peaks$peaks_list
   maps_list <- map_peaks$maps_list

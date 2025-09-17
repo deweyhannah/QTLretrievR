@@ -75,8 +75,6 @@ Default is \code{NULL}.}
 \item{save_t}{Indicates object return/save behavior. One of
 \code{c("sr", "so", "ro")}; save & return, save only, return only.
 Default is "sr".}
-
-\item{...}{Additional arguments}
 }
 \value{
 A list containing \itemize{
