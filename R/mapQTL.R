@@ -95,6 +95,11 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     }
   }
 
+  opt_args <- list(...)
+  if("min_cores" %notin% names(opt_args)) {
+    min_cores <- 4
+  }
+
   ## Check inputs
   ## Assumes one expression matrix per tissue, matching the order of tissues
   ## in genoprobs
@@ -313,7 +318,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       thrX,
       each_tissue,
       phys,
-      ...
+      min_cores
     )
   }
   doParallel::stopImplicitCluster()
