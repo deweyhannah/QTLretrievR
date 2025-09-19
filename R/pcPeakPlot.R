@@ -41,21 +41,21 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
     stop("If plotting a whole hotspot either a candidate mediator must be
          provided or ask to plot PC1")
   }
-  if (psave & !is.null(pname)) {
+  if (psave & is.null(pname)) {
     if (!wag & pc) {
-      pname <- paste0(tissue, "chromosome_", chromosome, "_transband_", hsNum,
+      pname <- paste0(tissue, "_chromosome_", chromosome, "_transband_", hsNum,
                       "_principal_component_peak.png")
     }
     if (wag & pc) {
-      pname <- paste0(tissue, "chromosome_", chromosome, "_transband_", hsNum,
+      pname <- paste0(tissue, "_chromosome_", chromosome, "_transband_", hsNum,
                       "_principal_component_wag_peak.png")
     }
     if (!wag & !pc) {
-      pname <- paste0(tissue, "chromosome_", chromosome, "_transband_", hsNum,
+      pname <- paste0(tissue, "_chromosome_", chromosome, "_transband_", hsNum,
                       "_peak.png")
     }
     if (wag & !pc) {
-      pname <- paste0(tissue, "chromosome_", chromosome, "_transband_", hsNum,
+      pname <- paste0(tissue, "_chromosome_", chromosome, "_transband_", hsNum,
                       "_wag_peak.png")
     }
     message(paste0("Plot to be saved. Saving as ", pname, " in ", outdir))
@@ -332,10 +332,10 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
   if (psave) {
     if (wag) {
       ggplot2::ggsave(pname, plot = pwork, device = "png", path = outdir,
-                      bg = "white")
+                      bg = "white", width = 7, height = 5, units = "in")
     } else {
       ggplot2::ggsave(pname, plot = p1, device = "png", path = outdir,
-                      bg = "white")
+                      bg = "white", wdth = 5, height = 5, units = "in")
     }
   }
   if (wag) {

@@ -40,10 +40,12 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
   }
-  if (psave & !is.null(pname)) {
+  if (psave & is.null(pname)) {
     ptemp <- "hotspots_<tissue>.png"
     message(paste0("Plot to be saved. Saving as ", ptemp, " in ", outdir))
   }
+
+  pname_og <- pname
 
   ## Set up chromosome midpoints and offset
   uchr <- c(as.character(1:19), "X")
@@ -200,7 +202,7 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
       ggplot2::theme(axis.text = ggplot2::element_text(size = 10))
 
     if (psave == TRUE) {
-      if (is.null(pname)) {
+      if (is.null(pname_og)) {
         pname <- paste0("hotspots_", tissue, ".png")
       }
       ggplot2::ggsave(pname, plot = trans_band_plot[[tissue]], device = "png",

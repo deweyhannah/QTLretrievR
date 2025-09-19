@@ -156,7 +156,10 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
 
     ## Save file if wanted
     if (psave) {
-      pname <- paste0("eqtl_map_LOD",round(sigLOD,2),"_",tissue,".png")
+      if (length(sigLOD) > 1) {
+        use_LOD <- sigLOD[iter]
+      } else use_LOD <- sigLOD
+      pname <- paste0("eqtl_map_LOD",round(use_LOD,2),"_",tissue,".png")
       ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir,
                       width = 3072, height = 3072, units = "px")
     }

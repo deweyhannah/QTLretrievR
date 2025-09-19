@@ -17,6 +17,7 @@
 #' @param pname File name to save plot (needs to end in `.png`). Default is
 #'  `haplotype_effects_<tissue>_transband_<hsNum>_chromosome_<chromosome>.png`
 #' @param outdir Directory to save plots. Default is `NULL`.
+#' @param vert Logical. Rotate plot to vertical orientation. Default `FALSE`
 #' @param ... Additional arguments to pass to ComplexHeatmap
 #'
 #' @export
@@ -24,7 +25,7 @@
 hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                          pop = "do", founders = NULL, palette = NULL,
                          topFeats = NULL, psave = TRUE, pname = NULL,
-                         outdir = NULL, ...) {
+                         outdir = NULL, vert = FALSE, ...) {
   if (!is.null(founders) & length(founders) > 8 & is.null(palette)) {
     stop(paste0(length(founders), " founders detected,
                 please provide a palette that contains at
@@ -93,23 +94,50 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
   row_annot <- ComplexHeatmap::rowAnnotation(df = data.frame(Founders = founders),
                                              col = list(Founders = palette))
 
-  ht <- ComplexHeatmap::Heatmap(hs_mat,
-                                name = "Haplotype Effects",
-                                cluster_rows = TRUE,
-                                cluster_columns = TRUE,
-                                rect_gp = grid::gpar(col = "white", lwd = 2),
-                                row_names_gp = grid::gpar(fontsize = 10),
-                                row_order = LETTERS[seq_len(num_founders)],
-                                right_annotation = row_annot,
-                                column_names_gp = grid::gpar(fontsize = 10),
-                                row_title = "Founders",
-                                column_title = "Target",
-                                column_title_side = "top",
-                                row_title_gp = grid::gpar(fontsize = 20),
-                                column_title_gp = grid::gpar(fontsize = 20),
-                                show_column_names = TRUE,
-                                show_row_names = FALSE)
-  ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
+  if (!vert) {
+    ht <- ComplexHeatmap::Heatmap(hs_mat,
+                                  name = "Haplotype Effects",
+                                  cluster_rows = TRUE,
+                                  cluster_columns = TRUE,
+                                  rect_gp = grid::gpar(col = "white", lwd = 2),
+                                  row_names_gp = grid::gpar(fontsize = 10),
+                                  row_order = LETTERS[seq_len(num_founders)],
+                                  right_annotation = row_annot,
+                                  column_names_gp = grid::gpar(fontsize = 10),
+                                  row_title = "Founders",
+                                  column_title = "Target",
+                                  column_title_side = "top",
+                                  row_title_gp = grid::gpar(fontsize = 20),
+                                  column_title_gp = grid::gpar(fontsize = 20),
+                                  show_column_names = TRUE,
+                                  show_row_names = FALSE)
+  }
+  if (vert) {
+    col_annot <- ComplexHeatmap::columnAnnotation(df = data.frame(Founders = founders),
+                                               col = list(Founders = palette))
+    hs_mat <- t(hs_mat)
+    ht <- ComplexHeatmap::Heatmap(hs_mat,
+                                  name = "Haplotype Effects",
+                                  cluster_rows = TRUE,
+                                  cluster_columns = TRUE,
+                                  rect_gp = grid::gpar(col = "white", lwd = 2),
+                                  row_names_gp = grid::gpar(fontsize = 10),
+                                  column_order = LETTERS[seq_len(num_founders)],
+                                  top_annotation = col_annot,
+                                  column_names_gp = grid::gpar(fontsize = 10),
+                                  column_title = "Founders",
+                                  row_title = "Target",
+                                  column_title_side = "top",
+                                  row_title_gp = grid::gpar(fontsize = 20),
+                                  column_title_gp = grid::gpar(fontsize = 20),
+                                  show_column_names = FALSE,
+                                  show_row_names = TRUE)
+  }
+
+  ComplexHeatmap::draw(ht, heatmap_legend_side = "left",
+                       annotation_legend_side = "left",
+                       merge_legends = TRUE,
+                       legend_gap = grid::unit(5, "mm"))
 
   if (psave == TRUE) {
     n_rows <- nrow(hs_mat)
@@ -120,12 +148,19 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
     base_height <- 400
     col_scale <- 20
     row_scale <- 15
+    if (vert) {
+      base_width <- 400
+      base_height <- 450
+    }
 
     width <- base_width + col_scale * n_cols
     height <- base_height + row_scale * n_rows
 
     png(paste0(outdir, "/", pname), width = width, height = height)
-    ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
+    ComplexHeatmap::draw(ht, heatmap_legend_side = "left",
+                         annotation_legend_side = "left",
+                         merge_legends = TRUE,
+                         legend_gap = grid::unit(5, "mm"))
     dev.off()
   }
 

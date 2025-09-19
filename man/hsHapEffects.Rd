@@ -18,6 +18,7 @@ hsHapEffects(
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
+  vert = FALSE,
   ...
 )
 }
@@ -51,6 +52,8 @@ Default is "\code{do}".}
 \verb{haplotype_effects_<tissue>_transband_<hsNum>_chromosome_<chromosome>.png}}
 
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
+
+\item{vert}{Logical. Rotate plot to vertical orientation. Default \code{FALSE}}
 
 \item{...}{Additional arguments to pass to ComplexHeatmap}
 }
