@@ -3,13 +3,15 @@ project:
   output-dir: ../docs
 
   resources:
-    - Attie500_Liver_Lipids.html
-    - QTLretrievR.html
+    - articles/Attie500_Liver_Lipids_ref.html
+    - articles/QTLretrievR_ref.html
+    - qtlretrievr_hex.png
+    - styles.css
 
 render:
   - index.qmd
-  - QTLretrievR_embed.qmd
-  - Attie500_Liver_embed.qmd
+  - QTLretrievR.qmd
+  - Attie500_Liver_Lipids.qmd
 
 
 website:
@@ -23,9 +25,9 @@ website:
       - text: Articles
         menu:
           - text: Get Started
-            href: QTLretrievR_embed.html
+            href: QTLretrievR.html
           - text: QTL (200 Phenotypes)
-            href: Attie500_Liver_embed.html
+            href: Attie500_Liver_Lipids.html
 
 format:
   html:
