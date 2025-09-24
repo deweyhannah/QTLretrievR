@@ -6,4 +6,4 @@ format:
     page-layout: full   # or "article" if you prefer
 ---
 
-{{< include ../docs/QTLretrievR.html >}}
+<iframe src="QTLretrievR.html" width="100%" height="1000px" style="border:none;"></iframe>

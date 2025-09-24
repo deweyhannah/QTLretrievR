@@ -2,8 +2,14 @@ project:
   type: website
   output-dir: ../docs
 
+  resources:
+    - Attie500_Liver_Lipids.html
+    - QTLretrievR.html
+
 render:
   - index.qmd
+  - QTLretrievR_embed.qmd
+  - Attie500_Liver_embed.qmd
 
 
 website:
