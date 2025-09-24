@@ -1,6 +1,8 @@
+/.quarto/
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-inst/doc
-.Rproj
+inst/docs
+*.Rproj
+docs/docs

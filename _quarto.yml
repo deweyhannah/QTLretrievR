@@ -1,0 +1,29 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "QTLretrievR"
+  navbar:
+    title: false
+    logo: qtlretrievr_hex.png
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Articles
+        menu:
+          - text: Get Started
+            href: docs/QTLretrievR.html
+          - text: QTL (200 Phenotypes)
+            href: docs/Attie500_Liver_Lipids.html
+
+format:
+  html:
+    theme:
+      - sandstone
+      - brand
+    css: styles.css
+    toc: true
+
+
+

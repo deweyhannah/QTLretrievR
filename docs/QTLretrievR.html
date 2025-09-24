@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>QTL Identification and Analysis with QTLretrievR</title>
+<style type="text/css">
+/**
+ * Prism.s theme ported from highlight.js's xcode style
+ */
+pre code {
+  padding: 1em;
+}
+.token.comment {
+  color: #007400;
+}
+.token.punctuation {
+  color: #999;
+}
+.token.tag,
+.token.selector {
+  color: #aa0d91;
+}
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol {
+  color: #1c00cf;
+}
+.token.property,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin {
+  color: #c41a16;
+}
+.token.inserted {
+  background-color: #ccffd8;
+}
+.token.deleted {
+  background-color: #ffebe9;
+}
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #9a6e3a;
+}
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #836c28;
+}
+.token.function,
+.token.class-name {
+  color: #DD4A68;
+}
+.token.regex,
+.token.important,
+.token.variable {
+  color: #5c2699;
+}
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+.token.italic {
+  font-style: italic;
+}
+</style>
+<style type="text/css">
+body {
+  font-family: sans-serif;
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+body, .footnotes, code { font-size: .9em; }
+li li { font-size: .95em; }
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+pre, img { max-width: 100%; }
+pre, pre:hover {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+pre code {
+  display: block;
+  overflow-x: auto;
+}
+code { font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace; }
+:not(pre) > code, code[class] { background-color: #F8F8F8; }
+code.language-undefined, pre > code:not([class]) {
+  background-color: inherit;
+  border: 1px solid #eee;
+}
+table {
+  margin: auto;
+  border-top: 1px solid #666;
+}
+table thead th { border-bottom: 1px solid #ddd; }
+th, td { padding: 5px; }
+thead, tfoot, tr:nth-child(even) { background: #eee; }
+blockquote {
+  color: #666;
+  margin: 0;
+  padding-left: 1em;
+  border-left: 0.5em solid #eee;
+}
+hr, .footnotes::before { border: 1px dashed #ddd; }
+.frontmatter { text-align: center; }
+#TOC .numbered li { list-style: none; }
+#TOC .numbered { padding-left: 0; }
+#TOC .numbered ul { padding-left: 1em; }
+table, .body h2 { border-bottom: 1px solid #666; }
+.body .appendix, .appendix ~ h2 { border-bottom-style: dashed; }
+.footnote-ref a::before { content: "["; }
+.footnote-ref a::after { content: "]"; }
+section.footnotes::before {
+  content: "";
+  display: block;
+  max-width: 20em;
+}
+
+@media print {
+  body {
+    font-size: 12pt;
+    max-width: 100%;
+  }
+  tr, img { page-break-inside: avoid; }
+}
+@media only screen and (min-width: 992px) {
+  pre { white-space: pre; }
+}
+</style>
+</head>
+<body>
+<div class="include-before">
+</div>
+<div class="frontmatter">
+<div class="title"><h1>QTL Identification and Analysis with QTLretrievR</h1></div>
+<div class="author"><h2></h2></div>
+<div class="date"><h3></h3></div>
+</div>
+<div class="body">
+<div align='center'>**Abstract**</div>
+Advances in molecular phenotyping technologies, including quantitative transcriptomics and proteomics (“-omics”), have transformed biomedical research over the past two decades by providing a granular understanding of the gene regulatory networks that drive disease. Many studies have demonstrated the additional power of combining  -omics profiling with genetic mapping, an integrative approach referred to as “systems genetics”, to link population variability in complex disease phenotypes back to genetic variants and their direct effects on gene regulation (e.g. gene expression). However, these quantitative trait locus (QTL) analyses are often computationally intensive and intimidating to those without a strong computational background — especially when samples originate from multiple cell/tissue types or involve thousands of molecular phenotypes. We have developed a new R package, QTLretrievR, that aims to simplify and streamline the identification and downstream analyses of molecular QTL from genetically diverse populations such as Diversity Outbred or Collaborative Cross mice. QTLretrievR leverages existing R packages used in complex trait analysis, including the popular `qtl2` package for QTL peak calling and haplotype effect identification and the `intermediate` package for peak mediation, and employs dynamic nested parallelism to enhance the efficiency of each analysis step. Future developments will enhance the visualization functionality and data analysis options, including adding network inference methods and expanding the software to work with other mapping populations.
+<pre><code class="language-r">library(QTLretrievR)
+</code></pre>
+<h1 id="quick-start">Quick start</h1>
+<p>This is the easiest way to run QTLretrievR. There are several input files required for <code>runQTL</code> as described in detail below. This function will return the list of all the objects used in QTL mapping, annotated QTL peaks, QTL effects, and mediation results. Note in the example below that the objects will be only be returned, not saved. If you wish to have the objects saved for later use you can change <code>save</code> to “so” (save only), or “sr” (save and return).</p>
+<pre><code class="language-r">## Passing a Genoprobs object - list of probabilities for each tissue
+## Using internal data for expr, gridFile, metadata, annots
+## Unevaluated Code Chunk
+
+qtl_res &lt;- runQTL(outdir = &quot;../../vignette/&quot;, 
+                  gbrs_fileLoc = list(&quot;mESC&quot; = demo_probs),
+                  geno_out = &quot;mESC_mm10_probs.rds&quot;, 
+                  peaks_out = &quot;mESC_mm10_peaks.rds&quot;, 
+                  map_out = &quot;mESC_mm10_map.rds&quot;, 
+                  med_out = &quot;mESC_mm10_mediation.rds&quot;,
+                  effects_out = &quot;mESC_mm10_effects.rds&quot;,
+                  expr_mats = list(&quot;mESC&quot; = demo_counts),
+                  tissues = &quot;mESC&quot;, 
+                  gridFile = gridfile69k, 
+                  covar_factors = c(&quot;sex&quot;),
+                  metadata = demo_meta, 
+                  annots = demo_annot, 
+                  save_t = &quot;ro&quot;)
+</code></pre>
+<p>This can be alternatively submitted as follows:</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+
+qtl_res &lt;- runQTL(outdir = &lt;path/to/output/dir&gt;, 
+                  gbrs_fileLoc = &lt;path/to/gbrs/files&gt;,
+                  geno_out = &quot;Name_for_genotype_prob_file.rds&quot;, 
+                  peaks_out = &quot;Name_for_QTL_peaks.rds&quot;, 
+                  map_out = &quot;Name_for_mapping_objects.rds&quot;, 
+                  med_out = &quot;Name_for_mediation_Results.rds&quot;,
+                  effects_out = &quot;Name_for_QTL_effects.rds&quot;,
+                  expr_mats = c(&lt;path/to/expr_mat1&gt;, &lt;path/to/expr_mat2&gt;),
+                  tissues = &quot;Tissue_name&quot;,
+                  gridFile = &lt;path/to/gridfile&gt;, 
+                  covar_factors = c(&quot;Covariates&quot;),
+                  metadata = &lt;path/to/sample/metadata&gt;, 
+                  annots = &lt;path/to/annotations&gt;, 
+                  save = &quot;ro&quot;
+                  )
+
+</code></pre>
+<p>This returns the mapping object, original peaks object, mediation object, and effects object. The peaks, effects and mediation objects can be used for additional plotting and analysis.</p>
+<h1 id="inputs-data">Inputs Data</h1>
+<p>There are several types of data that <code>QTLretrievR</code> takes as input, below we describe variations on the required and optional data inputs.</p>
+<h2 id="genotype-probabilities">Genotype Probabilities</h2>
+<p>Genotype Probabilities (genoprobs) can be passed to <code>QTLretreivR</code> in a few different ways.</p>
+<ul>
+<li>
+<p>Passed as a string to the location of the .tsv probability files from the GBRS software. This can be the folder where all the GBRS results are kept, the files should end with <code>.gbrs.interpolated.genoprobs.tsv</code>. This option would be used with <code>genoprobably</code> and <code>runQTL</code>. This is probably the easiest option if you are starting from scratch and only have GBRS genotypes.</p>
+</li>
+<li>
+<p>Passed as a two dimensional array of the genotype probabilities for all the samples. See the <code>genotype_probs.Rds</code> file <a href="https://figshare.com/articles/dataset/Supplemental_data_repository_for_Skelly_et_al_2020_Cell_Stem_Cell_Mapping_the_effects_of_genetic_variation_on_chromatin_state_and_gene_expression_reveals_loci_that_control_ground_state_pluripotency_/12233570">here</a> for an example of how this should look. This option is for passing to <code>runQTL</code>.</p>
+</li>
+<li>
+<p>Passed as a <code>qtl2</code> formatted genoprobs object. This option is for passing to <code>runQTL</code> and <code>mapQTL</code>. An example of this is shown below.</p>
+</li>
+</ul>
+<pre><code class="language-r">## Structure and example of qtl2 fomatted genoprobs
+names(demo_probs)
+#&gt;  [1] &quot;1&quot;  &quot;2&quot;  &quot;3&quot;  &quot;4&quot;  &quot;5&quot;  &quot;6&quot;  &quot;7&quot;  &quot;8&quot;  &quot;9&quot;  &quot;10&quot; &quot;11&quot; &quot;12&quot; &quot;13&quot; &quot;14&quot; &quot;15&quot; &quot;16&quot; &quot;17&quot; &quot;18&quot; &quot;19&quot; &quot;X&quot;
+str(demo_probs[[1]])
+#&gt;  num [1:10, 1:8, 1:4711] 1.48e-08 1.23e-08 1.04e-08 3.31e-08 2.94e-07 ...
+#&gt;  - attr(*, &quot;dimnames&quot;)=List of 3
+#&gt;   ..$ : chr [1:10] &quot;PB357.02_repA&quot; &quot;PB357.12_repA&quot; &quot;PB357.16_repA&quot; &quot;PB357.18_repA&quot; ...
+#&gt;   ..$ : chr [1:8] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; ...
+#&gt;   ..$ : chr [1:4711] &quot;1_3000000&quot; &quot;1_3041392&quot; &quot;1_3346528&quot; &quot;1_3651663&quot; ...
+demo_probs[[1]][1:2,,1:2]
+#&gt; , , 1_3000000
+#&gt; 
+#&gt;                          A   B            C            D            E            F            G            H
+#&gt; PB357.02_repA 1.477899e-08 0.5 1.217364e-08 1.370868e-08 1.199720e-08 5.000000e-01 4.331041e-09 1.313560e-08
+#&gt; PB357.12_repA 1.232415e-08 0.5 5.000000e-01 1.604246e-08 3.499095e-09 1.478095e-08 4.742920e-09 1.118048e-08
+#&gt; 
+#&gt; , , 1_3041392
+#&gt; 
+#&gt;                          A   B            C            D            E            F            G            H
+#&gt; PB357.02_repA 1.477899e-08 0.5 1.217364e-08 1.370868e-08 1.199720e-08 5.000000e-01 4.331041e-09 1.313560e-08
+#&gt; PB357.12_repA 1.232415e-08 0.5 5.000000e-01 1.604246e-08 3.499095e-09 1.478095e-08 4.742920e-09 1.118048e-08
+</code></pre>
+<p>If you have genotyping from one of the Mouse Universal Genotyping Arrays (MUGA), then you can format your probabilities using our <code>mugaprobs</code> function, a detailed example is below in the <a href="#genoprobs">Genoprobs</a> section of this document.</p>
+<h2 id="quantified-phenotypes">Quantified Phenotypes</h2>
+<p>Although the variable is named <code>expr_mats</code> any quantified molecular data can be passed to this variable. They can be passed as a vector of paths to the data (in the same order as tissues are being passed), or as a named list of matrices (named with the tissue type associated with the counts). These should be filtered, batch corrected and normalized data with the phenotype in rows and the samples in columns, there is no need to rankZ transform your counts, that step occurs in <code>mapQTL</code>. See the attached <code>demo_counts</code> for an example of formatting.</p>
+<pre><code class="language-r">## Information and partial example of quantified data
+class(demo_counts)
+#&gt; [1] &quot;matrix&quot; &quot;array&quot;
+head(demo_counts)
+#&gt;                    PB357.02_repA PB357.12_repA PB357.16_repA PB357.18_repA PB357.19_repA PB357.20_repA PB357.21_repA
+#&gt; ENSMUSG00000030402      90.27620      47.49881      65.92215      60.68472       50.6948      43.98085      68.98128
+#&gt; ENSMUSG00000025473      55.33058      61.24847      59.68627      26.61611       24.3725      45.02802      55.41119
+#&gt; ENSMUSG00000029246    2333.74400    5135.62454    2341.10901    2701.05069     3481.3853    2611.54250    1373.65252
+#&gt; ENSMUSG00000051413     218.41017     162.49593     209.34736     223.57530      230.0764     158.12164     211.46720
+#&gt; ENSMUSG00000026356    3244.11907   11302.21694    2892.56671    4801.55973     5616.3992    4653.59323    2312.56906
+#&gt; ENSMUSG00000042505     317.42278     554.98610     316.24815     300.22969      348.0393     347.65818     360.73816
+#&gt;                    PB357.22_repA PB357.28_repA PB357.29_repA
+#&gt; ENSMUSG00000030402      57.27735      42.11575      52.36949
+#&gt; ENSMUSG00000025473      37.55891      14.03858      44.38093
+#&gt; ENSMUSG00000029246    3451.91477    3130.74325    2534.28661
+#&gt; ENSMUSG00000051413     217.84171     161.91166     260.95984
+#&gt; ENSMUSG00000026356    5754.02576    6941.61141    4452.29448
+#&gt; ENSMUSG00000042505     294.83748     440.81151     286.70078
+</code></pre>
+<h2 id="marker-grid">Marker Grid</h2>
+<p>This should be a grid of markers and the associated genomic locations in bp and cM. The grid file can be passed as an object, or as a path to where the file is located. There are two grid files attached to <code>QTLretrievR</code>, a grid with ~75K pseudo-markers with positions updated for mm38 and a grid with ~69K pseudo-markers with positions associated with mm10, and the GigaMUGA and MegaMUGA markers and positions. Or you can use a  new marker grid to be used with your probabilities. If making your own grid file, see <code>gridfile</code> to make sure you have the correct format.</p>
+<pre><code class="language-r">## example format for 75K marker grid
+head(gridfile)
+#&gt;           chr     pos      cM
+#&gt; 1_3000000   1 3000000 0.00001
+#&gt; 1_3039563   1 3039563 0.02001
+#&gt; 1_3079126   1 3079126 0.04001
+#&gt; 1_3118689   1 3118689 0.06001
+#&gt; 1_3158252   1 3158252 0.08001
+#&gt; 1_3197814   1 3197814 0.10001
+</code></pre>
+<h2 id="metadata">Metadata</h2>
+<p>At a minimum, the metadata file should contain a column for sample IDs (<code>ID</code>) and columns for any covariates to be included in the peak and effect calling. Any other pieces of information that may be relevant to your analysis that you want to make sure is all in the same place should also be included. A minimal example, <code>demo_meta</code>, is attached to <code>QTLretrievR</code>.</p>
+<pre><code class="language-r">## minimal metadata example
+head(demo_meta[which(demo_meta$ID %in% colnames(demo_counts)),])
+#&gt;              ID sex
+#&gt; 1 PB357.02_repA   F
+#&gt; 2 PB357.12_repA   F
+#&gt; 3 PB357.16_repA   F
+#&gt; 4 PB357.18_repA   F
+#&gt; 5 PB357.19_repA   F
+#&gt; 6 PB357.20_repA   F
+</code></pre>
+<h2 id="annotations">Annotations</h2>
+<p>Currently the annotations needs to contain at a minimum <code>id</code>, <code>symbol</code>, <code>chr</code>, <code>start</code>, and <code>end</code> columns. The <code>id</code> column should contain the phenotype information that appears in the row names of the quantified data. In the attached example (<code>demo_annot</code>) the id column contains ensembl gene IDs, these could be traded out for ensembl protein IDs or any other phenotype identifier. The <code>demo_annot</code> file is the Ensemblv84 biomart annotations, if you are using newer expression data use <code>annot_105</code> or upload your own annotations</p>
+<pre><code class="language-r">## Example annotation file - Note this file is all the genes for the Ensemblv84 build
+head(demo_annot)
+#&gt;                   id symbol chr     start       end
+#&gt; 1 ENSMUSG00000000001  Gnai3   3 108107280 108146146
+#&gt; 2 ENSMUSG00000000028  Cdc45  16  18780447  18811987
+#&gt; 3 ENSMUSG00000000031    H19   7 142575529 142578143
+#&gt; 4 ENSMUSG00000000037  Scml2   X 161117193 161258213
+#&gt; 5 ENSMUSG00000000056   Narf  11 121237253 121255856
+#&gt; 6 ENSMUSG00000000058   Cav2   6  17281185  17289115
+</code></pre>
+<h1 id="running-as-separate-steps">Running as Separate Steps</h1>
+<p>If, instead of using the wrapper to run all steps at once, you wish to run each step individually (calculating/formatting the genotype probabilities, mapping/peak calling, mediation, effects) this can be done with relative ease.</p>
+<h2 id="genoprobs">Genoprobs</h2>
+<p>In order to convert the genoprobs from the GBRS output to the <code>qtl2</code> format we run a function called <code>genoprobably</code>. It pulls in the relevant files from the provided location and splits samples into the tissues they are derived from (the names that you pass to <code>tissue</code> should be included in the file name in some form), then puts these into a 3 dimensional format based on the markers. Once the genotype probabilities are in the 3D format <code>probs_3d_to_qtl2</code> is used to convert them to the qtl2 format. The below example shows how to run genoprobably with the 75k gridfile.</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+probs &lt;- genoprobably(outfile     = &quot;../../vignette/gbrs_interpolated_probs.rds&quot;, 
+                      gbrsFileLoc = &quot;&lt;path/to/gbrs/results&gt;&quot;,
+                      tissues     = c(&quot;tissue1&quot;,&quot;tissue2&quot;), 
+                      gridFile    = gridfile, 
+                      save        = &quot;ro&quot;)
+</code></pre>
+<p>Alternatively you can use genotyping from either GigaMUGA or MegaMUGA as your genome probabilities. In order to convert these reports to the <code>qtl2</code> format we run a function called <code>mugaprobs</code>. It loads the appropriate grid files, builds the control file, and processes the genotyping file(s) into the correct allele based format for processing. The below example shows how to run <code>mugaprobs</code> from a sample GigaMUGA genotyping run.</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+
+probs &lt;- mugaprobs(type       = &quot;GM&quot;,                                   # Did your genotyping come from GigaMUGA or MegaMUGA?
+                   covarLoc   = &quot;/path/to/covariate/file/&quot;, 
+                   covar_file = &quot;name_of_covariate_file.tsv&quot;, 
+                   i.files    = c(&quot;final_report_1&quot;, &quot;final_report_2&quot;),  # If you already have chromosome specific genotype files you can pass that directory as a string here
+                   genoPrefix = &quot;gm4qtl2&quot;, 
+                   probsOut   = &quot;muga_interpolated_genoprobs.rds&quot;,      # This is the file that your probabilites will be saved to
+                   tissues    = c(&quot;tissue1&quot;, &quot;tissue2&quot;))                # All probabilities will be attributed to each tissue, this is just to put it in the format needed for `mapQTL`
+
+</code></pre>
+<h2 id="mapping-and-peak-calling">Mapping and Peak Calling</h2>
+<p>The mapping and peak calling steps are combined in our pipeline. We use the genoprobs to calculate kinship, and create the genetic and pysical maps. Then using the quantified data and sample metadata we rankZ normalize the counts, calculate covariates and finally do the peak calling using <code>qtl2::scan1</code>.</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+## Passing objects:
+map_peaks &lt;- mapQTL(outdir        = &quot;../../vignette/&quot;, 
+                    peaks_out     = &quot;mm39_peaks.rds&quot;,
+                    map_out       = &quot;mm39_map.rds&quot;, 
+                    genoprobs     = probs, 
+                    samp_meta     = demo_meta,                   # Make sure that your ID column is named &quot;ID&quot;
+                    expr_mats     = list(&quot;mESC&quot; = demo_counts),  # Pass your counts as a named list
+                    covar_factors = c(&quot;sex&quot;),
+                    gridFile      = gridfile, 
+                    annots        = demo_annot,                  # See the Annotations section above for notes on this
+                    save          = &quot;ro&quot;)                        # return only - other options are &quot;so&quot; (save only) and &quot;sr&quot; (save and return)
+
+## Passing file locations
+map_peaks &lt;- mapQTL(outdir        = &quot;../../vignette/&quot;, 
+                    peaks_out     = &quot;mm39_peaks.rds&quot;,
+                    map_out       = &quot;mm39_map.rds&quot;, 
+                    genoprobs     = &quot;path/to/saved/probs.rds&quot;,
+                    samp_meta     = &quot;path/to/sample/metadata&quot;,
+                    expr_mats     = c(&quot;path/to/counts1&quot;,&quot;path/to/coounts/2&quot;), 
+                    covar_factors = c(&quot;sex&quot;),
+                    gridFile      = &quot;path/to/custom/grid&quot;,
+                    annots        = &quot;path/to/annotations&quot;,
+                    save          = &quot;ro&quot;)
+</code></pre>
+<h2 id="mediation">Mediation</h2>
+<p>For mediation we use the peaks, mapping information (which includes the rankZ normalized counts), and annotations to identify targets which in turn allows us to identify phenotypes that act as mediators for peaks above a suggestive LOD. This is done using <code>intermediate::mediation.scan</code>.</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+med_res &lt;- run_mediate(peaks   = map_peaks$peaks_list, 
+                       mapping = map_peaks$maps_list,
+                       outdir  = &quot;../../vignette&quot;, 
+                       annots  = demo_annot,
+                       suggLOD = 7, 
+                       med_out = &quot;mm39_mediation.rds&quot;, 
+                       save    = &quot;ro&quot;)
+</code></pre>
+<h2 id="effects">Effects</h2>
+<p>To identify the founder effects at peaks of interest, we use the peaks, and mapping information along with a suggestive LOD threshold to ensure that the reported effects are for relevant peaks only. This is done using <code>qtl2::scan1blup</code>.</p>
+<pre><code class="language-r">## Unevaluated Code Chunk
+effects &lt;- qtl_effects(mapping = map_peaks$maps_list, 
+                       peaks   = map_peaks$peaks_list,
+                       suggLOD = 7, 
+                       outdir  = &quot;../../vignette&quot;, 
+                       outfile = &quot;mm39_effects.rds&quot;, 
+                       save    = &quot;ro&quot;)
+</code></pre>
+<h1 id="submitting-to-a-job-scheduler">Submitting to a Job Scheduler</h1>
+<p>Currently, <code>QTLretrievR</code> is set up to identify available cores in a linux, mac, or windows environment. It is also able to identify the number of cores if you are submitting a job through a SLURM scheduler. Just make sure to include both of the following lines in your <code>SBATCH</code>:</p>
+<pre><code class="language-{}">#SBATCH --ntasks=N
+#SBATCH --cpus-per-task=X
+</code></pre>
+<p>When the number of cores is calculated for parallelization purposes, the total number of cores that are identified are <code>N*X</code>. If you don’t include both, and are submitting with a SLURM scheduler, it may not identify the correct number of cores.</p>
+<p>If you are using any other scheduler, make sure that you specify the total number of cpus for the whole job. If applicable the number of processes should be 1.</p>
+</div>
+<div class="include-after">
+</div>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
+</body>
+</html>

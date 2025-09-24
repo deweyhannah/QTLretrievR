@@ -1,0 +1,16 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "QTLretrievR",
+    "section": "",
+    "text": "QTLretrievR is an R package designed to streamline molecular Quantitative Trait Locus (QTL) mapping, and perform downstream analyses."
+  },
+  {
+    "objectID": "index.html#installation",
+    "href": "index.html#installation",
+    "title": "QTLretrievR",
+    "section": "Installation",
+    "text": "Installation\nInstall QTLretrievR from GitHub\n\ndevtools::install_github(\"deweyhannah/QTLretrievR\")"
+  }
+]
