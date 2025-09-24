@@ -12,5 +12,12 @@
     "title": "QTLretrievR",
     "section": "Installation",
     "text": "Installation\nInstall QTLretrievR from GitHub\n\ndevtools::install_github(\"deweyhannah/QTLretrievR\")"
+  },
+  {
+    "objectID": "index.html#documentation",
+    "href": "index.html#documentation",
+    "title": "QTLretrievR",
+    "section": "Documentation",
+    "text": "Documentation\nTo see examples of how to use QTLretrievR, please see the “Articles” tab above."
   }
 ]
