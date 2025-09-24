@@ -15,3 +15,4 @@ devtools::install_github("deweyhannah/QTLretrievR")
 ## Documentation
 
 To see examples of how to use QTLretrievR, please see the "Articles" tab above.
+

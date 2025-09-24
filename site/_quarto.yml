@@ -1,6 +1,9 @@
 project:
   type: website
-  output-dir: docs
+  output-dir: ../docs
+
+render:
+  - index.qmd
 
 website:
   title: "QTLretrievR"
