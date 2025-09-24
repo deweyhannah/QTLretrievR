@@ -164,4 +164,5 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
     dev.off()
   }
 
+  return(ht)
 }
