@@ -1,0 +1,9 @@
+---
+title: "QTLretrievR"
+format:
+  html:
+    toc: false
+    page-layout: full   # or "article" if you prefer
+---
+
+{{< include ../docs/QTLretrievR.html >}}

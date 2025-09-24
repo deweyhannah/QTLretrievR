@@ -5,6 +5,7 @@ project:
 render:
   - index.qmd
 
+
 website:
   title: "QTLretrievR"
   navbar:
@@ -16,17 +17,14 @@ website:
       - text: Articles
         menu:
           - text: Get Started
-            href: docs/QTLretrievR.html
+            href: QTLretrievR_embed.html
           - text: QTL (200 Phenotypes)
-            href: docs/Attie500_Liver_Lipids.html
+            href: Attie500_Liver_embed.html
 
 format:
   html:
     theme:
       - sandstone
-      - brand
     css: styles.css
     toc: true
-
-
 

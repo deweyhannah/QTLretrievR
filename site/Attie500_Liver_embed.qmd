@@ -1,0 +1,9 @@
+---
+title: "QTL (200 Phenotypes)"
+format:
+  html:
+    toc: false
+    page-layout: full   # or "article" if you prefer
+---
+
+<iframe src="../docs/Attie500_Liver_Lipids.html" width="100%" height="1000px" style="border:none;"></iframe>
