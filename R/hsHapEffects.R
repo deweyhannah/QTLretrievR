@@ -139,7 +139,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                                col = list(Founders = palette))
     hs_mat <- t(hs_mat)
     ht <- ComplexHeatmap::Heatmap(hs_mat,
-                                  col = palette_to_use
+                                  col = palette_to_use,
                                   name = "Haplotype Effects",
                                   cluster_rows = TRUE,
                                   cluster_columns = TRUE,
