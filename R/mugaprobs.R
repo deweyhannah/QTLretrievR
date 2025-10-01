@@ -25,8 +25,6 @@
 #' @return none
 #' @export
 #'
-#' @importFrom httr GET
-#' @importFrom httr write_disk
 #' @importFrom data.table fread
 #' @importFrom qtl2 calc_genoprob
 #' @importFrom qtl2 genoprob_to_alleleprob
@@ -57,7 +55,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
   temp_dir <- tempdir()
   temp_zip <- tempfile(fileext = ".zip")
 
-  response <- httr::GET(url, httr::write_disk(temp_zip, overwrite = TRUE))
+  download.file(url, destfile = temp_zip, mode = "wb")
   utils::unzip(temp_zip, exdir = temp_dir, overwrite = T)
 
   file.copy(paste0(covarLoc, "/" , covar_file), to = temp_dir)

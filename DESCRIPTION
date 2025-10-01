@@ -44,7 +44,6 @@ Imports:
     GenomicRanges,
     ggplot2,
     grid,
-    httr,
     intermediate,
     patchwork,
     purrr,
