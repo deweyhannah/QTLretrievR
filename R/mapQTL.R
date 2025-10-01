@@ -28,7 +28,7 @@
 #'  mapping results. This file will be saved in `.rds` format and will be used
 #'   in downstream analyses. Should end in `.rds`. Default is "`map.rds`"
 #' @param annots Annotations file. Contains mapping information for phenotypes.
-#'  Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".
+#'  Dataframe, or tsv. Columns must include "id", "symbol", "chr", "start", "end".
 #' @param total_cores Number of available cores to use for parallelization.
 #'  Default is `NULL`.
 #' @param save Indicates object return/save behavior. One of
@@ -92,6 +92,11 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   if (!is.null(annots)) {
     if (is.character(annots)) {
       annots <- read.delim(annots, stringsAsFactors = FALSE, header = TRUE)
+    }
+    if (c("id", "symbol", "chr", "start", "end") %notin% colnames(annots)){
+      stop("Annotations are missing at least one of the following columns:
+           id, symbol, chr, start, end. Please check annotations to include all
+           these columns, or run mapQTL without annotations.")
     }
   }
 
@@ -247,7 +252,16 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   ## Calculate covariate matrices
   covar_list <- list()
+
+  if (is.list(covar_factors)) {
+    fact_list <- covar_factors
+  } else {
+    fact_list <- NULL
+  }
   for (tissue in names(tissue_samp)) {
+    if (!is.null(fact_list)) {
+      covar_factors <- fact_list[[which(names(tissue_samp) == tissue)]]
+    }
     covar_list[[tissue]] <- model.matrix(formula(
       paste0("~", paste0(covar_factors, collapse = "+"))),
       data = tissue_samp[[tissue]])

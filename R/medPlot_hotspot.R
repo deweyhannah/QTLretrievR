@@ -97,8 +97,13 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
     dplyr::filter(ranks == 1) |>
     dplyr::arrange(mediator_midpoint)
 
+
+  palette_to_use <- rev(viridis::viridis(100))
+  if(plot = "per_drop"){
+    palette_to_use <- viridis::viridis(100)
+  }
   ht <- ComplexHeatmap::Heatmap(l2p_wide,
-                          col = rev(viridis::viridis(100)),
+                          col = palette_to_use,
                           na_col = "gray95",
                           cluster_rows = FALSE,
                           cluster_columns = FALSE,

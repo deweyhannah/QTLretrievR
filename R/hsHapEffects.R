@@ -61,6 +61,27 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
 
   }
 
+  palette_to_use <- c("#4575B4", "#4979B6", "#4E7DB8", "#5282BB", "#5786BD",
+                      "#5C8BBF", "#608FC2", "#6594C4", "#6998C6", "#6E9DC9",
+                      "#73A1CB", "#77A6CE", "#7CAAD0", "#80AFD2", "#85B3D5",
+                      "#8AB8D7", "#8EBCD9", "#93C0DB", "#98C3DD", "#9CC6DF",
+                      "#A1CAE1", "#A6CDE2", "#ABD0E4", "#B0D3E6", "#B4D6E8",
+                      "#B9D9E9", "#BEDCEB", "#C3E0ED", "#C8E3EF", "#CCE6F0",
+                      "#D1E9F2", "#D6ECF4", "#DBEFF6", "#E0F3F7", "#E1F3F4",
+                      "#E3F4F1", "#E5F5ED", "#E7F5EA", "#E9F6E6", "#EBF7E3",
+                      "#EDF8DF", "#EFF8DC", "#F0F9D8", "#F2FAD5", "#F4FBD2",
+                      "#F6FBCE", "#F8FCCB", "#FAFDC7", "#FCFDC4", "#FEFEC0",
+                      "#FEFEBD", "#FEFCBA", "#FEFAB7", "#FEF8B5", "#FEF6B2",
+                      "#FEF4AF", "#FEF2AC", "#FEF0A9", "#FEEFA6", "#FEEDA3",
+                      "#FEEBA1", "#FEE99E", "#FEE79B", "#FEE598", "#FEE395",
+                      "#FEE192", "#FEDF8F", "#FDDA8C", "#FDD589", "#FDD085",
+                      "#FDCB82", "#FDC67F", "#FDC17B", "#FDBC78", "#FDB775",
+                      "#FCB271", "#FCAD6E", "#FCA86B", "#FCA367", "#FC9E64",
+                      "#FC9961", "#FC945D", "#FC8F5A", "#FA8A57", "#F88454",
+                      "#F67E51", "#F4794E", "#F1734B", "#EF6D48", "#ED6845",
+                      "#EB6242", "#E85D3F", "#E6573C", "#E45139", "#E24C36",
+                      "#DF4633", "#DD4030", "#DB3B2D", "#D9352A", "#D73027")
+
   peak_effects <- cbind(effects$peaks[[tissue]], effects$effects_blup[[tissue]])
 
   peak_sub <- peak_effects[which(peak_effects$peak_chr == chromosome &
@@ -96,6 +117,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
 
   if (!vert) {
     ht <- ComplexHeatmap::Heatmap(hs_mat,
+                                  col = palette_to_use,
                                   name = "Haplotype Effects",
                                   cluster_rows = TRUE,
                                   cluster_columns = TRUE,
@@ -117,6 +139,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                                col = list(Founders = palette))
     hs_mat <- t(hs_mat)
     ht <- ComplexHeatmap::Heatmap(hs_mat,
+                                  col = palette_to_use
                                   name = "Haplotype Effects",
                                   cluster_rows = TRUE,
                                   cluster_columns = TRUE,
