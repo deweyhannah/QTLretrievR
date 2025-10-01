@@ -58,7 +58,7 @@ mapping results. This file will be saved in \code{.rds} format and will be used
 in downstream analyses. Should end in \code{.rds}. Default is "\code{map.rds}"}
 
 \item{annots}{Annotations file. Contains mapping information for phenotypes.
-Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".}
+Dataframe, or tsv. Columns must include "id", "symbol", "chr", "start", "end".}
 
 \item{total_cores}{Number of available cores to use for parallelization.
 Default is \code{NULL}.}

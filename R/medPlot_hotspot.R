@@ -99,7 +99,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
 
 
   palette_to_use <- rev(viridis::viridis(100))
-  if(plot = "per_drop"){
+  if(plot == "per_drop"){
     palette_to_use <- viridis::viridis(100)
   }
   ht <- ComplexHeatmap::Heatmap(l2p_wide,
