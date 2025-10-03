@@ -103,7 +103,11 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   opt_args <- list(...)
   if("min_cores" %notin% names(opt_args)) {
     min_cores <- 4
+  } else {
+    min_cores <- opt_args$min_cores
   }
+
+  # message(paste0("passing ", min_cores, " to each scan1 process. If this doesn't look right, please check your inputs."))
 
   ## Check inputs
   ## Assumes one expression matrix per tissue, matching the order of tissues

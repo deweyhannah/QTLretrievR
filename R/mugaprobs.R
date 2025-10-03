@@ -60,23 +60,32 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
 
   file.copy(paste0(covarLoc, "/" , covar_file), to = temp_dir)
 
-  ## If passed files are not a directory process final reports
-  if(!dir.exists(i.files)) {
-    message("processing final reports")
-    process_reports(paste0(temp_dir,"/",code_file), i.files, genoPrefix,
-                    temp_dir)
-  }
-
   ## Get current directory to go back after processing and move to
   ## temp directory
   on.exit(setwd(ogDir))
   setwd(temp_dir)
 
-  ## Bring chromosome specific genotype files to temp directory
-  if(dir.exists(i.files)) {
-    files_to_copy <- list.files(i.files, pattern = paste0(genoPrefix,"_geno"),
-                                full.names = TRUE)
-    file.copy(files_to_copy, to = temp_dir)
+  if (length(i.files > 1)) {
+    ## Multiple final report files passed
+    message("processing final reports")
+    process_reports(paste0(temp_dir, "/", code_file), i.files, genoPrefix,
+                    temp_dir)
+  } else if (length(i.files) == 1 && file.exists(i.files)) {
+    ## Get file info
+    info <- file.info(i.files)
+
+    if (info$isdir) {
+      ## If directory, find all genotype files in directory and copy to temp
+      files_to_copy <- list.files(i.files, pattern = paste0(genoPrefix, "_geno"),
+                                  full.names = TRUE)
+      file.copy(files_to_copy, to = temp_dir)
+    }
+    else {
+      ## Single final report - process it.
+      message("processing final reports")
+      process_reports(paste0(temp_dir, "/", code_file), i.files, genoPrefix,
+                      temp_dir)
+    }
   }
 
   ## Write control file
@@ -159,7 +168,7 @@ process_reports <- function(codefile, ifiles, ostem, dirOut) {
       full_geno <- geno
     } else {
       # if any columns in both, use those from second set
-      full_geno <- qtl2convert::cbind_smother(full_geno, geno)
+      full_geno <- cbind_smother_fix(full_geno, geno)
     }
 
     if(rezip) {

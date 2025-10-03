@@ -296,3 +296,34 @@ filter_peaks <- function(peaks_df, bands_df) {
       )
   })
 }
+
+## This is essentially the same as qtl2convert::cbind_smother with one
+## difference to fix an issue with replacement
+
+cbind_smother_fix <-
+  function(mat1, mat2)
+  {
+    cn1 <- colnames(mat1)
+    cn2 <- colnames(mat2)
+    if(is.null(cn1) || is.null(cn2)) {
+      stop("Need colnames for both mat1 and mat2")
+    }
+
+    m_col <- (cn2 %in% cn1)
+
+    if(any(m_col)) {
+      rn1 <- rownames(mat1)
+      rn2 <- rownames(mat2)
+      if(is.null(rn1) || is.null(rn2)) {
+        stop("Need rownames for both mat1 and mat2")
+      }
+      m_row <- match(rn1[rn1 %in% rn2], rn2)
+
+      mat1 <- qtl2::cbind_expand(mat1[,!(cn1 %in% cn2[m_col]),drop=FALSE], mat2)
+    }
+    else {
+      mat1 <- qtl2::cbind_expand(mat1, mat2)
+    }
+
+    mat1
+  }
