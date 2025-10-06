@@ -93,7 +93,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     if (is.character(annots)) {
       annots <- read.delim(annots, stringsAsFactors = FALSE, header = TRUE)
     }
-    if (c("id", "symbol", "chr", "start", "end") %notin% colnames(annots)){
+    if (any(c("id", "symbol", "chr", "start", "end") %notin% colnames(annots))) {
       stop("Annotations are missing at least one of the following columns:
            id, symbol, chr, start, end. Please check annotations to include all
            these columns, or run mapQTL without annotations.")
@@ -264,7 +264,8 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }
   for (tissue in names(tissue_samp)) {
     if (!is.null(fact_list)) {
-      covar_factors <- fact_list[[which(names(tissue_samp) == tissue)]]
+      idx <- which(names(tissue_samp) == tissue)
+      covar_factors <- fact_list[[idx[1]]]
     }
     covar_list[[tissue]] <- model.matrix(formula(
       paste0("~", paste0(covar_factors, collapse = "+"))),
