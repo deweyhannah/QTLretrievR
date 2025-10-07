@@ -12,7 +12,8 @@
 #'  or the object itself.
 #' @param expr_mats List of normalized count matrices (objects), or character
 #'  paths to the file. One matrix per tissue. The order *must match*
-#'   the tissue order in `genoprobs`.
+#'   the tissue order in `genoprobs`. **NOTE** If using `rz = TRUE` then
+#'   phenotypes should be the columns in the expression matrices.
 #' @param covar_factors Additive covariate factors. These need to be columns
 #'  in the factor metadata.
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.

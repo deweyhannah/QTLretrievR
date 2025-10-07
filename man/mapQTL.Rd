@@ -33,7 +33,8 @@ or the object itself.}
 
 \item{expr_mats}{List of normalized count matrices (objects), or character
 paths to the file. One matrix per tissue. The order \emph{must match}
-the tissue order in \code{genoprobs}.}
+the tissue order in \code{genoprobs}. \strong{NOTE} If using \code{rz = TRUE} then
+phenotypes should be the columns in the expression matrices.}
 
 \item{covar_factors}{Additive covariate factors. These need to be columns
 in the factor metadata.}
