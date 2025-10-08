@@ -81,18 +81,28 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
   opt_args <- list(...)
   if("thrA" %notin% names(opt_args)) {
     thrA <- 5
+  } else {
+    thrA <- opt_args$thrA
   }
   if("thrX" %notin% names(opt_args)) {
     thrX <- 5
+  } else {
+    thrX <- opt_args$thrX
   }
   if("localRange" %notin% names(opt_args)) {
     localRange <- 2e6
+  } else {
+    localRange <- opt_args$localRange
   }
   if("rz" %notin% names(opt_args)) {
     rz <- FALSE
+  } else {
+    rz <- opt_args$rz
   }
   if("phys" %notin% names(opt_args)) {
-    phys = TRUE
+    phys <- TRUE
+  } else {
+    phys <- opt_args$phys
   }
   ## Check if object or file location is passed. If object assign to genoprobs,
   ## if file location run geoprobably
