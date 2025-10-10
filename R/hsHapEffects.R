@@ -20,6 +20,9 @@
 #' @param vert Logical. Rotate plot to vertical orientation. Default `FALSE`
 #' @param ... Additional arguments to pass to ComplexHeatmap
 #'
+#'
+#' @return List of plots. `ht_plot`: Plot only, formatted with legend on the left.
+#' `ht`: Original ComplexHeatmap object.
 #' @export
 #'
 hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
@@ -157,10 +160,13 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                   show_row_names = TRUE)
   }
 
-  ComplexHeatmap::draw(ht, heatmap_legend_side = "left",
-                       annotation_legend_side = "left",
-                       merge_legends = TRUE,
-                       legend_gap = grid::unit(5, "mm"))
+  pdf(NULL)
+
+  ht_plot <- ComplexHeatmap::draw(ht, heatmap_legend_side = "left",
+                                  annotation_legend_side = "left",
+                                  merge_legends = TRUE,
+                                  legend_gap = grid::unit(5, "mm"))
+  dev.off()
 
   if (psave == TRUE) {
     n_rows <- nrow(hs_mat)
@@ -180,12 +186,9 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
     height <- base_height + row_scale * n_rows
 
     png(paste0(outdir, "/", pname), width = width, height = height)
-    ComplexHeatmap::draw(ht, heatmap_legend_side = "left",
-                         annotation_legend_side = "left",
-                         merge_legends = TRUE,
-                         legend_gap = grid::unit(5, "mm"))
+    ht_plot
     dev.off()
   }
 
-  return(ht)
+  return(tibble::lst(ht_plot, ht))
 }
