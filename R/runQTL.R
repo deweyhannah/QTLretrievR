@@ -104,6 +104,11 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
   } else {
     phys <- opt_args$phys
   }
+  if("sigLOD" %notin% names(opt_args)) {
+    sigLOD <- 7.5
+  } else {
+    sigLOD <- opt_args$sigLOD
+  }
   ## Check if object or file location is passed. If object assign to genoprobs,
   ## if file location run geoprobably
   if (is.list(gbrs_fileLoc)) {
