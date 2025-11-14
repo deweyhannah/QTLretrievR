@@ -132,24 +132,29 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
 
   ## Perform effects scan if wanted
   if (wag) {
+    ncores <- get_cores()
+    cores_use <- min(8, ncores)
     if (pc & is.null(candidateMed)) {
       effects_out <- qtl2::scan1blup(
         pheno     = pca_rz,
         genoprobs = mapping$qtlprobs[[tissue]][, as.character(chromosome)],
         kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
-        addcovar  = mapping$covar_list[[tissue]])
+        addcovar  = mapping$covar_list[[tissue]],
+        cores     = cores_use)
     } else if (pc & !is.null(candidateMed)) {
       effects_out <- qtl2::scan1blup(
         pheno     = mapping$exprZ_list[[tissue]][, medID, drop = FALSE],
         genoprobs = mapping$qtlprobs[[tissue]][, as.character(chromosome)],
         kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
-        addcovar  = mapping$covar_list[[tissue]])
+        addcovar  = mapping$covar_list[[tissue]],
+        cores     = cores_use)
     } else {
       effects_out <- qtl2::scan1blup(
         pheno     = feat_rz[, medID],
         genoprobs = mapping$qtlprobs[[tissue]][, as.character(chromosome)],
         kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
-        addcovar  = mapping$covar_list[[tissue]])
+        addcovar  = mapping$covar_list[[tissue]],
+        cores     = cores_use)
     }
   }
 
@@ -192,7 +197,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       ggplot2::geom_rect(  xmin = hsStart/1e06,
                            xmax = hsEnd/1e06,
                            ymin = 0,
-                           ymax = 25,
+                           ymax = maxY,
                            fill = "gray",
                            inherit.aes = FALSE,
                            alpha = 0.1,
@@ -221,7 +226,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       ggplot2::geom_rect(  xmin = hsStart/1e06,
                            xmax = hsEnd/1e06,
                            ymin = 0,
-                           ymax = 25,
+                           ymax = maxY,
                            fill = "gray",
                            inherit.aes = FALSE,
                            alpha = 0.1,
@@ -264,7 +269,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       ggplot2::geom_rect(xmin = hsStart/1e06,
                          xmax = hsEnd/1e06,
                          ymin = 0,
-                         ymax = 25,
+                         ymax = maxY,
                          fill = "gray",
                          inherit.aes = FALSE,
                          alpha = 0.1,

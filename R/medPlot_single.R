@@ -59,7 +59,9 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome,
                   ranks = rank(-LOD_drop, ties.method = "average")) |>
     dplyr::ungroup() |>
     dplyr::mutate(padj = dplyr::case_when(ranks <= top_n ~ padj,
-                                          ranks > top_n ~ NA)) |>
+                                          ranks > top_n ~ NA),
+                  per_drop = dplyr::case_when(ranks <= top_n ~ per_drop,
+                                              ranks > top_n ~ NA)) |>
     dplyr::mutate(padj = dplyr::if_else(padj == 0.0000, 1e-15, padj)) |>
     dplyr::arrange(mediator_midpoint) |>
     dplyr::select(target_id, mediator, as.name(plot)) |>
@@ -67,8 +69,26 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome,
     tibble::column_to_rownames(var = "target_id") |>
     as.matrix()
 
+
+  vals <- as.numeric(l2p_wide)
+  vals <- vals[!is.na(vals)]
+
+  # Compute min and max
+  min_val <- min(vals)
+  max_val <- max(vals)
+
+  # Handle case where min == max
+  if (min_val == max_val) {
+    stop(paste0("No variation in ", plot, ". Try plotting a different statistic"))
+  }
+
+
+  palette_to_use <- rev(viridis::viridis(100))
+  if(plot == "per_drop"){
+    palette_to_use <- viridis::viridis(100)
+  }
   ht <- ComplexHeatmap::Heatmap(l2p_wide,
-                          col = rev(viridis::viridis(100)),
+                          col = palette_to_use,
                           na_col = "gray95",
                           cluster_rows = FALSE,
                           cluster_columns = FALSE,
