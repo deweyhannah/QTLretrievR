@@ -58,12 +58,14 @@ Imports:
     doParallel,
     stats
 Remotes:
+  bioc::ComplexHeatmap,
+  bioc::GenomicRanges,
   simecek/intermediate
 Suggests: 
     testthat (>= 3.0.0),
     devtools,
     knitr,
-    rmarkdown
+    rmarkdown,
     BiocManager
 Config/testthat/edition: 3
 Collate: 
