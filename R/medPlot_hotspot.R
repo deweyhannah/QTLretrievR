@@ -93,9 +93,9 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                   ranks = rank(-LOD_drop, ties.method = "average")) |>
     dplyr::ungroup()
 
-  # grouped_by_top <- rank_return |>
-  #   dplyr::filter(ranks == 1) |>
-  #   dplyr::arrange(mediator_midpoint)
+  grouped_by_top <- rank_return |>
+    dplyr::filter(ranks == 1) |>
+    dplyr::arrange(mediator_midpoint)
 
 
   palette_to_use <- rev(viridis::viridis(100))

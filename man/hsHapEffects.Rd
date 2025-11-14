@@ -57,6 +57,10 @@ Default is "\code{do}".}
 
 \item{...}{Additional arguments to pass to ComplexHeatmap}
 }
+\value{
+List of plots. \code{ht_plot}: Plot only, formatted with legend on the left.
+\code{ht}: Original ComplexHeatmap object.
+}
 \description{
 Map founder haplotype effects for a given hotspot.
 }
