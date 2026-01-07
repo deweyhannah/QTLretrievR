@@ -8,7 +8,7 @@ LOD_thld(
   mapping,
   tissue,
   annots = NULL,
-  n.gene = 75,
+  n.gene = 100,
   n.perm = 500,
   batch.size = 5
 )
@@ -22,7 +22,7 @@ containing one.}
 \item{annots}{Data frame of phenotype annotations for filtering to
 autosomal phenotypes. Columns must include "id", "symbol", "start", "end".}
 
-\item{n.gene}{Number of phenotypes to run permutations on. Default is 75.}
+\item{n.gene}{Number of phenotypes to run permutations on. Default is 100.}
 
 \item{n.perm}{Number of permutations to run per phenotype.  Default is 500.}
 

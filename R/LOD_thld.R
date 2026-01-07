@@ -11,7 +11,7 @@
 #' @param tissue Tissue to determine thresholds for.
 #' @param annots Data frame of phenotype annotations for filtering to
 #'  autosomal phenotypes. Columns must include "id", "symbol", "start", "end".
-#' @param n.gene Number of phenotypes to run permutations on. Default is 75.
+#' @param n.gene Number of phenotypes to run permutations on. Default is 100.
 #' @param n.perm Number of permutations to run per phenotype.  Default is 500.
 #' @param batch.size Number of genes in each parallelized batch.
 #'
@@ -33,7 +33,7 @@
 #' @importFrom dplyr filter select slice_sample
 #' @importFrom tibble lst
 #'
-LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 75, n.perm = 500,
+LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 100, n.perm = 500,
                      batch.size = 5) {
   ## Check that mapping object is valid
   if (is.list(mapping)) {
