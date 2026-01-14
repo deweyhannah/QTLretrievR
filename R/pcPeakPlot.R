@@ -239,13 +239,13 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                             size = 2,
                             ggplot2::aes(col = type)) +
       ggplot2::annotate("text", x= ((medStart/1e06) + (medEnd/1e06)) / 2,
-                        y = -0.5, label = medSym, size = 4,
+                        y = -0.65, label = medSym, size = 4,
                         fontface = "italic") +
       ggplot2::theme_minimal(base_size = 18) +
       ggplot2::scale_color_manual(values = color) +
       ggplot2::xlab(paste0("Chr ",chromosome," location (Mbp)")) +
       ggplot2::ylab("LOD score") +
-      ggplot2::ylim(-0.7, maxY) +
+      ggplot2::ylim(-0.8, maxY) +
       ggplot2::xlim(minX / 1e06, maxX / 1e06) +
       ggplot2::theme(legend.position = "none")
 

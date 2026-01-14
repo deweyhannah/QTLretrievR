@@ -59,6 +59,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
 
   if (pop %in% c("do", "cc")) {
     founders <- c("AJ","B6","129","NOD","NZO","CAST","PWK","WSB")
+    names(founders) <- LETTERS[1:8]
     palette <- c("#F0E442", "#555555", "#E69F00", "#0072B2",
                  "#56B4E9", "#009E73", "#D55E00", "#CC79A7")
 
@@ -113,10 +114,20 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
   # return(hs_mat)
 
   names(palette) <- founders
-  names(founders) <- LETTERS[seq_len(num_founders)]
 
-  row_annot <- ComplexHeatmap::rowAnnotation(df = data.frame(Founders = founders),
-                                             col = list(Founders = palette))
+  founders <- factor(founders, levels = founders)
+
+
+  row_annot <- ComplexHeatmap::rowAnnotation(
+    df = data.frame(Founders = founders),
+    col = list(Founders = setNames(palette, founders)),
+    annotation_legend_param = list(
+      at = founders,
+      labels = founders
+    )
+  )
+
+
 
   if (!vert) {
     ht <- ComplexHeatmap::Heatmap(hs_mat,

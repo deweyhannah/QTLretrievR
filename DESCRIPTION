@@ -105,7 +105,7 @@ Collate:
     'plot_map.R'
     'QTLretrievR-package.R'
 Depends: 
-    R (>= 4.10)
+    R (>= 4.1.0)
 LazyData: true
 LazyDataCompression: xz
 VignetteBuilder: knitr
