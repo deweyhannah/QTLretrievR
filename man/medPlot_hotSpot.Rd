@@ -37,7 +37,9 @@ select \code{bands.rna$tissue}).}
 \item{hsNum}{If there are multiple hotspots on a chromosome, indicate which
 one. Default is 1.}
 
-\item{top_n}{The number of top mediators per target to show. Default is 5.}
+\item{top_n}{The number of top mediators per target to show. Default is 5.
+\emph{NB} If you want to see all the mediators, set this to the number of
+mediators in your hotspot.}
 
 \item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what
 statistic should be plotted in the heatmap. Default "padj".}

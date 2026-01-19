@@ -15,7 +15,8 @@ medPlot_single(
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
-  plot = "padj"
+  plot = "padj",
+  showTarg = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ In Mbp.}
 
 \item{plot}{One of c("padj", "pval", "per_drop", "ranks") depending on what
 statistic should be plotted in the heatmap. Default "padj".}
+
+\item{showTarg}{Logical. Show target names in resulting plot. Default \code{TRUE}.}
 }
 \value{
 A list containing a dataframe representing the ranking of each

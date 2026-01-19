@@ -16,6 +16,7 @@
 #' @param outdir Directory to save plots. Default is `NULL`.
 #' @param plot One of c("padj", "pval", "per_drop", "ranks") depending on what
 #'  statistic should be plotted in the heatmap. Default "padj".
+#' @param showTarg Logical. Show target names in resulting plot. Default `TRUE`.
 #'
 #' @return A list containing a dataframe representing the ranking of each
 #' mediator within the region for each of the provided targets and the heatmap
@@ -33,7 +34,7 @@
 #'
 medPlot_single <- function(meds, range = 2, position, feats, chromosome,
                            top_n = 5, psave = TRUE, pname = NULL, outdir = NULL,
-                           plot = "padj") {
+                           plot = "padj", showTarg = TRUE) {
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
   }
@@ -92,7 +93,7 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome,
                           na_col = "gray95",
                           cluster_rows = FALSE,
                           cluster_columns = FALSE,
-                          rect_gp = grid::gpar(col = "white", lwd = 2),
+                          rect_gp = grid::gpar(col = "white", lwd = 0.3),
                           row_names_gp = grid::gpar(fontsize = 10),
                           column_names_gp = grid::gpar(fontsize = 10),
                           row_title = "Target",
@@ -101,7 +102,7 @@ medPlot_single <- function(meds, range = 2, position, feats, chromosome,
                           row_title_gp = grid::gpar(fontsize = 20),
                           column_title_gp = grid::gpar(fontsize = 20),
                           heatmap_legend_param = list(title = plot),
-                          show_row_names = TRUE,
+                          show_row_names = showTarg,
                           show_column_names = TRUE)
   ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
 
