@@ -17,7 +17,8 @@
 #' @param pname File name to save plot (needs to end in `.png`). Default is
 #'  `haplotype_effects_<tissue>_transband_<hsNum>_chromosome_<chromosome>.png`
 #' @param outdir Directory to save plots. Default is `NULL`.
-#' @param vert Logical. Rotate plot to vertical orientation. Default `FALSE`
+#' @param vert Logical. Rotate plot to vertical orientation. Default `FALSE`.
+#' @param showTarg Logical. Show target names in resulting plot. Default `TRUE`.
 #' @param ... Additional arguments to pass to ComplexHeatmap
 #'
 #'
@@ -28,7 +29,7 @@
 hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                          pop = "do", founders = NULL, palette = NULL,
                          topFeats = NULL, psave = TRUE, pname = NULL,
-                         outdir = NULL, vert = FALSE, ...) {
+                         outdir = NULL, vert = FALSE, showTarg = TRUE, ...) {
   if (!is.null(founders) & length(founders) > 8 & is.null(palette)) {
     stop(paste0(length(founders), " founders detected,
                 please provide a palette that contains at
@@ -135,7 +136,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                   name = "Haplotype Effects",
                                   cluster_rows = TRUE,
                                   cluster_columns = TRUE,
-                                  rect_gp = grid::gpar(col = "white", lwd = 2),
+                                  rect_gp = grid::gpar(col = "white", lwd = 0.3),
                                   row_names_gp = grid::gpar(fontsize = 10),
                                   row_order = LETTERS[seq_len(num_founders)],
                                   right_annotation = row_annot,
@@ -145,7 +146,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                   column_title_side = "top",
                                   row_title_gp = grid::gpar(fontsize = 20),
                                   column_title_gp = grid::gpar(fontsize = 20),
-                                  show_column_names = TRUE,
+                                  show_column_names = showTarg,
                                   show_row_names = FALSE)
   }
   if (vert) {
@@ -157,7 +158,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                   name = "Haplotype Effects",
                                   cluster_rows = TRUE,
                                   cluster_columns = TRUE,
-                                  rect_gp = grid::gpar(col = "white", lwd = 2),
+                                  rect_gp = grid::gpar(col = "white", lwd = 0.3),
                                   row_names_gp = grid::gpar(fontsize = 10),
                                   column_order = LETTERS[seq_len(num_founders)],
                                   top_annotation = col_annot,
@@ -168,7 +169,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
                                   row_title_gp = grid::gpar(fontsize = 20),
                                   column_title_gp = grid::gpar(fontsize = 20),
                                   show_column_names = FALSE,
-                                  show_row_names = TRUE)
+                                  show_row_names = showTarg)
   }
 
   pdf(NULL)

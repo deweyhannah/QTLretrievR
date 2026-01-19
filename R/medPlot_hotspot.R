@@ -18,6 +18,7 @@
 #' @param pname String indicating the name of plot to save as a .png. Default
 #'  "mediation_plot_chr<chromosome>_<start>_<stop>_top_<top_n>.png".
 #' @param outdir Directory to save plots. Default is `NULL`.
+#' @param showTarg Logical. Show target names in resulting plot. Default `TRUE`.
 #'
 #' @return A list containing a dataframe representing the ranking of each
 #'  mediator within the hotspot for each target of the hotspot and the
@@ -36,7 +37,8 @@
 #'
 medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                             top_n = 5, plot = "padj", topFeats = NULL,
-                            psave = TRUE, pname = NULL, outdir = NULL) {
+                            psave = TRUE, pname = NULL, outdir = NULL,
+                            showTarg = T) {
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
   }
@@ -107,7 +109,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                           na_col = "gray95",
                           cluster_rows = FALSE,
                           cluster_columns = FALSE,
-                          rect_gp = grid::gpar(col = "white", lwd = 2),
+                          rect_gp = grid::gpar(col = "white", lwd = 0.3),
                           row_names_gp = grid::gpar(fontsize = 10),
                           row_order = grouped_by_top$target,
                           # row_split = factor(grouped_by_top$mediator,
@@ -120,7 +122,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                           row_title_gp = grid::gpar(fontsize = 20),
                           column_title_gp = grid::gpar(fontsize = 20),
                           heatmap_legend_param = list(title = plot),
-                          show_row_names = TRUE,
+                          show_row_names = showTarg,
                           show_column_names = TRUE)
   ComplexHeatmap::draw(ht, heatmap_legend_side = "left")
 

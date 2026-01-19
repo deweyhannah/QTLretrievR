@@ -19,6 +19,7 @@ hsHapEffects(
   pname = NULL,
   outdir = NULL,
   vert = FALSE,
+  showTarg = TRUE,
   ...
 )
 }
@@ -53,7 +54,9 @@ Default is "\code{do}".}
 
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
-\item{vert}{Logical. Rotate plot to vertical orientation. Default \code{FALSE}}
+\item{vert}{Logical. Rotate plot to vertical orientation. Default \code{FALSE}.}
+
+\item{showTarg}{Logical. Show target names in resulting plot. Default \code{TRUE}.}
 
 \item{...}{Additional arguments to pass to ComplexHeatmap}
 }

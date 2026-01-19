@@ -16,7 +16,8 @@ medPlot_hotSpot(
   topFeats = NULL,
   psave = TRUE,
   pname = NULL,
-  outdir = NULL
+  outdir = NULL,
+  showTarg = T
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ statistic should be plotted in the heatmap. Default "padj".}
 "mediation_plot_chr\if{html}{\out{<chromosome>}}\emph{\if{html}{\out{<start>}}}\if{html}{\out{<stop>}}\emph{top}<top_n>.png".}
 
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
+
+\item{showTarg}{Logical. Show target names in resulting plot. Default \code{TRUE}.}
 }
 \value{
 A list containing a dataframe representing the ranking of each
