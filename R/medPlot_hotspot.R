@@ -10,7 +10,7 @@
 #' @param chromosome Chromosome that the transband (hotspot) is present on.
 #' @param hsNum If there are multiple hotspots on a chromosome, indicate which
 #'  one. Default is 1.
-#' @param top_n The number of top mediators per target to show. Default is 5.
+#' @param top_n The number of top mediators per target to show, determined by LOD drop. Default is 5.
 #'  *NB* If you want to see all the mediators, set this to the number of
 #'  mediators in your hotspot.
 #' @param plot One of c("padj", "pval", "per_drop", "ranks") depending on what
@@ -101,6 +101,12 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
     dplyr::filter(ranks == 1) |>
     dplyr::arrange(mediator_midpoint)
 
+  if(any(is.na(grouped_by_top$target))){
+    group_use <- rownames(l2p_wide)
+  } else {
+    group_use <- grouped_by_top$target
+  }
+
 
   palette_to_use <- rev(viridis::viridis(100))
   if(plot == "per_drop"){
@@ -113,7 +119,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                           cluster_columns = FALSE,
                           rect_gp = grid::gpar(col = "white", lwd = 0.3),
                           row_names_gp = grid::gpar(fontsize = 10),
-                          row_order = grouped_by_top$target,
+                          row_order = group_use,
                           # row_split = factor(grouped_by_top$mediator,
                                              # levels =
                                                # unique(grouped_by_top$mediator)),
