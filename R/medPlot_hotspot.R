@@ -101,13 +101,6 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
     dplyr::filter(ranks == 1) |>
     dplyr::arrange(mediator_midpoint)
 
-  if(any(is.na(grouped_by_top$target))){
-    group_use <- rownames(l2p_wide)
-  } else {
-    group_use <- grouped_by_top$target
-  }
-
-
   palette_to_use <- rev(viridis::viridis(100))
   if(plot == "per_drop"){
     palette_to_use <- viridis::viridis(100)
@@ -119,7 +112,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                           cluster_columns = FALSE,
                           rect_gp = grid::gpar(col = "white", lwd = 0.3),
                           row_names_gp = grid::gpar(fontsize = 10),
-                          row_order = group_use,
+                          # row_order = group_use,
                           # row_split = factor(grouped_by_top$mediator,
                                              # levels =
                                                # unique(grouped_by_top$mediator)),

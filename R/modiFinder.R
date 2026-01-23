@@ -253,7 +253,6 @@ batchmediate <- function(batch, z_thres = -2, pos_thres = 10, QTL.peaks,
   start <- ss[batch] + 1
   end <- ss[batch + 1]
   lod.peaks <- QTL.peaks[start:end, ]
-  # cat(sprintf("batch %d: %d-%d\n", batch, start, end))
 
   for (i in seq_len(nrow(lod.peaks))) {
     marker <- mapDat |>
