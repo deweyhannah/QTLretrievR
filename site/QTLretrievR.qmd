@@ -1,9 +1,0 @@
----
-title: "QTLretrievR"
-format:
-  html:
-    toc: false
-    page-layout: full   # or "article" if you prefer
----
-
-<iframe src="articles/QTLretrievR_ref.html" width="100%" height="1000px" style="border:none;"></iframe>
