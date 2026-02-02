@@ -1,0 +1,16 @@
+QTLretrievR is an R package designed to streamline molecular
+Quantitative Trait Locus (QTL) mapping, and perform downstream analyses.
+
+## Installation
+
+Install QTLretrievR from
+[GitHub](https://github.com/deweyhannah/QTLretrievR)
+
+``` r
+devtools::install_github("deweyhannah/QTLretrievR")
+```
+
+## Documentation
+
+To see examples of how to use QTLretrievR, please see the “Articles” tab
+above.

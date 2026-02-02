@@ -1,0 +1,10 @@
+/* Align logo + title like dplyr */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-brand img {
+  height: 60px;
+}
