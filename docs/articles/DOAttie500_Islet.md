@@ -46,7 +46,7 @@ ready to start running QTLretrievR. We already have our genoprobs in the
 correct format (founder allele probabilities). To see the general
 overview of how to impute genotype probabilities from GigaMUGA SNP-level
 calls, please see our [overview
-vignette](https://github.com/deweyhannah/QTLretrievR/blob/main/vignettes/QTLretrievR.md).
+vignette](https://deweyhannah.github.io/QTLretrievR/articles/QTLretrievR.html).
 
 This demo will show running each of the peak calling, effects
 calculation, and mediation analysis steps separately. If you wish to run
