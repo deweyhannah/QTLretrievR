@@ -9,7 +9,7 @@ multi_modiFinder(
   peaks,
   mapping,
   exprZ,
-  suggLOD = 7,
+  sigLOD = 7.5,
   annots,
   outdir = NULL,
   med_out = "multi_pheno_mediation.rds",
@@ -26,7 +26,7 @@ containing one.}
 
 \item{exprZ}{rankZ transformed expression to use for the mediation.}
 
-\item{suggLOD}{Significant LOD threshold to use to filter phenotypes for
+\item{sigLOD}{Significant LOD threshold to use to filter phenotypes for
 mediation. Default is 7.5}
 
 \item{annots}{Annotations file. Contains mapping information for phenotypes.

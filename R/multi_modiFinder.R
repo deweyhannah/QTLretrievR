@@ -12,7 +12,7 @@
 #' @param mapping Mapping list from `mapQTL`, or full path to `.rds`
 #'  containing one.
 #' @param exprZ rankZ transformed expression to use for the mediation.
-#' @param suggLOD Significant LOD threshold to use to filter phenotypes for
+#' @param sigLOD Significant LOD threshold to use to filter phenotypes for
 #'  mediation. Default is 7.5
 #' @param annots Annotations file. Contains mapping information for phenotypes.
 #'  Dataframe, or tsv. Columns must include "id", "symbol", "start", "end".
@@ -36,7 +36,7 @@
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
-multi_modiFinder <- function(peaks, mapping, exprZ, suggLOD = 7, annots,
+multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
                              outdir = NULL,
                              med_out = "multi_pheno_mediation.rds",
                              total_cores = NULL, save = "sr") {
@@ -117,7 +117,7 @@ multi_modiFinder <- function(peaks, mapping, exprZ, suggLOD = 7, annots,
   qtl_target <- list()
   for (tissue in names(peaks_list)) {
     qtl_peaks[[tissue]] <- peaks_list[[tissue]] |>
-      dplyr::filter(lod > suggLOD) |>
+      dplyr::filter(lod > sigLOD) |>
       dplyr::mutate(target_id = phenotype)
     qtl_target[[tissue]] <- exprZ_list[[tissue]][common_samples[[tissue]],,
                                                  drop = FALSE]
