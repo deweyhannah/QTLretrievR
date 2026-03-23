@@ -55,7 +55,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
   temp_dir <- tempdir()
   temp_zip <- tempfile(fileext = ".zip")
 
-  download.file(url, destfile = temp_zip, mode = "wb")
+  download.file(url, destfile = temp_zip, mode = "wb", method = "curl", extra = "-L")
   utils::unzip(temp_zip, exdir = temp_dir, overwrite = T)
 
   file.copy(paste0(covarLoc, "/" , covar_file), to = temp_dir)
