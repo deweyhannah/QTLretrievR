@@ -36,12 +36,12 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
   ## Confirm type and set url to pull info from
   if(type == "GM") {
     message("Using GigaMUGA markers for calculating probabilities")
-    url <- "https://figshare.com/ndownloader/files/40233652"
+    # url <- "https://figshare.com/ndownloader/files/40233652"
     code_file <- "GM/GM_allelecodes.csv"
   }
   if(type == "MM") {
     message("Using MegaMUGA markers for calculating probabilities")
-    url <- "https://figshare.com/ndownloader/files/9311164"
+    # url <- "https://figshare.com/ndownloader/files/9311164"
     code_file <- "MM/MM_allelecodes.csv"
   }
 
@@ -55,15 +55,14 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
   temp_dir <- tempdir()
   temp_zip <- tempfile(fileext = ".zip")
 
-  download.file(url, destfile = temp_zip, mode = "wb", method = "curl", extra = "-L")
-  utils::unzip(temp_zip, exdir = temp_dir, overwrite = T)
-
   file.copy(paste0(covarLoc, "/" , covar_file), to = temp_dir)
 
   ## Get current directory to go back after processing and move to
   ## temp directory
   on.exit(setwd(ogDir))
   setwd(temp_dir)
+
+  download_github_dir("deweyhannah/QTLretrievR", type)
 
   if (length(i.files) > 1) {
     ## Multiple final report files passed
@@ -82,7 +81,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
     }
     else {
       ## Single final report - process it.
-      message("processing final reports")
+      message("processing final report")
       process_reports(paste0(temp_dir, "/", code_file), i.files, genoPrefix,
                       temp_dir)
     }
@@ -186,4 +185,26 @@ process_reports <- function(codefile, ifiles, ostem, dirOut) {
                            paste0(ostem, " genotypes for chr ", chr),
                            overwrite=TRUE)
   }
+}
+
+
+download_github_dir <- function(repo, path, branch = "main") {
+  base_url <- sprintf(
+    "https://api.github.com/repos/%s/contents/%s?ref=%s",
+    repo, path, branch
+  )
+
+  res <- jsonlite::fromJSON(base_url)
+
+  out_dir <- file.path(tempdir(), basename(path))
+  dir.create(out_dir, showWarnings = FALSE)
+
+  for (i in seq_len(nrow(res))) {
+    if (res$type[i] == "file") {
+      dest <- file.path(out_dir, res$name[i])
+      download.file(res$download_url[i], dest, mode = "wb")
+    }
+  }
+
+  # return(out_dir)
 }
