@@ -1,0 +1,26 @@
+# Founder genotypes (A/B/-) for MegaMUGA chromosome M
+# nrow 22
+# ncol 9
+marker,A,B,C,D,E,F,G,H
+Mit001,B,B,B,B,A,A,A,B
+Mit002,A,A,A,A,B,B,B,A
+Mit003,A,A,A,A,A,B,B,A
+Mit004,A,A,A,A,A,B,B,A
+Mit006,B,B,B,B,B,A,B,B
+Mit007,A,A,A,A,A,A,B,A
+Mit027,B,B,B,B,A,B,A,B
+Mit010,A,A,A,A,A,B,B,A
+Mit011,B,B,B,B,A,A,A,A
+JAX00725096,A,A,A,A,B,A,B,A
+JAX00725100,A,A,A,A,B,B,B,A
+Mit028,A,A,A,A,B,A,A,A
+JAX00725105,A,A,A,A,A,B,B,A
+Mit029,A,A,A,A,B,B,A,A
+Mit013,B,B,B,B,B,-,A,A
+Mit019,B,B,B,B,B,B,B,A
+Mit021,B,B,B,B,-,A,-,A
+Mit022,A,A,B,A,A,-,A,A
+Mit0041,A,A,A,A,A,B,B,A
+Mit0042,B,B,B,B,A,A,A,B
+Mit0050,B,B,B,B,B,B,B,A
+Mit0051,B,B,B,B,A,A,A,B
