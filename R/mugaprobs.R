@@ -65,7 +65,7 @@ mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
   on.exit(setwd(ogDir))
   setwd(temp_dir)
 
-  if (length(i.files > 1)) {
+  if (length(i.files) > 1) {
     ## Multiple final report files passed
     message("processing final reports")
     process_reports(paste0(temp_dir, "/", code_file), i.files, genoPrefix,
