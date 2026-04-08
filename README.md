@@ -3,4 +3,4 @@ An integration of 'qtl2' and 'intermediate' to map genotypes to probes (genoprob
 
 [Please see the vignette for more information here.](vignettes/QTLretrievR.md) 
 
-If you want to see an example with real data [please see an example here](https://deweyhannah.github.io/QTLretrievR/Attie500_Liver_Lipids.html)
+If you want to see an example with real data [please see an example here](https://deweyhannah.github.io/QTLretrievR/articles/DOAttie500_LiverLipids.html)
