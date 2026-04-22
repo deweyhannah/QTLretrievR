@@ -17,10 +17,11 @@
 #'  `c("sr", "so", "ro")`; save & return, save only, return only.
 #'   Default is "sr".
 #'
-#' @return A list containing: \itemize{
+#' @return A list containing:
 #'  \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output
 #'  from [qtl2::scan1blup()]}
-#'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
+#'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}
+#'
 #' @export
 #'
 #' @importFrom stats setNames

@@ -41,20 +41,26 @@
 #' otherwise use the genomic map. Default is `TRUE`.
 #'
 #'
-#' @return A list containing: \itemize{
-#'  \item{maps_list}{A list of dataframes and lists to that can be used for
-#'  future analyses and in other functions \itemize{
-#'  \item{qtlprobs}{Genome probabilities in qtl2format}
-#'  \item{covar_list}{list of covariate matrices for each tissue}
-#'  \item{expr_list}{Original normalized expression data for each tissue}
-#'  \item{exprZ_list}{Rank Z-transformed expression data for each tissue}
-#'  \item{kinship_loco}{Kinship matrix calculated using the "loco"
-#'  option in `qtl2::calc_kinship`}
-#'  \item{gmap}{Genomic map of markers}
-#'  \item{map_dat2}{Combined genomic and physical map of markers}
-#'  \item{pmap}{Physical map of markers}
-#'  \item{tissue_samp}{Metadata broken down for each tissue}}}
-#'  \item{peaks_list}{A list of peaks list for each tissue.}}
+#' @return A list containing:
+#' \item{maps_list}{
+#'   A list of dataframes and lists that can be used for future analyses
+#'   and in other functions, containing:
+#'   \describe{
+#'     \item{qtlprobs}{Genome probabilities in qtl2 format}
+#'     \item{covar_list}{List of covariate matrices for each tissue}
+#'     \item{expr_list}{Original normalized expression data for each tissue}
+#'     \item{exprZ_list}{Rank Z-normalized expression data for each tissue}
+#'     \item{kinship_loco}{Kinship matrix calculated using the "loco" option
+#'       in \code{qtl2::calc_kinship}}
+#'     \item{gmap}{Genomic map of markers}
+#'     \item{map_dat2}{Combined genomic and physical map of markers}
+#'     \item{pmap}{Physical map of markers}
+#'     \item{tissue_samp}{Metadata split out by tissue}
+#'   }
+#' }
+#' \item{peaks_list}{
+#'   A list of peak objects for each tissue
+#' }
 #' @export
 #'
 #' @importFrom tidyr separate

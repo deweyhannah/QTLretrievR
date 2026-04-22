@@ -28,6 +28,7 @@
 #' @importFrom data.table fread
 #' @importFrom qtl2 calc_genoprob
 #' @importFrom qtl2 genoprob_to_alleleprob
+#' @importFrom utils download.file
 #'
 mugaprobs <- function(type = "GM", covarLoc, covar_file, i.files,
                       genoPrefix = "gm4qtl2",

@@ -39,10 +39,10 @@ Default is \code{NULL}.}
 Default is "sr".}
 }
 \value{
-A list containing: \itemize{
+A list containing:
 \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output
 from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
-\item{peaks}{annotated peaks with LOD scores above suggestive threshold}}
+\item{peaks}{annotated peaks with LOD scores above suggestive threshold}
 }
 \description{
 Calculate founder effects for significant peaks

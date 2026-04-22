@@ -13,16 +13,21 @@
 #' @param outdir Directory to save plots. Default is `NULL`.
 #' @param color Plot color. Default is "#0073C2FF".
 #'
-#' @return A list containing: \itemize{
-#'  \item{bands.rna}{A list of tibbles containing hotspot information for
-#'   each tissue
-#'  Information includes the following for each hotspot:
-#'  - Chromosome of the hotspot
-#'  - Start and Stop (bp) of the hotspot
-#'  - The number of significant peaks within the hotspot
-#'  - The number of suggestive peaks within the hotspot }
-#'  \item{trans_band_plots}{A list of ggplot2 objects (one for each tissue),
-#'  showing the number of significant distal hotspot peaks.}}
+#' @return A list containing:
+#'   \item{bands.rna}{
+#'     A list of tibbles containing hotspot information for each tissue.
+#'     Each tibble includes:
+#'     \describe{
+#'       \item{Chromosome}{Chromosome of the hotspot}
+#'       \item{Start/Stop}{Start and stop positions (bp) of the hotspot}
+#'       \item{Significant peaks}{Number of significant peaks in the hotspot}
+#'       \item{Suggestive peaks}{Number of suggestive peaks in the hotspot}
+#'     }
+#'   }
+#'   \item{trans_band_plots}{
+#'     A list of \code{ggplot2} objects (one per tissue) showing the number
+#'     of significant distal hotspot peaks.
+#'   }
 #'
 #' @export
 #'

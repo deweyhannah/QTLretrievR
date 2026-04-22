@@ -77,13 +77,13 @@ Default is \code{NULL}.}
 Default is "sr".}
 }
 \value{
-A list containing \itemize{
+A list containing:
 \item{peaks_list}{Unfiltered peaks for each tissue.}
 \item{maps_list}{List of objects associated with mapping. See \link{mapQTL}
 help for details.}
 \item{res_list}{List containing mediation results for each tissue.}
 \item{effects_res}{List of objects associated with effects. See \link{qtl_effects}
-help for details.}}
+help for details.}
 }
 \description{
 Wrapper function to generate mapping, peaks, mediation, and effects data

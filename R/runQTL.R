@@ -38,13 +38,14 @@
 #' `c("sr", "so", "ro")`; save & return, save only, return only.
 #'  Default is "sr".
 #'
-#' @return A list containing \itemize{
-#' \item{peaks_list}{Unfiltered peaks for each tissue.}
-#' \item{maps_list}{List of objects associated with mapping. See [mapQTL]
+#' @return A list containing:
+#'    \item{peaks_list}{Unfiltered peaks for each tissue.}
+#'    \item{maps_list}{List of objects associated with mapping. See [mapQTL]
 #' help for details.}
-#' \item{res_list}{List containing mediation results for each tissue.}
-#' \item{effects_res}{List of objects associated with effects. See [qtl_effects]
-#' help for details.}}
+#'    \item{res_list}{List containing mediation results for each tissue.}
+#'    \item{effects_res}{List of objects associated with effects. See [qtl_effects]
+#' help for details.}
+#'
 #' @export
 #'
 #'

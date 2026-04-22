@@ -24,6 +24,8 @@
 #'
 #' @return List of plots. `ht_plot`: Plot only, formatted with legend on the left.
 #' `ht`: Original ComplexHeatmap object.
+#'
+#' @importFrom grDevices pdf
 #' @export
 #'
 hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,

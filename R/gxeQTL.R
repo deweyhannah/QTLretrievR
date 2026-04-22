@@ -45,20 +45,26 @@
 #' @param rz Logical. Set to `TRUE` if expression data is already
 #'  rankZ-transformed. Default is `FALSE`.
 #'
-#' @return A list containing: \itemize{
-#'  \item{maps_list}{A list of dataframes and lists to that can be used for
-#'  future analyses and in other functions \itemize{
-#'  \item{qtlprobs}{Genome probabilities in qtl2format}
-#'  \item{covar_list}{list of covariate matrices for each tissue}
-#'  \item{expr_list}{Original normalized expression data for each tissue}
-#'  \item{exprZ_list}{Rank Z normalized expression data for each tissue}
-#'  \item{kinship_loco}{Kisnhip Matrix calculated using the "loco" option
-#'  in `qtl2::calc_kinship`}
-#'  \item{gmap}{Genomic map of markers}
-#'  \item{map_dat2}{Combined genomic and physical map of markers}
-#'  \item{pmap}{Physical map of markers}
-#'  \item{tissue_samp}{Metadata broken down for each tissue}}}
-#'  \item{peaks_list}{A list of peaks list for each tissue.}}
+#' @return A list containing:
+#' \item{maps_list}{
+#'   A list of dataframes and lists that can be used for future analyses
+#'   and in other functions, containing:
+#'   \describe{
+#'     \item{qtlprobs}{Genome probabilities in qtl2 format}
+#'     \item{covar_list}{List of covariate matrices for each tissue}
+#'     \item{expr_list}{Original normalized expression data for each tissue}
+#'     \item{exprZ_list}{Rank Z-normalized expression data for each tissue}
+#'     \item{kinship_loco}{Kinship matrix calculated using the "loco" option
+#'       in \code{qtl2::calc_kinship}}
+#'     \item{gmap}{Genomic map of markers}
+#'     \item{map_dat2}{Combined genomic and physical map of markers}
+#'     \item{pmap}{Physical map of markers}
+#'     \item{tissue_samp}{Metadata split out by tissue}
+#'   }
+#' }
+#' \item{peaks_list}{
+#'   A list of peak objects for each tissue
+#' }
 #'
 #' @export
 #'
@@ -285,18 +291,20 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   message(paste0(names(exprZ_gxe), collapse = "\t"))
 
   if (delta) {
+    phys <- FALSE
     exprZ_delta <- list()
     exprZ_delta[[env]] <- exprZ_gxe[[env]] - exprZ_gxe[[ctrl]]
-    peaks_list[[env]] <- batch_wrap(env,
-                                    exprZ_delta,
-                                    kinship_loco,
-                                    qtlprobs,
-                                    covar_list,
-                                    gmap,
-                                    thrA,
-                                    thrX,
-                                    min(total_cores, cores_needed),
-                                    min_cores)
+    peaks_list[[env]] <- batch_wrap(tissue = env,
+                                    exprZ_list = exprZ_delta,
+                                    kinship_loco = kinship_loco,
+                                    qtlprobs = qtlprobs,
+                                    covar_list = covar_list,
+                                    gmap = gmap,
+                                    thrA = thrA,
+                                    thrX = thrX,
+                                    cores = min(total_cores, cores_needed),
+                                    phys = phys,
+                                    min_cores = min_cores)
   }
   else {
     peaks_list[[env]] <- batch_gxe(
