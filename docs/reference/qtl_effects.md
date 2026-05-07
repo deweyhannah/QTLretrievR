@@ -57,8 +57,11 @@ qtl_effects(
 
 A list containing:
 
-- effects_blupQTL effect BLUPs from scan along one chromosome. Output
-  from
+- effects_blup:
+
+  QTL effect BLUPs from scan along one chromosome. Output from
   [`qtl2::scan1blup()`](https://rdrr.io/pkg/qtl2/man/scan1blup.html)
 
-- peaksannotated peaks with LOD scores above suggestive threshold
+- peaks:
+
+  annotated peaks with LOD scores above suggestive threshold

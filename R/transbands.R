@@ -134,7 +134,6 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
     window_counts$pos_bp_start <- map_dat$pos_bp[mm]
     window_counts$pos_cM_end <- map_dat$pos_cM[m2]
     window_counts$pos_bp_end <- map_dat$pos_bp[m2]
-    # message(paste0(colnames(window_counts), sep = " "))
     window_counts <- window_counts |>
       dplyr::mutate(midpoint = (pos_cM_end + pos_cM_start) / 2, 4)
 
@@ -179,16 +178,16 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
         ) |>
         dplyr::mutate(chrom = factor(chrom, levels = c(seq(1:19), "X")))))
 
-    message(paste0(eqtl_counts$hotspot_midpoint[which(
-      eqtl_counts$distant_rna != 0)], sep = " "))
+    # message(paste0(eqtl_counts$hotspot_midpoint[which(
+    #   eqtl_counts$distant_rna != 0)], sep = " "))
 
     eqtl_counts$midpoint_offset <- eqtl_counts$hotspot_midpoint +
       chrom_lens_offset[eqtl_counts$chrom]
 
     message(paste0(unique(eqtl_counts$chrom[which(
       eqtl_counts$distant_rna != 0)]), sep = " "))
-    message(paste0(eqtl_counts$midpoint_offset[which(
-      eqtl_counts$distant_rna != 0)], sep = " "))
+    # message(paste0(eqtl_counts$midpoint_offset[which(
+    #   eqtl_counts$distant_rna != 0)], sep = " "))
 
     trans_band_plot[[tissue]] <- eqtl_counts |>
       ggplot2::ggplot() +

@@ -202,7 +202,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                            inherit.aes = FALSE,
                            alpha = 0.1,
                            show.legend = FALSE) +
-      ggplot2::geom_line( size = 1.5) +
+      ggplot2::geom_line( linewidth = 1.5) +
       ggplot2::theme_minimal(base_size = 18) +
       ggplot2::scale_color_manual(values = color) +
       ggplot2::xlab(paste0("Chr ",chromosome," location (Mbp)")) +
@@ -231,7 +231,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                            inherit.aes = FALSE,
                            alpha = 0.1,
                            show.legend = FALSE) +
-      ggplot2::geom_line( size = 1.5) +
+      ggplot2::geom_line( linewidth = 1.5) +
       ggplot2::geom_segment(x = medStart/1e06,
                             xend = medEnd/1e06,
                             y = 0,
@@ -274,7 +274,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                          inherit.aes = FALSE,
                          alpha = 0.1,
                          show.legend = FALSE) +
-      ggplot2::geom_line(size = 1.5, alpha = 0.8) +
+      ggplot2::geom_line(linewidth = 1.5, alpha = 0.8) +
       ggplot2::geom_segment(x = medStart/1e06,
                             xend = medEnd/1e06,
                             y = 0,
@@ -312,6 +312,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       peaks <- peaks |>
         dplyr::filter(phenotype == medID)
     }
+
 
     correct_marker <- mapping$map_dat2 |>
       dplyr::filter(chr == chromosome) |>

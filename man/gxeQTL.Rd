@@ -23,7 +23,7 @@ gxeQTL(
   ctrl,
   env,
   rz = FALSE,
-  ...
+  min_cores = 4
 )
 }
 \arguments{
@@ -81,6 +81,9 @@ should be used. Default is \code{FALSE}.}
 
 \item{rz}{Logical. Set to \code{TRUE} if expression data is already
 rankZ-transformed. Default is \code{FALSE}.}
+
+\item{min_cores}{Numeric. The minimum number of cores to be used in each
+process for mapping.}
 }
 \value{
 A list containing:

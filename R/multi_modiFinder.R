@@ -208,7 +208,7 @@ multi_qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator,
                               targ_covar, QTL.target, probs, mapDat, cores,
                               pmap) {
 
-  n.batches <- max(c(round(nrow(QTL.peaks[[tissue]]) / 1000)))
+  n.batches <- max(c(round(nrow(QTL.peaks[[tissue]]) / 1000)), 1)
   if( n.batches %in% c(0,1)) n.batches <- 2
   nn <- nrow(QTL.peaks[[tissue]])
   ss <- round(seq(0, nn, length.out = n.batches))

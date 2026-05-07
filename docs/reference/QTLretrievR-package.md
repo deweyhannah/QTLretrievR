@@ -5,6 +5,12 @@ An integration of 'qtl2' and 'intermediate' to map genotypes to probes
 mediators of the peaks, and identify the phenotypic effects within
 experimental data from diversity outbred (DO) mice.
 
+## See also
+
+Useful links:
+
+- <https://deweyhannah.github.io/QTLretrievR/>
+
 ## Author
 
 **Maintainer**: Hannah B. Dewey <hannah.dewey@jax.org>

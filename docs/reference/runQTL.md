@@ -111,16 +111,24 @@ runQTL(
 
 ## Value
 
-A list containing
+A list containing:
 
-- peaks_listUnfiltered peaks for each tissue.
+- peaks_list:
 
-- maps_listList of objects associated with mapping. See
+  Unfiltered peaks for each tissue.
+
+- maps_list:
+
+  List of objects associated with mapping. See
   [mapQTL](https://deweyhannah.github.io/QTLretrievR/reference/mapQTL.md)
   help for details.
 
-- res_listList containing mediation results for each tissue.
+- res_list:
 
-- effects_resList of objects associated with effects. See
+  List containing mediation results for each tissue.
+
+- effects_res:
+
+  List of objects associated with effects. See
   [qtl_effects](https://deweyhannah.github.io/QTLretrievR/reference/qtl_effects.md)
   help for details.

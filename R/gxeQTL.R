@@ -44,6 +44,8 @@
 #'  (ex: "trt" or "treated" or "<your_treatment_here>").
 #' @param rz Logical. Set to `TRUE` if expression data is already
 #'  rankZ-transformed. Default is `FALSE`.
+#' @param min_cores Numeric. The minimum number of cores to be used in each
+#'  process for mapping.
 #'
 #' @return A list containing:
 #' \item{maps_list}{
@@ -80,7 +82,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    thrX = 5, gridFile = gridfile, localRange = 2e6,
                    outdir = NULL, peaks_out = "gxe_peaks.rds",
                    map_out = "gxe_map.rds", annots = NULL, total_cores = NULL,
-                   save = "sr", delta = FALSE, ctrl, env, rz = FALSE, ...) {
+                   save = "sr", delta = FALSE, ctrl, env, rz = FALSE, min_cores = 4) {
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -122,11 +124,6 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }
   if (length(covar_factors) == 0) {
     stop("Please provide at least one covariate for model")
-  }
-
-  opt_args <- list(...)
-  if("min_cores" %notin% names(opt_args)) {
-    min_cores <- 4
   }
 
   ## Convert genotype probabilities and calculate LOCO kinship matrices for
@@ -263,15 +260,6 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   message("covariates calculated")
 
-  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_gxe,
-                           kinship_loco, gmap, map_dat2, pmap, tissue_samp)
-
-  if(save %in% c("sr","so")) {
-    outfile <- paste0(outdir, "/", map_out)
-    saveRDS(maps_list, file = outfile)
-    message("map saved")
-  }
-
   ## Run Batchmap
   message("calculating peaks")
 
@@ -294,6 +282,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     phys <- FALSE
     exprZ_delta <- list()
     exprZ_delta[[env]] <- exprZ_gxe[[env]] - exprZ_gxe[[ctrl]]
+
     peaks_list[[env]] <- batch_wrap(tissue = env,
                                     exprZ_list = exprZ_delta,
                                     kinship_loco = kinship_loco,
@@ -305,9 +294,15 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                                     cores = min(total_cores, cores_needed),
                                     phys = phys,
                                     min_cores = min_cores)
+
+    ## Add stuff for ease of mediation
+    exprZ_gxe$delta <- exprZ_delta[[env]]
+    qtlprobs$delta <- qtlprobs[[env]]
+    covar_list$delta <- covar_list[[env]]
+    expr_list$delta <- expr_list[[env]] - expr_list[[ctrl]]
   }
   else {
-    peaks_list[[env]] <- batch_gxe(
+    peaks_list$delta <- batch_gxe(
       exprZ_list    = exprZ_gxe,
       kinship_loco  = kinship_loco,
       qtlprobs      = qtlprobs,
@@ -325,8 +320,25 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   doParallel::stopImplicitCluster()
 
+  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, "exprZ_list" = exprZ_gxe,
+                           kinship_loco, gmap, map_dat2, pmap, tissue_samp)
+
+  if(save %in% c("sr","so")) {
+    outfile <- paste0(outdir, "/", map_out)
+    saveRDS(maps_list, file = outfile)
+    message("map saved")
+  }
+
+  for (i in seq_len(length(peak_tmp))) {
+    tissue <- peak_tmp[[i]]$tissue
+    peaks_list$delta <- peak_tmp[[i]]$peaks
+  }
+
   if (!is.null(annots)) {
     message("adding annotations to peaks")
+    if ("peak_bp" %notin% colnames(peaks_list$delta)) {
+      peaks_list$delta <- interp_bp(peaks_list$delta, maps_list$gmap, maps_list$pmap)
+    }
     peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
   }
 

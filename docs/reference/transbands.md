@@ -58,16 +58,28 @@ transbands(
 
 A list containing:
 
-- bands.rnaA list of tibbles containing hotspot information for each
-  tissue Information includes the following for each hotspot:
+- bands.rna:
 
-  - Chromosome of the hotspot
+  A list of tibbles containing hotspot information for each tissue. Each
+  tibble includes:
 
-  - Start and Stop (bp) of the hotspot
+  Chromosome
 
-  - The number of significant peaks within the hotspot
+  :   Chromosome of the hotspot
 
-  - The number of suggestive peaks within the hotspot
+  Start/Stop
 
-  trans_band_plotsA list of ggplot2 objects (one for each tissue),
-  showing the number of significant distal hotspot peaks.
+  :   Start and stop positions (bp) of the hotspot
+
+  Significant peaks
+
+  :   Number of significant peaks in the hotspot
+
+  Suggestive peaks
+
+  :   Number of suggestive peaks in the hotspot
+
+- trans_band_plots:
+
+  A list of `ggplot2` objects (one per tissue) showing the number of
+  significant distal hotspot peaks.

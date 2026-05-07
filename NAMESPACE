@@ -2,6 +2,7 @@
 
 export(LOD_thld)
 export(annotatePeaks)
+export(delta_modiFinder)
 export(genoprobably)
 export(gxeQTL)
 export(hsHapEffects)

@@ -1,6 +1,6 @@
 Package: QTLretrievR
 Title: Calculate the Map, Peaks, Mediation, and Effects for Quantitative Trait Loci
-Version: 1.2.0.1
+Version: 1.2.1.1
 Authors@R: c(
     person(given   = "Hannah B.",
            family  = "Dewey",
@@ -74,6 +74,7 @@ Collate:
     'annot_105.R'
     'background.R'
     'check_data.R'
+    'delta_modiFinder.R'
     'demo_annot.R'
     'demo_counts.R'
     'demo_meta.R'

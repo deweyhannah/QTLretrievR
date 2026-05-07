@@ -13,7 +13,7 @@ covariates."><meta property="og:image" content="https://deweyhannah.github.io/QT
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -163,20 +163,44 @@ otherwise use the genomic map. Default is <code>TRUE</code>.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing:</p><ul><li><p>maps_listA list of dataframes and lists to that can be used for
-future analyses and in other functions </p><ul><li><p>qtlprobsGenome probabilities in qtl2format</p></li>
-<li><p>covar_listlist of covariate matrices for each tissue</p></li>
-<li><p>expr_listOriginal normalized expression data for each tissue</p></li>
-<li><p>exprZ_listRank Z-transformed expression data for each tissue</p></li>
-<li><p>kinship_locoKinship matrix calculated using the "loco"
-option in <code><a href="https://rdrr.io/pkg/qtl2/man/calc_kinship.html" class="external-link">qtl2::calc_kinship</a></code></p></li>
-<li><p>gmapGenomic map of markers</p></li>
-<li><p>map_dat2Combined genomic and physical map of markers</p></li>
-<li><p>pmapPhysical map of markers</p></li>
-<li><p>tissue_sampMetadata broken down for each tissue</p></li>
-</ul></li>
-<li><p>peaks_listA list of peaks list for each tissue.</p></li>
-</ul></div>
+    <p>A list containing:</p>
+<dl><dt>maps_list</dt>
+<dd><p>A list of dataframes and lists that can be used for future analyses
+and in other functions, containing:</p><dl><dt>qtlprobs</dt>
+<dd><p>Genome probabilities in qtl2 format</p></dd>
+
+<dt>covar_list</dt>
+<dd><p>List of covariate matrices for each tissue</p></dd>
+
+<dt>expr_list</dt>
+<dd><p>Original normalized expression data for each tissue</p></dd>
+
+<dt>exprZ_list</dt>
+<dd><p>Rank Z-normalized expression data for each tissue</p></dd>
+
+<dt>kinship_loco</dt>
+<dd><p>Kinship matrix calculated using the "loco" option
+in <code><a href="https://rdrr.io/pkg/qtl2/man/calc_kinship.html" class="external-link">qtl2::calc_kinship</a></code></p></dd>
+
+<dt>gmap</dt>
+<dd><p>Genomic map of markers</p></dd>
+
+<dt>map_dat2</dt>
+<dd><p>Combined genomic and physical map of markers</p></dd>
+
+<dt>pmap</dt>
+<dd><p>Physical map of markers</p></dd>
+
+<dt>tissue_samp</dt>
+<dd><p>Metadata split out by tissue</p></dd>
+
+
+</dl></dd>
+
+<dt>peaks_list</dt>
+<dd><p>A list of peak objects for each tissue</p></dd>
+
+</dl></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

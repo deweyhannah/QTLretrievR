@@ -116,26 +116,48 @@ mapQTL(
 
 A list containing:
 
-- maps_listA list of dataframes and lists to that can be used for future
-  analyses and in other functions
+- maps_list:
 
-  - qtlprobsGenome probabilities in qtl2format
+  A list of dataframes and lists that can be used for future analyses
+  and in other functions, containing:
 
-  - covar_listlist of covariate matrices for each tissue
+  qtlprobs
 
-  - expr_listOriginal normalized expression data for each tissue
+  :   Genome probabilities in qtl2 format
 
-  - exprZ_listRank Z-transformed expression data for each tissue
+  covar_list
 
-  - kinship_locoKinship matrix calculated using the "loco" option in
-    [`qtl2::calc_kinship`](https://rdrr.io/pkg/qtl2/man/calc_kinship.html)
+  :   List of covariate matrices for each tissue
 
-  - gmapGenomic map of markers
+  expr_list
 
-  - map_dat2Combined genomic and physical map of markers
+  :   Original normalized expression data for each tissue
 
-  - pmapPhysical map of markers
+  exprZ_list
 
-  - tissue_sampMetadata broken down for each tissue
+  :   Rank Z-normalized expression data for each tissue
 
-- peaks_listA list of peaks list for each tissue.
+  kinship_loco
+
+  :   Kinship matrix calculated using the "loco" option in
+      [`qtl2::calc_kinship`](https://rdrr.io/pkg/qtl2/man/calc_kinship.html)
+
+  gmap
+
+  :   Genomic map of markers
+
+  map_dat2
+
+  :   Combined genomic and physical map of markers
+
+  pmap
+
+  :   Physical map of markers
+
+  tissue_samp
+
+  :   Metadata split out by tissue
+
+- peaks_list:
+
+  A list of peak objects for each tissue

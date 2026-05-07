@@ -11,7 +11,7 @@ multi_modiFinder(
   peaks,
   mapping,
   exprZ,
-  suggLOD = 7,
+  sigLOD = 7.5,
   annots,
   outdir = NULL,
   med_out = "multi_pheno_mediation.rds",
@@ -35,7 +35,7 @@ multi_modiFinder(
 
   rankZ transformed expression to use for the mediation.
 
-- suggLOD:
+- sigLOD:
 
   Significant LOD threshold to use to filter phenotypes for mediation.
   Default is 7.5

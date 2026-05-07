@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,17 +100,29 @@ Default is <code>hotspots_&lt;tissue&gt;.png</code></p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing:</p><ul><li><p>bands.rnaA list of tibbles containing hotspot information for
-each tissue
-Information includes the following for each hotspot:
-</p><ul><li><p>Chromosome of the hotspot</p></li>
-<li><p>Start and Stop (bp) of the hotspot</p></li>
-<li><p>The number of significant peaks within the hotspot</p></li>
-<li><p>The number of suggestive peaks within the hotspot</p></li>
-</ul>
-trans_band_plotsA list of ggplot2 objects (one for each tissue),
-showing the number of significant distal hotspot peaks.</li>
-</ul></div>
+    <p>A list containing:</p>
+<dl><dt>bands.rna</dt>
+<dd><p>A list of tibbles containing hotspot information for each tissue.
+Each tibble includes:</p><dl><dt>Chromosome</dt>
+<dd><p>Chromosome of the hotspot</p></dd>
+
+<dt>Start/Stop</dt>
+<dd><p>Start and stop positions (bp) of the hotspot</p></dd>
+
+<dt>Significant peaks</dt>
+<dd><p>Number of significant peaks in the hotspot</p></dd>
+
+<dt>Suggestive peaks</dt>
+<dd><p>Number of suggestive peaks in the hotspot</p></dd>
+
+
+</dl></dd>
+
+<dt>trans_band_plots</dt>
+<dd><p>A list of <code>ggplot2</code> objects (one per tissue) showing the number
+of significant distal hotspot peaks.</p></dd>
+
+</dl></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

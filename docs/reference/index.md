@@ -25,6 +25,8 @@ mediation
 - [`multi_modiFinder()`](https://deweyhannah.github.io/QTLretrievR/reference/multi_modiFinder.md)
   : Prepare and run between phenotype mediation for a set of QTL peaks
   with provided expression data.
+- [`delta_modiFinder()`](https://deweyhannah.github.io/QTLretrievR/reference/delta_modiFinder.md)
+  : Prepare and run mediation for delta G x E peaks
 
 ### Plotting Functions
 
