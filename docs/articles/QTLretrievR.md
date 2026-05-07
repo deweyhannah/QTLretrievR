@@ -41,6 +41,12 @@ that the objects will be only be returned, not saved. If you wish to
 have the objects saved for later use you can change `save` to “so” (save
 only), or “sr” (save and return).
 
+It is important to note that both the phenotype counts and the
+probabilities need to be passed as named lists that match the tissues
+included. If the probabilites are not passed as a list, but the
+phenotypes are the following error will appear: “More probabilites found
+than expression matrices. Are you missing any expression inputs?”
+
 ``` r
 ## Passing a Genoprobs object - list of probabilities for each tissue
 ## Using internal data for expr, gridFile, metadata, annots
