@@ -278,6 +278,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   peaks_list <- list()
 
   available_cores <- get_cores()
+  if( is.null(total_cores)) total_cores <- available_cores
   if( total_cores > available_cores) total_cores <- available_cores
   max_genes <- ncol(exprZ_gxe[[env]])
   if( max_genes < 1000){
@@ -285,8 +286,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }else{
     cores_needed <- total_cores
   }
-  #
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
+  cores_to_use <- min(total_cores, cores_needed)
 
   message(paste0(names(exprZ_gxe), collapse = "\t"))
 
@@ -302,7 +302,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                                     gmap = gmap,
                                     thrA = thrA,
                                     thrX = thrX,
-                                    cores = min(total_cores, cores_needed),
+                                    cores = cores_to_use,
                                     phys = phys,
                                     min_cores = min_cores)
   }
@@ -315,15 +315,13 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       gmap          = gmap,
       thrA          = thrA,
       thrX          = thrX,
-      cores         = min(total_cores, cores_needed),
+      cores         = cores_to_use,
       ctrl          = ctrl,
       env           = env,
       covar_factors = covar_factors,
       min_cores     = min_cores
     )
   }
-
-  doParallel::stopImplicitCluster()
 
   if (!is.null(annots)) {
     message("adding annotations to peaks")
@@ -408,6 +406,7 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
   }
 
   doParallel::registerDoParallel(cores = cores_to_use)
+  on.exit(doParallel::stopImplicitCluster())
 
   # Initialize an empty list to store the results
   all_results <- list()

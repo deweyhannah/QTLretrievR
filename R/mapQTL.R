@@ -322,18 +322,15 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     map <- gmap
   }
 
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
+  cores_to_use <- min(total_cores, cores_needed)
 
-  ## Divide available cores evenly across tissues for parallel peak calling
-  each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues )
+  message(paste0("Using ", cores_to_use, " cores across ", num_tissues,
+                 " tissue(s). Does that look right? If not please set ",
+                 "total_cores parameter to the number of available cores."))
 
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
-                 num_tissues ," tissue(s). Does that look right? If not please
-                 set total_cores parameter to the number of available cores."))
-
-  peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
-    batch_wrap(
+  peak_tmp <- list()
+  for (tissue in names(exprZ_list)) {
+    peak_tmp[[tissue]] <- batch_wrap(
       tissue,
       exprZ_list,
       kinship_loco,
@@ -342,12 +339,11 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       map,
       thrA,
       thrX,
-      each_tissue,
+      cores_to_use,
       phys,
       min_cores
     )
   }
-  doParallel::stopImplicitCluster()
 
   for (i in seq_len(length(peak_tmp))) {
     tissue <- peak_tmp[[i]]$tissue

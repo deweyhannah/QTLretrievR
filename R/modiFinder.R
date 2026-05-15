@@ -177,13 +177,12 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
   }else{
     cores_needed <- total_cores
   }
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues)
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
+  cores_to_use <- min(total_cores, cores_needed)
+  message(paste0("Using ", cores_to_use, " cores across ",
                  num_tissues ," tissue(s)." ) )
-  res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
-    qtl_mediate(tissue,
+  res_out <- list()
+  for (tissue in names(qtl_peaks)) {
+    res_out[[tissue]] <- qtl_mediate(tissue,
                 QTL.peaks    = qtl_peaks,
                 med_annot    = med_annot,
                 QTL.mediator = qtl_mediator,
@@ -191,11 +190,10 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
                 QTL.target   = qtl_target,
                 probs        = probs,
                 mapDat       = map_dat2,
-                cores        = each_tissue,
+                cores        = cores_to_use,
                 pmap         = pmap
     )
   }
-  doParallel::stopImplicitCluster()
 
   res_list <- list()
   for (i in seq_len(length(res_out))) {
@@ -222,6 +220,7 @@ qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator, targ_covar,
   ss <- round(seq(0, nn, length.out = n.batches))
 
   doParallel::registerDoParallel(cores = cores)
+  on.exit(doParallel::stopImplicitCluster())
   med_res <- foreach::foreach(i = seq_len(n.batches - 1)) %dopar% {
     purrr::compact(batchmediate(
       batch        = i,

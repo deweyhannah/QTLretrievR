@@ -206,6 +206,10 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
     cores_per_batch <- floor(cores_to_use/num.batches)
   }
 
+  workers <- min(max_concurrent_batches, num.batches)
+  doParallel::registerDoParallel(cores = workers)
+  on.exit(doParallel::stopImplicitCluster())
+
   # Initialize an empty list to store the results
   all_results <- list()
   for (i in seq(1, num.batches, by = max_concurrent_batches)) {
@@ -233,10 +237,7 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
     all_results <- c(all_results, current_results)
   }
 
-
   peaks <- do.call("rbind", all_results)
-
-  # message(paste0(colnames(peaks), sep = " "))
 
   tissue_peaks2 <- tibble::lst(tissue, peaks)
 
@@ -246,40 +247,39 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
 
 get_cores <- function(){
-  if (Sys.getenv("SLURM_NTASKS") != "" &&
-      Sys.getenv("SLURM_CPUS_PER_TASK") != "") {
-    # Get the number of tasks and the number of CPUs per task
-    num_tasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
-    cpus_per_task <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK"))
+  ntasks        <- Sys.getenv("SLURM_NTASKS")
+  cpus_per_task <- Sys.getenv("SLURM_CPUS_PER_TASK")
+  job_cpus      <- Sys.getenv("SLURM_JOB_CPUS_PER_NODE")
 
-    # Calculate total number of cores
-    num_cores <- num_tasks * cpus_per_task
-    message(paste0("SLURM job detected, using ", num_cores,
-                   " cores (", num_tasks, " tasks, ", cpus_per_task,
-                   " cores per task)."))
-
-  }
-  else {
-    # get the total number of cores that are available for each OS
-    if (Sys.info()['sysname'] == "Windows") {
-      num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-      message(paste0("Working in Windows and there are ", num_cores,
-                     " cores in total."))
-    }
-    else if (Sys.info()['sysname'] == "Linux"){
-      num_cores <- as.numeric(system("nproc", intern = TRUE))
-      message(paste0("Working in Linux and there are ", num_cores,
-                     " cores in total."))
-    }
-    else if(Sys.info()['sysname'] == "Darwin" ){
-      num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-      message(paste0("Working in MacOS and there are ", num_cores,
-                     " cores in total."))
-    }
-    else{
-      num_cores <- 1
-      message(paste0("Unknown OS using only 1 core."))
-    }
+  if (ntasks != "" && cpus_per_task != "") {
+    num_cores <- as.numeric(ntasks) * as.numeric(cpus_per_task)
+    message(paste0("SLURM job detected (ntasks * cpus-per-task), using ",
+                   num_cores, " cores."))
+  } else if (cpus_per_task != "") {
+    # Most common SLURM case: --cpus-per-task without explicit --ntasks
+    num_cores <- as.numeric(cpus_per_task)
+    message(paste0("SLURM job detected (cpus-per-task), using ",
+                   num_cores, " cores."))
+  } else if (job_cpus != "") {
+    # SLURM_JOB_CPUS_PER_NODE can be formatted as "16(x2)" — take the number
+    num_cores <- as.numeric(gsub("\\(.*", "", job_cpus))
+    message(paste0("SLURM job detected (job-cpus-per-node), using ",
+                   num_cores, " cores."))
+  } else if (Sys.info()['sysname'] == "Windows") {
+    num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
+    message(paste0("Working in Windows and there are ", num_cores,
+                   " cores in total."))
+  } else if (Sys.info()['sysname'] == "Linux") {
+    num_cores <- as.numeric(system("nproc", intern = TRUE))
+    message(paste0("Working in Linux and there are ", num_cores,
+                   " cores in total."))
+  } else if (Sys.info()['sysname'] == "Darwin") {
+    num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
+    message(paste0("Working in MacOS and there are ", num_cores,
+                   " cores in total."))
+  } else {
+    num_cores <- 1
+    message("Unknown OS, using only 1 core.")
   }
   return(num_cores)
 }

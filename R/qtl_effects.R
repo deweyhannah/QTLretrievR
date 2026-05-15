@@ -130,23 +130,22 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
   }else{
     cores_needed <- total_cores
   }
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-  each_tissue <- floor( min(total_cores, cores_needed) /num_tissues)
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
+  cores_to_use <- min(total_cores, cores_needed)
+  message(paste0("Using ", cores_to_use, " cores across ",
                  num_tissues ," tissue(s)." ) )
 
-  effects_res <- foreach::foreach( tissue = names(peaksf))  %dopar% {
-    call_effects(tissue  = tissue,
+  effects_res <- list()
+  for (tissue in names(peaksf)) {
+    effects_res[[tissue]] <- call_effects(
+                 tissue  = tissue,
                  peaks   = peaksf[[tissue]],
                  probs   = qtlprobs[[tissue]],
                  gmap    = gmap,
                  exprZ   = exprZ_list[[tissue]],
                  kinship = kinship_loco[[tissue]],
                  covars  = covar_list[[tissue]],
-                 cores   = each_tissue)
+                 cores   = cores_to_use)
   }
-  doParallel::stopImplicitCluster()
 
   message("effects calculated. saving to RDS")
   effects_blup <- list()
