@@ -98,7 +98,7 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
   peaksf <- list()
   for (tissue in names(peaks2)) {
     peaksf[[tissue]] <- peaks2[[tissue]] |>
-      dplyr::filter(lod > suggLOD) |>
+      dplyr::filter(lod >= suggLOD) |>
       dplyr::arrange(peak_chr, peak_bp)
     query <- peaksf[[tissue]] |>
       dplyr::select(peak_chr, peak_bp) |>
