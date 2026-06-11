@@ -146,6 +146,7 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
     ## Collapse overlapping windows into one big window
     bands <- x |>
       dplyr::rename(start = pos_bp_start, end = pos_bp_end) |>
+      dplyr::filter(end >= start) |>
       GenomicRanges::GRanges() |>
       GenomicRanges::reduce()
 
