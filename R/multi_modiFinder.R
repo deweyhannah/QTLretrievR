@@ -26,6 +26,7 @@
 #' @param save Indicates object return/save behavior. One of
 #'  `c("sr", "so", "ro")`; save & return, save only, return only.
 #'   Default is "sr".
+#' @param BPPARAM BiocParallel Parameter
 #'
 #' @return A list containing mediation results for each tissue
 #'
@@ -33,13 +34,13 @@
 #'
 #' @importFrom dplyr rename filter mutate select
 #' @importFrom purrr compact
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #'
 multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
                              outdir = NULL,
                              med_out = "multi_pheno_mediation.rds",
-                             total_cores = NULL, save = "sr") {
+                             total_cores = NULL, save = "sr",
+                             BPPARAM = BiocParallel::SerialParam()) {
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -47,6 +48,18 @@ multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
       stop("Requested Save. No output directory provided, and no default.")
     }
   }
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::MulticoreParam(workers = workers)
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- MulticoreParam(workers = total_cores)
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   message("load annotations")
   if (is.character(annots)) {
@@ -115,10 +128,12 @@ multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
   ## Identify tissues and targets
   qtl_peaks <- list()
   qtl_target <- list()
+
   for (tissue in names(peaks_list)) {
     qtl_peaks[[tissue]] <- peaks_list[[tissue]] |>
       dplyr::filter(lod > sigLOD) |>
-      dplyr::mutate(target_id = phenotype)
+      dplyr::mutate(target_id = phenotype) |>
+      dplyr::filter(phenotype %in% colnames(exprZ_list[[tissue]]))
     qtl_target[[tissue]] <- exprZ_list[[tissue]][common_samples[[tissue]],,
                                                  drop = FALSE]
   }
@@ -147,7 +162,7 @@ multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
   qtl_mediator <- list()
   for (tissue in names(peaks_list)) {
     qtl_mediator[[tissue]] <- exprZ[common_samples[[tissue]],
-                                    med_annot$mediator_id]
+                                    colnames(exprZ) %in% med_annot$mediator_id]
   }
 
   ## mediatior covariates
@@ -155,37 +170,32 @@ multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
 
   message("running mediation")
 
-  available_cores <- get_cores()
-  if( is.null(total_cores)) total_cores <- available_cores
-  if( total_cores > available_cores) total_cores <- available_cores
+  # available_cores <- get_cores()
+  # if( is.null(total_cores)) total_cores <- available_cores
+  # if( total_cores > available_cores) total_cores <- available_cores
   ## get the maximum number of peaks
   max_peaks <- max(vapply(qtl_peaks, nrow, integer(1)))
   num_tissues <-  length(names(qtl_peaks)) # number of tissues
   if( max_peaks < 1000){
     cores_needed <- 8 ## Limiting # of cores if there are <1000 peaks in total
   }else{
-    cores_needed <- total_cores
+    cores_needed <- workers
   }
 
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues)
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
-                 num_tissues ," tissue(s)." ) )
-  res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
-    multi_qtl_mediate(tissue,
-                QTL.peaks    = qtl_peaks,
-                med_annot    = med_annot,
-                QTL.mediator = qtl_mediator,
-                targ_covar   = targ_covar,
-                QTL.target   = qtl_target,
-                probs        = probs,
-                mapDat       = map_dat2,
-                cores        = each_tissue,
-                pmap         = pmap
-    )
-  }
-  doParallel::stopImplicitCluster()
+  res_out <- lapply(names(qtl_peaks), function(tissue) {
+    multi_qtl_mediate(
+      tissue        = tissue,
+      QTL.peaks     = qtl_peaks,
+      med_annot     = med_annot,
+      QTL.mediator  = qtl_mediator,
+      targ_covar    = targ_covar,
+      QTL.target    = qtl_target,
+      probs         = probs,
+      mapDat        = map_dat2,
+      pmap          = pmap,
+      BPPARAM       = BPPARAM
+    )})
+
 
   res_list <- list()
   for (i in seq_len(length(res_out))) {
@@ -205,33 +215,39 @@ multi_modiFinder <- function(peaks, mapping, exprZ, sigLOD = 7.5, annots,
 }
 
 multi_qtl_mediate <- function(tissue, QTL.peaks, med_annot, QTL.mediator,
-                              targ_covar, QTL.target, probs, mapDat, cores,
+                              targ_covar, QTL.target, probs, mapDat, BPPARAM,
                               pmap) {
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   n.batches <- max(c(round(nrow(QTL.peaks[[tissue]]) / 1000)), 1)
   if( n.batches %in% c(0,1)) n.batches <- 2
   nn <- nrow(QTL.peaks[[tissue]])
   ss <- round(seq(0, nn, length.out = n.batches))
 
-  doParallel::registerDoParallel(cores = cores)
-  med_res <- foreach::foreach(i = seq_len(n.batches - 1)) %dopar% {
-    purrr::compact(batchmediate(
-      batch        = i,
-      QTL.peaks    = QTL.peaks[[tissue]],
-      med_annot    = med_annot,
-      QTL.mediator = QTL.mediator[[tissue]],
-      targ_covar   = targ_covar[[tissue]],
-      QTL.target   = QTL.target[[tissue]],
-      mapDat       = mapDat,
-      probs        = probs[[tissue]],
-      ss           = ss,
-      pmap         = pmap
-    ))
-  }
-  doParallel::stopImplicitCluster()
+
+  med_res <- BiocParallel::bplapply(
+    seq_len(n.batches - 1),
+    FUN = function(i) {
+      purrr::compact(batchmediate(
+        batch        = i,
+        QTL.peaks    = QTL.peaks[[tissue]],
+        med_annot    = med_annot,
+        QTL.mediator = QTL.mediator[[tissue]],
+        targ_covar   = targ_covar[[tissue]],
+        QTL.target   = QTL.target[[tissue]],
+        mapDat       = mapDat,
+        probs        = probs[[tissue]],
+        ss           = ss,
+        pmap         = pmap
+      ))
+    },
+    BPPARAM = BPPARAM)
 
 
   res_list <- do.call("rbind", med_res)
   res_list <- tibble::lst(tissue, res_list)
   return(res_list)
 }
+
+

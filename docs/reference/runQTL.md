@@ -21,6 +21,8 @@ runQTL(
   gridFile = gridfile,
   total_cores = NULL,
   save_t = "sr",
+  min_cores = 4,
+  BPPARAM = BiocParallel::SerialParam(),
   ...
 )
 ```
@@ -108,6 +110,15 @@ runQTL(
 
   Indicates object return/save behavior. One of `c("sr", "so", "ro")`;
   save & return, save only, return only. Default is "sr".
+
+- min_cores:
+
+  Minimum number of cores to use in parallelization across phenotypes
+
+- BPPARAM:
+
+  BiocParallel Parameter. Either SerialParam or SnowParam with type
+  "SOCK".
 
 ## Value
 

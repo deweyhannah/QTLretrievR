@@ -13,7 +13,8 @@
 #' the object itself.
 #' @param expr_mats List of normalized count matrices (objects), or character
 #' paths to the file. One matrix per tissue. The order *must match* the
-#'  tissue order in `genoprobs`.
+#'  tissue order in `genoprobs`. These *cannot* be rankZ transformed phenotypes,
+#'  but they should be normalized and not raw.
 #' @param covar_factors Additive covariate factors. These need to be columns
 #'  in the factor metadata.
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
@@ -42,10 +43,11 @@
 #'  (ex: "ctrl" or "CTRL").
 #' @param env String indicating your exposed/treated samples
 #'  (ex: "trt" or "treated" or "<your_treatment_here>").
-#' @param rz Logical. Set to `TRUE` if expression data is already
-#'  rankZ-transformed. Default is `FALSE`.
+#' @param phys Logical. if `TRUE`, use the physical map for peak calling;
+#' otherwise use the genomic map. Default is `TRUE`.
 #' @param min_cores Numeric. The minimum number of cores to be used in each
 #'  process for mapping.
+#' @param BPPARAM BiocParallel Parameter
 #'
 #' @return A list containing:
 #' \item{maps_list}{
@@ -75,14 +77,14 @@
 #' @importFrom tibble as_tibble remove_rownames column_to_rownames lst
 #' @importFrom utils read.delim
 #' @importFrom stats model.matrix formula
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers SnowParam
 #'
 gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    thrX = 5, gridFile = gridfile, localRange = 2e6,
                    outdir = NULL, peaks_out = "gxe_peaks.rds",
                    map_out = "gxe_map.rds", annots = NULL, total_cores = NULL,
-                   save = "sr", delta = FALSE, ctrl, env, rz = FALSE, min_cores = 4) {
+                   save = "sr", delta = FALSE, ctrl, env, phys = TRUE,
+                   min_cores = 4, BPPARAM = BiocParallel::SerialParam()) {
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -90,6 +92,18 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       stop("Requested Save. No output directory provided, and no default.")
     }
   }
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::SnowParam(workers = workers, type = "SOCK")
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- BiocParallel::SnowParam(workers = total_cores, type = "SOCK")
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   ## Expression Matrices should be listed in the same order as tissues in
   ## genoprobs list
@@ -130,7 +144,8 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   ## each tissue
   qtlprobs <- probs_list
   kinship_loco <- list()
-  kinship_loco[[env]] <- qtl2::calc_kinship(qtlprobs[[env]], "loco", cores = 1)
+  kinship_loco[[ctrl]] <- qtl2::calc_kinship(qtlprobs[[ctrl]], "loco", cores = 1)
+  kinship_loco[[env]] <- kinship_loco[[ctrl]]
 
   ## Create maps
   if (is.character(gridFile)) {
@@ -174,19 +189,12 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     if (is.character(expr)) {
       expr_list[[tissue]] <- as.matrix(read.delim(expr, row.names = 1,
                                                   header = TRUE,
-                                                  StringsAsFactors = FALSE))
+                                                  stringsAsFactors = FALSE))
     }
     else {
       message(paste0("passing dataframe with: ", ncol(expr), " samples, and ",
-                     nrow(expr), " genes"))
-      expr_list[[tissue]] <- expr
-    }
-  }
-
-  if (rz) {
-    message("rankZ transformed counts provided")
-    for (tissue in names(expr_list)) {
-      expr_list[[tissue]] <- t(expr_list[[tissue]])
+                       nrow(expr), " genes"))
+      expr_list[[tissue]] <- as.matrix(expr)
     }
   }
 
@@ -207,22 +215,42 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     sample_details[, fact] <- as.factor(sample_details[, fact])
   }
 
+  over_samps <- intersect(colnames(expr_list[[env]]), colnames(expr_list[[ctrl]]))
+  gene_order <- intersect(rownames(expr_list[[env]]), rownames(expr_list[[ctrl]]))
+
+  if (delta) {
+    expr_list$delta <- expr_list[[env]][gene_order, over_samps, drop = F] - expr_list[[ctrl]][gene_order, over_samps, drop = F]
+    kinship_loco$delta <- kinship_loco[[env]]
+    qtlprobs$delta <- qtlprobs[[env]]
+  } else {
+    enviro <- expr_list[[env]][gene_order, over_samps, drop = F]
+    control <- expr_list[[ctrl]][gene_order, over_samps, drop = F]
+
+    residual_mat <- t(sapply(seq_len(nrow(enviro)), function(i) {
+      fit <- lm(enviro[i, ] ~ control[i, ])
+      resid(fit)
+    }))
+    rownames(residual_mat) <- rownames(enviro)
+    colnames(residual_mat) <- colnames(enviro)
+
+    expr_list$regress <- residual_mat
+
+    rm(residual_mat, enviro, control)
+
+    kinship_loco$regress <- kinship_loco[[env]]
+    qtlprobs$regress <- qtlprobs[[env]]
+  }
+
   ## Normalize expression data using rankZ transformation
   ## (unless already transformed). Align samples with genotype data.
   exprZ_list <- list()
-  if (rz) {
-    for (tissue in names(expr_list)) {
-      exprZ_list[[tissue]] <- t(expr_list[[tissue]])
-    }
-  } else {
-    for (tissue in names(expr_list)) {
-      samps_keep <- intersect(rownames(probs_list[[tissue]][[1]]),
-                              colnames(expr_list[[tissue]]))
-      message(paste0("Working with ", length(samps_keep), " samples and ",
-                     nrow(expr_list[[tissue]])," genes in ", tissue, "."))
-      expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
-      exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
-    }
+  for (tissue in names(expr_list)) {
+    samps_keep <- intersect(rownames(qtlprobs[[tissue]][[1]]),
+                            colnames(expr_list[[tissue]]))
+    message(paste0("Working with ", length(samps_keep), " samples and ",
+                   nrow(expr_list[[tissue]])," genes in ", tissue, "."))
+    expr_list[[tissue]] <- expr_list[[tissue]][, samps_keep, drop = FALSE]
+    exprZ_list[[tissue]] <- apply(expr_list[[tissue]], 1, rankZ)
   }
 
   expr_list <- standardize(expr_list, sample_details,
@@ -232,13 +260,7 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   tissue_samp <- standardize(expr_list, sample_details,
                              tissues = names(exprZ_list))$tissue_samp
 
-  message("rankZ normalized")
-
-  exprZ_gxe_genes <- intersect(colnames(exprZ_list[[env]]),
-                               colnames(exprZ_list[[ctrl]]))
-  exprZ_gxe <- list()
-  exprZ_gxe[[env]] <- exprZ_list[[env]][,exprZ_gxe_genes, drop = FALSE]
-  exprZ_gxe[[ctrl]] <- exprZ_list[[ctrl]][,exprZ_gxe_genes, drop = FALSE]
+  message("rankZ transformed")
 
   ## Calculate covariate matrices
   covar_list <- list()
@@ -265,63 +287,79 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   peaks_list <- list()
 
-  available_cores <- get_cores()
-  if( total_cores > available_cores) total_cores <- available_cores
-  max_genes <- ncol(exprZ_gxe[[env]])
+  max_genes <- ncol(exprZ_list[[env]])
   if( max_genes < 1000){
     cores_needed <- 8 # Limiting # of cores if there are <1000 genes in total
   }else{
     cores_needed <- total_cores
   }
-  #
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
 
-  message(paste0(names(exprZ_gxe), collapse = "\t"))
+  # message(paste0(names(exprZ_gxe), collapse = "\t"))
+  if (phys) {
+    map <- pmap
+  } else {
+    map <- gmap
+  }
+
+  samp_order <- rownames(exprZ_list[[env]])
+  for (t in names(exprZ_list)) {
+    qtlprobs[[t]] <- qtlprobs[[t]][samp_order, ]
+    exprZ_list[[t]] <- exprZ_list[[t]][samp_order, , drop = F]
+    covar_list[[t]] <- covar_list[[t]][samp_order, , drop = F]
+  }
+
+  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list,
+                           kinship_loco, gmap, map_dat2, pmap, tissue_samp)
+
+  # return(maps_list)
 
   if (delta) {
-    phys <- FALSE
-    exprZ_delta <- list()
-    exprZ_delta[[env]] <- exprZ_gxe[[env]] - exprZ_gxe[[ctrl]]
+    peaks_tmp <- batch_wrap(tissue = "delta",
+                            exprZ_list = exprZ_list,
+                            kinship_loco = kinship_loco,
+                            qtlprobs = qtlprobs,
+                            covar_list = covar_list,
+                            gmap = map,
+                            thrA = thrA,
+                            thrX = thrX,
+                            BPPARAM = BPPARAM,
+                            phys = phys,
+                            min_cores = min_cores)
 
-    peaks_list[[env]] <- batch_wrap(tissue = env,
-                                    exprZ_list = exprZ_delta,
-                                    kinship_loco = kinship_loco,
-                                    qtlprobs = qtlprobs,
-                                    covar_list = covar_list,
-                                    gmap = gmap,
-                                    thrA = thrA,
-                                    thrX = thrX,
-                                    cores = min(total_cores, cores_needed),
-                                    phys = phys,
-                                    min_cores = min_cores)
-
-    ## Add stuff for ease of mediation
-    exprZ_gxe$delta <- exprZ_delta[[env]]
-    qtlprobs$delta <- qtlprobs[[env]]
-    covar_list$delta <- covar_list[[env]]
-    expr_list$delta <- expr_list[[env]] - expr_list[[ctrl]]
+    peaks_list$delta <- peaks_tmp$peaks
   }
   else {
-    peaks_list$delta <- batch_gxe(
-      exprZ_list    = exprZ_gxe,
-      kinship_loco  = kinship_loco,
-      qtlprobs      = qtlprobs,
-      covars        = covar_list,
-      gmap          = gmap,
-      thrA          = thrA,
-      thrX          = thrX,
-      cores         = min(total_cores, cores_needed),
-      ctrl          = ctrl,
-      env           = env,
-      covar_factors = covar_factors,
-      min_cores     = min_cores
-    )
+    # peaks_list$delta <- batch_gxe(
+    #   exprZ_list    = exprZ_gxe,
+    #   kinship_loco  = kinship_loco,
+    #   qtlprobs      = qtlprobs,
+    #   covars        = covar_list,
+    #   gmap          = gmap,
+    #   thrA          = thrA,
+    #   thrX          = thrX,
+    #   BPPARAM       = BPPARAM,
+    #   ctrl          = ctrl,
+    #   env           = env,
+    #   covar_factors = covar_factors,
+    #   min_cores     = min_cores
+    # )
+    peaks_tmp <- batch_wrap(tissue = "regress",
+                            exprZ_list = exprZ_list,
+                            kinship_loco = kinship_loco,
+                            qtlprobs = qtlprobs,
+                            covar_list = covar_list,
+                            gmap = map,
+                            thrA = thrA,
+                            thrX = thrX,
+                            BPPARAM = BPPARAM,
+                            phys = phys,
+                            min_cores = min_cores)
+
+    peaks_list$regress <- peaks_tmp$peaks
   }
 
-  doParallel::stopImplicitCluster()
-
-  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, "exprZ_list" = exprZ_gxe,
-                           kinship_loco, gmap, map_dat2, pmap, tissue_samp)
+  # maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list,
+  #                          kinship_loco, gmap, map_dat2, pmap, tissue_samp)
 
   if(save %in% c("sr","so")) {
     outfile <- paste0(outdir, "/", map_out)
@@ -329,15 +367,12 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     message("map saved")
   }
 
-  for (i in seq_len(length(peak_tmp))) {
-    tissue <- peak_tmp[[i]]$tissue
-    peaks_list$delta <- peak_tmp[[i]]$peaks
-  }
-
   if (!is.null(annots)) {
     message("adding annotations to peaks")
-    if ("peak_bp" %notin% colnames(peaks_list$delta)) {
-      peaks_list$delta <- interp_bp(peaks_list$delta, maps_list$gmap, maps_list$pmap)
+    if (!phys) {
+      for(tissue in names(peaks_list)) {
+        peaks_list[[tissue]] <- interp_bp(peaks_list[[tissue]], gmap, pmap)
+      }
     }
     peaks_list <- annotatePeaks(maps_list, peaks_list, annots, localRange)
   }
@@ -367,8 +402,6 @@ peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap,
   exprZ_ctrl <- exprZ[[ctrl]][,colnames(exprZ_env), drop = FALSE]
 
   out <- lapply(seq_len(ncol(exprZ_env)), function(x){
-    if(x %% 100 == 0){message(paste0("  --Trait ",x," out of ",
-                                     ncol(exprZ_env)))}
     ctrl_exp <- exprZ_ctrl[,x]
     # gather covariates
     covar <- cbind(covar[[env]], ctrl_exp)
@@ -394,8 +427,10 @@ peak_gxe <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, gmap,
 }
 
 batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
-                       covars, gmap, thrA, thrX, cores, ctrl,
+                       covars, gmap, thrA, thrX, BPPARAM, ctrl,
                       env, covar_factors, min_cores = 4) {
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   num.batches <- max(c(round(ncol(exprZ_list[[env]])/1000), 2))
   nn <- ncol(exprZ_list[[env]])
@@ -405,21 +440,19 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
 
   # Calculate the maximum number of concurrent batches
   # Each batch should at least have 4 cores.
-  max_concurrent_batches <- max(1, floor(cores / min_cores) )
+  max_concurrent_batches <- max(1, floor(workers / min_cores) )
   # if the #of batches > max_concurrent_batches adjust the cores
   if( num.batches > max_concurrent_batches){
     # Adjust the number of cores to use based on concurrency limit
-    cores_to_use <- min(cores, max_concurrent_batches * min_cores)
+    cores_to_use <- min(workers, max_concurrent_batches * min_cores)
     # get the cores to use per batch, minimum 4
     cores_per_batch <- max(min_cores, floor(cores_to_use/max_concurrent_batches))
   } else{
     # can use all the cores
-    cores_to_use <- cores
+    cores_to_use <- workers
     # get the cores to use per batch
-    cores_per_batch <- floor(cores_to_use/num.batches)
+    cores_per_batch <- max(1, floor(cores_to_use / num.batches))
   }
-
-  doParallel::registerDoParallel(cores = cores_to_use)
 
   # Initialize an empty list to store the results
   all_results <- list()
@@ -428,27 +461,25 @@ batch_gxe <- function(exprZ_list, kinship_loco, qtlprobs,
     current_batches <- i:min(i + max_concurrent_batches - 1, num.batches)
 
     # Run the current batch of tasks in parallel
-    current_results <- foreach::foreach( j = current_batches)  %dopar% {
-      peak_gxe(i             = j,
-               ss            = ss,
-               exprZ         = exprZ_list,
-               kinship_loco  = kinship_loco[[env]],
-               genoprobs     = qtlprobs[[env]],
-               covar         = covars,
-               gmap          = gmap,
-               thrA          = thrA,
-               thrX          = thrX,
-               n.cores       = cores_per_batch,
-               ctrl          = ctrl,
-               env           = env,
-               covar_factors = covar_factors)
-    }
+    current_results <- BiocParallel::bplapply(current_batches,
+                                              FUN = peak_gxe,
+                                              ss = ss,
+                                              exprZ = exprZ_list,
+                                              kinship_loco = kinship_loco[[env]],
+                                              genoprobs = qtlprobs[[env]],
+                                              covar = covars,
+                                              gmap = gmap,
+                                              thrA = thrA,
+                                              thrX = thrX,
+                                              n.cores = cores_per_batch,
+                                              ctrl = ctrl,
+                                              env = env,
+                                              covar_factors = covar_factors,
+                                              BPPARAM = BPPARAM)
 
     # Append the current results to the overall results
     all_results <- c(all_results, current_results)
   }
-
-  doParallel::stopImplicitCluster()
 
   peaks <- do.call("rbind", all_results)
 

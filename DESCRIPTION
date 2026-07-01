@@ -1,6 +1,6 @@
 Package: QTLretrievR
 Title: Calculate the Map, Peaks, Mediation, and Effects for Quantitative Trait Loci
-Version: 1.2.1.1
+Version: 2.0.0.0
 Authors@R: c(
     person(given   = "Hannah B.",
            family  = "Dewey",
@@ -54,9 +54,8 @@ Imports:
     tibble,
     tidyr,
     viridis,
-    foreach,
+    BiocParallel,
     ggpubr,
-    doParallel,
     stats
 Remotes:
   bioc::ComplexHeatmap,
@@ -87,6 +86,7 @@ Collate:
     'gridfile_MM.R'
     'gridfile_mini.R'
     'gridfile_quilt.R'
+    'gridfile250.R'
     'gxeQTL.R'
     'hsHapEffects.R'
     'interp_bp.R'

@@ -11,7 +11,8 @@ qtl_effects(
   outdir = NULL,
   effects_out = "effects.rds",
   total_cores = NULL,
-  save = "sr"
+  save = "sr",
+  BPPARAM = BiocParallel::SerialParam()
 )
 }
 \arguments{
@@ -37,12 +38,15 @@ Default is \code{NULL}.}
 \item{save}{Indicates object return/save behavior. One of
 \code{c("sr", "so", "ro")}; save & return, save only, return only.
 Default is "sr".}
+
+\item{BPPARAM}{BiocParallel Parameter}
 }
 \value{
 A list containing:
 \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output
 from \code{\link[qtl2:scan1blup]{qtl2::scan1blup()}}}
 \item{peaks}{annotated peaks with LOD scores above suggestive threshold}
+These two dataframes have identical row orders, use \code{cbind} to merge them.
 }
 \description{
 Calculate founder effects for significant peaks

@@ -14,7 +14,8 @@ multi_modiFinder(
   outdir = NULL,
   med_out = "multi_pheno_mediation.rds",
   total_cores = NULL,
-  save = "sr"
+  save = "sr",
+  BPPARAM = BiocParallel::SerialParam()
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ Default is \code{NULL}.}
 \item{save}{Indicates object return/save behavior. One of
 \code{c("sr", "so", "ro")}; save & return, save only, return only.
 Default is "sr".}
+
+\item{BPPARAM}{BiocParallel Parameter}
 }
 \value{
 A list containing mediation results for each tissue

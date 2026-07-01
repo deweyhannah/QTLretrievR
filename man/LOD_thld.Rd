@@ -10,7 +10,9 @@ LOD_thld(
   annots = NULL,
   n.gene = 75,
   n.perm = 750,
-  batch.size = 5
+  batch.size = 5,
+  BPPARAM = BiocParallel::SerialParam(),
+  total_cores = NULL
 )
 }
 \arguments{
@@ -27,6 +29,11 @@ autosomal phenotypes. Columns must include "id", "symbol", "start", "end".}
 \item{n.perm}{Number of permutations to run per phenotype.  Default is 750.}
 
 \item{batch.size}{Number of genes in each parallelized batch.}
+
+\item{BPPARAM}{BiocParallel Parameter}
+
+\item{total_cores}{Total number of cores available for parallelization (if \code{BPPARAM}
+is set to serial, then this will just be for passing to \code{qtl2})}
 }
 \value{
 A list containing:

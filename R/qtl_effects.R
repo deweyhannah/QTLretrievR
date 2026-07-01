@@ -16,31 +16,44 @@
 #' @param save Indicates object return/save behavior. One of
 #'  `c("sr", "so", "ro")`; save & return, save only, return only.
 #'   Default is "sr".
+#' @param BPPARAM BiocParallel Parameter
 #'
 #' @return A list containing:
 #'  \item{effects_blup}{QTL effect BLUPs from scan along one chromosome. Output
 #'  from [qtl2::scan1blup()]}
 #'  \item{peaks}{annotated peaks with LOD scores above suggestive threshold}
+#'  These two dataframes have identical row orders, use `cbind` to merge them.
 #'
 #' @export
 #'
 #' @importFrom stats setNames
 #' @importFrom dplyr mutate select rename filter arrange
-#' @importFrom GenomicRanges GRanges
+#' @importFrom GenomicRanges GRanges follow precede nearest
 #' @importFrom qtl2 scan1blup scan1coef
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #' @importFrom tibble lst
 #'
 
 qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
                         effects_out = "effects.rds", total_cores = NULL,
-                        save = "sr") {
+                        save = "sr", BPPARAM = BiocParallel::SerialParam()) {
   ## Load in data
   if ((is.character(peaks) & is.list(mapping)) | (is.list(peaks) &
                                                   is.character(mapping))) {
     stop("Peaks and mapping must both direct to an RDS file or be lists")
   }
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::MulticoreParam(workers = workers)
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- MulticoreParam(workers = total_cores)
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   ## Load and organize relevant data
   if (is.list(peaks)) {
@@ -98,7 +111,7 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
   peaksf <- list()
   for (tissue in names(peaks2)) {
     peaksf[[tissue]] <- peaks2[[tissue]] |>
-      dplyr::filter(lod > suggLOD) |>
+      dplyr::filter(lod >= suggLOD) |>
       dplyr::arrange(peak_chr, peak_bp)
     query <- peaksf[[tissue]] |>
       dplyr::select(peak_chr, peak_bp) |>
@@ -106,59 +119,85 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
       dplyr::mutate(end = start) |>
       GenomicRanges::GRanges()
     subject <- marker_list[[tissue]]
-    peaksf[[tissue]]$before <-
-      map_dat2$marker[GenomicRanges::follow(query, subject)]
-    peaksf[[tissue]]$after <-
-      map_dat2$marker[GenomicRanges::precede(query, subject)]
-    peaksf[[tissue]]$marker <-
-      map_dat2$marker[GenomicRanges::nearest(query, subject)]
+
+    # peaksf[[tissue]] <- peaksf[[tissue]] |>
+    #   dplyr::mutate(
+    #     before = map_dat2$marker[GenomicRanges::follow(query, subject)],
+    #     after  = map_dat2$marker[GenomicRanges::precede(query, subject)],
+    #     marker = map_dat2$marker[GenomicRanges::nearest(query, subject)]
+    #   )
+
+    follow_idx   <- GenomicRanges::follow(query, subject)
+    precede_idx  <- GenomicRanges::precede(query, subject)
+    nearest_idx  <- GenomicRanges::nearest(query, subject)
+
+    # Convert whatever comes back to a plain integer vector
+    follow_idx  <- if (isS4(follow_idx))  S4Vectors::subjectHits(follow_idx)  else follow_idx
+    precede_idx <- if (isS4(precede_idx)) S4Vectors::subjectHits(precede_idx) else precede_idx
+    nearest_idx <- if (isS4(nearest_idx)) S4Vectors::subjectHits(nearest_idx) else nearest_idx
+
+    peaksf[[tissue]] <- peaksf[[tissue]] |>
+      dplyr::mutate(
+        before = map_dat2$marker[follow_idx],
+        after  = map_dat2$marker[precede_idx],
+        marker = map_dat2$marker[nearest_idx]
+      )
+
     peaksf[[tissue]] <- peaksf[[tissue]] |>
       dplyr::filter(!is.na(before) & !is.na(after))
 
+    if(anyNA(peaksf[[tissue]]$phenotype)) {
+      index <- which(is.na(peaksf[[tissue]]$phenotype))
+      message(paste0(peaksf[[tissue]][index,], collapse = "\t"))
+      stop("NAs found in phenotype")
+    }
+
+    peaksf[[tissue]] <- as.data.frame(peaksf[[tissue]])
   }
 
   message("peaks extracted, calculating effects now")
 
-  if( is.null(total_cores)) total_cores <- get_cores()
-  available_cores <- get_cores()
-  if( total_cores > available_cores) total_cores <- available_cores
+  # if( is.null(total_cores)) total_cores <- get_cores()
+  # available_cores <- get_cores()
+  # if( total_cores > available_cores) total_cores <- available_cores
 
   max_peaks <- max(vapply(peaksf, nrow, integer(1))) # how many peaks are there?
   num_tissues <-  length(names(peaksf)) # number of tissues
-  if( max_peaks < 1000){
-    cores_needed <- 8 # Limiting #of cores if there are <1000 peaks in total
-  }else{
-    cores_needed <- total_cores
-  }
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-  each_tissue <- floor( min(total_cores, cores_needed) /num_tissues)
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
-                 num_tissues ," tissue(s)." ) )
+  cores_per_tissue <- max(1, floor(workers / num_tissues))
 
-  effects_res <- foreach::foreach( tissue = names(peaksf))  %dopar% {
-    call_effects(tissue  = tissue,
-                 peaks   = peaksf[[tissue]],
-                 probs   = qtlprobs[[tissue]],
-                 gmap    = gmap,
-                 exprZ   = exprZ_list[[tissue]],
-                 kinship = kinship_loco[[tissue]],
-                 covars  = covar_list[[tissue]],
-                 cores   = each_tissue)
-  }
-  doParallel::stopImplicitCluster()
+  effects_res <- BiocParallel::bplapply(
+    names(peaksf),
+    FUN = function(tissue) {
+      peaks <- peaksf[[tissue]]
+      call_effects(
+        tissue  = tissue,
+        peaks   = peaks,
+        probs   = qtlprobs[[tissue]],
+        gmap    = gmap,
+        exprZ   = exprZ_list[[tissue]],
+        kinship = kinship_loco[[tissue]],
+        covars  = covar_list[[tissue]],
+        cores   = cores_per_tissue
+      )
+    },
+    BPPARAM = BPPARAM
+  )
 
-  message("effects calculated. saving to RDS")
+  message("effects calculated")
   effects_blup <- list()
   for (i in seq_len(length(effects_res))) {
     tissue <- effects_res[[i]]$tissue
     effects_blup[[tissue]] <- effects_res[[i]]$effects_blup
+    haps <- colnames(effects_blup[[tissue]])
+    # effects_blup[[tissue]] <- cbind(effects_blup[[tissue]], peaksf[[tissue]])
+    # effects_blup[[tissue]] <- effects_blup[[tissue]][,c("phenotype", haps), drop = FALSE]
   }
   peaks <- peaksf
 
   effects_ret <- tibble::lst(effects_blup, peaks)
 
   if(save %in% c("sr","so")) {
+    message("Saving to RDS")
     saveRDS(effects_ret, paste0(outdir, "/", effects_out))
   }
   if(save %in% c("sr","ro")) {
@@ -169,13 +208,25 @@ qtl_effects <- function(peaks, mapping, suggLOD = 6, outdir = NULL,
 call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars,
                          cores) {
   n_peaks <- nrow(peaks)
-  haps <- LETTERS[1:8]
+  haps <- colnames(probs[[1]])
 
   ## not paralelizing scan1blup since qtl2 already does that. Instead I am
   ## passing all cores to the function to let qtl2 do the parallelization.
-  effects_blup <- lapply(1:n_peaks, function(i) {
-    blup_scan(i, peaks, probs, gmap, exprZ, kinship, covars, cores = cores)
-  })
+  if (n_peaks > 0) {
+    # effects_blup <- lapply(1:n_peaks, function(i) {
+    #   blup_scan(i, peaks, probs, gmap, exprZ, kinship, covars, cores = cores)
+    # })
+    effects_blup <- lapply(1:n_peaks, function(i) {
+      result <- blup_scan(i, peaks, probs, gmap, exprZ, kinship, covars, cores = cores)
+      result[peaks$marker[i], , drop = FALSE]  # take only the target marker row
+    })
+  } else {
+    effects_blup <- data.frame(matrix(nrow = 1, ncol = length(haps)))
+    colnames(effects_blup) <- haps
+    effect_out <- tibble::lst(tissue, effects_blup)
+    return(effect_out)
+  }
+
 
   effects_blup_tmp <- do.call("rbind", effects_blup)
 
@@ -186,14 +237,28 @@ call_effects <- function(tissue, peaks, probs, gmap, exprZ, kinship, covars,
 }
 
 blup_scan <- function(i, peaks, probs, gmap, exprZ, kinship, covars, cores) {
+
   this_chrom <- peaks$peak_chr[i]
   this_marker <- peaks$marker[i]
   probs_2marker <- subset_probs(probs, this_chrom,this_marker )
   g <- setNames(list(gmap[[this_chrom]][this_marker]), this_chrom)
   pheno <- peaks$phenotype[i]
 
+  if (is.null(colnames(exprZ))) {
+    stop("exprZ has NULL colnames inside worker")
+  }
+
+  if (!is.matrix(exprZ)) {
+    stop(sprintf("exprZ is not matrix: class = %s", paste(class(exprZ), collapse=", ")))
+  }
+
+  if (!(pheno %in% colnames(exprZ))) {
+    stop(sprintf("pheno '%s' not found; ncol=%d", pheno, ncol(exprZ)))
+  }
+
+
   out_blup <- qtl2::scan1blup(probs_2marker,
-    exprZ[, pheno, drop = FALSE],
+    exprZ[, pheno, drop = F],
     kinship[[this_chrom]],
     covars,
     cores = cores

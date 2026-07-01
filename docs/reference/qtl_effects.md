@@ -12,7 +12,8 @@ qtl_effects(
   outdir = NULL,
   effects_out = "effects.rds",
   total_cores = NULL,
-  save = "sr"
+  save = "sr",
+  BPPARAM = BiocParallel::SerialParam()
 )
 ```
 
@@ -53,6 +54,10 @@ qtl_effects(
   Indicates object return/save behavior. One of `c("sr", "so", "ro")`;
   save & return, save only, return only. Default is "sr".
 
+- BPPARAM:
+
+  BiocParallel Parameter
+
 ## Value
 
 A list containing:
@@ -65,3 +70,6 @@ A list containing:
 - peaks:
 
   annotated peaks with LOD scores above suggestive threshold
+
+These two dataframes have identical row orders, use `cbind` to merge
+them.

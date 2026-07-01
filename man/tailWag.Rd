@@ -15,7 +15,7 @@ tailWag(
   outdir = NULL,
   pop = "do",
   founders = NULL,
-  symbol = TRUE
+  symb = TRUE
 )
 }
 \arguments{
@@ -41,7 +41,7 @@ Default is "\code{do}".}
 
 \item{founders}{If \code{pop == "other"}, list of founders in haplotype order.}
 
-\item{symbol}{Logical. The phenotype to be plotted is passed as a symbol
+\item{symb}{Logical. The phenotype to be plotted is passed as a symbol
 instead of phenotype id. Default \code{TRUE}.}
 }
 \value{

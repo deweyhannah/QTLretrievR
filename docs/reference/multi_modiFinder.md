@@ -16,7 +16,8 @@ multi_modiFinder(
   outdir = NULL,
   med_out = "multi_pheno_mediation.rds",
   total_cores = NULL,
-  save = "sr"
+  save = "sr",
+  BPPARAM = BiocParallel::SerialParam()
 )
 ```
 
@@ -66,6 +67,10 @@ multi_modiFinder(
 
   Indicates object return/save behavior. One of `c("sr", "so", "ro")`;
   save & return, save only, return only. Default is "sr".
+
+- BPPARAM:
+
+  BiocParallel Parameter
 
 ## Value
 

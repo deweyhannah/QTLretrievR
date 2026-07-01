@@ -16,7 +16,7 @@ tailWag(
   outdir = NULL,
   pop = "do",
   founders = NULL,
-  symbol = TRUE
+  symb = TRUE
 )
 ```
 
@@ -64,7 +64,7 @@ tailWag(
 
   If `pop == "other"`, list of founders in haplotype order.
 
-- symbol:
+- symb:
 
   Logical. The phenotype to be plotted is passed as a symbol instead of
   phenotype id. Default `TRUE`.

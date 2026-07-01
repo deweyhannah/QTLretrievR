@@ -11,7 +11,7 @@ permutations, and the number of genes to run in each batch."><meta property="og:
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,9 @@ permutations, and the number of genes to run in each batch.</p>
 <span>  annots <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n.gene <span class="op">=</span> <span class="fl">75</span>,</span>
 <span>  n.perm <span class="op">=</span> <span class="fl">750</span>,</span>
-<span>  batch.size <span class="op">=</span> <span class="fl">5</span></span>
+<span>  batch.size <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">SerialParam</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  total_cores <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,6 +92,15 @@ autosomal phenotypes. Columns must include "id", "symbol", "start", "end".</p></
 
 <dt id="arg-batch-size">batch.size<a class="anchor" aria-label="anchor" href="#arg-batch-size"></a></dt>
 <dd><p>Number of genes in each parallelized batch.</p></dd>
+
+
+<dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
+<dd><p>BiocParallel Parameter</p></dd>
+
+
+<dt id="arg-total-cores">total_cores<a class="anchor" aria-label="anchor" href="#arg-total-cores"></a></dt>
+<dd><p>Total number of cores available for parallelization (if <code>BPPARAM</code>
+is set to serial, then this will just be for passing to <code>qtl2</code>)</p></dd>
 
 </dl></div>
     <div class="section level2">

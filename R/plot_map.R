@@ -37,6 +37,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
     temp_name <- paste0("eqtl_map_LOD",round(sigLOD, 2),"_<tissue>.png")
     message(paste0("Plot to be saved, but name not provided. Saving as ",
                    temp_name, " in ", outdir))
+    pname <- temp_name
 
   }
   if (length(names(peaks)) < length(sigLOD)) {
@@ -159,8 +160,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
       if (length(sigLOD) > 1) {
         use_LOD <- sigLOD[iter]
       } else use_LOD <- sigLOD
-      pname <- paste0("eqtl_map_LOD",round(use_LOD,2),"_",tissue,".png")
-      ggplot2::ggsave(pname, eqtl_map, device = "png", path = outdir,
+      ggplot2::ggsave(paste0(use_LOD, "_", pname), eqtl_map, device = "png", path = outdir,
                       width = 3072, height = 3072, units = "px")
     }
   }

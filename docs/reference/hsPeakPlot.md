@@ -34,7 +34,7 @@ hsPeakPlot(
 - feats:
 
   List of phenotypes to include. Individual/Candidate Mediator Only:
-  Local to hotspot. PC: Targets of hotspot.
+  Individual phenotype. PC: Targets of hotspot.
 
 - tbands:
 

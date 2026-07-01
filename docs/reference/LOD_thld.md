@@ -13,7 +13,9 @@ LOD_thld(
   annots = NULL,
   n.gene = 75,
   n.perm = 750,
-  batch.size = 5
+  batch.size = 5,
+  BPPARAM = BiocParallel::SerialParam(),
+  total_cores = NULL
 )
 ```
 
@@ -43,6 +45,15 @@ LOD_thld(
 - batch.size:
 
   Number of genes in each parallelized batch.
+
+- BPPARAM:
+
+  BiocParallel Parameter
+
+- total_cores:
+
+  Total number of cores available for parallelization (if `BPPARAM` is
+  set to serial, then this will just be for passing to `qtl2`)
 
 ## Value
 

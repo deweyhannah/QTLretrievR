@@ -22,6 +22,7 @@
 #' @param distOnly Logical. Mediate only the distal peaks? Default is `TRUE`.
 #' @param hsOnly Logical. Mediate only on peaks identified within a hotspot.
 #'  Default is `FALSE`.
+#' @param BPPARAM BiocParallel Parameter
 #'
 #' @return A list containing mediation results for the peaks called from the delta G x E method.
 #'  Mediated by 'delta', '<ctrl>', or '<env>'.
@@ -30,12 +31,12 @@
 #'
 #' @importFrom dplyr rename filter mutate select
 #' @importFrom purrr compact
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #'
-delta_modiFinder <- function(peaks, mapping, by="delta", sigLOD = 7.5, annots, outdir = NULL,
-                       med_out = "delta_mediation.rds", total_cores = NULL,
-                       save = "sr", distOnly = TRUE, hsOnly = FALSE) {
+gxe_modiFinder <- function(peaks, mapping, by="delta", sigLOD = 7.5, annots, outdir = NULL,
+                       med_out = "gxe_mediation.rds", total_cores = NULL,
+                       save = "sr", distOnly = TRUE, hsOnly = FALSE,
+                       BPPARAM = BiocParallel::SerialParam()) {
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
     if (is.null(outdir)) {
@@ -43,7 +44,19 @@ delta_modiFinder <- function(peaks, mapping, by="delta", sigLOD = 7.5, annots, o
     }
   }
 
-  message(paste0("Mediating delta peaks by ", by, " rankZ transformed expression. If this was not intended please check the 'by' argument."))
+  message(paste0("Mediating G x E peaks by ", by, " rankZ transformed expression. If this was not intended please check the 'by' argument."))
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::MulticoreParam(workers = workers)
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- MulticoreParam(workers = total_cores)
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   message("load annotations")
   if (is.character(annots)) {
@@ -132,7 +145,7 @@ delta_modiFinder <- function(peaks, mapping, by="delta", sigLOD = 7.5, annots, o
       dplyr::mutate(phenotype = gsub("_.*", "", phenotype)) |>
       dplyr::mutate(target_id = phenotype) |>
       dplyr::filter(target_id %in% annots_list[[tissue]]$id)
-    qtl_target[[tissue]] <- exprZ_gxe$delta[, annots_list[[tissue]]$id]
+    qtl_target[[tissue]] <- exprZ_gxe[[tissue]][, annots_list[[tissue]]$id]
   }
 
   message("filtered peaks")
@@ -171,37 +184,31 @@ delta_modiFinder <- function(peaks, mapping, by="delta", sigLOD = 7.5, annots, o
 
   message("running mediation")
 
-  available_cores <- get_cores()
-  if( is.null(total_cores)) total_cores <- available_cores
-  if( total_cores > available_cores) total_cores <- available_cores
+  # available_cores <- get_cores()
+  # if( is.null(total_cores)) total_cores <- available_cores
+  # if( total_cores > available_cores) total_cores <- available_cores
   # get the maximum number of peaks
   max_peaks <- max(vapply(qtl_peaks, nrow, integer(1)))
   num_tissues <-  length(names(qtl_peaks)) # number of tissues
   if( max_peaks < 1000){
     cores_needed <- 8 # Limiting # of cores if there are <1000 peaks in total
   }else{
-    cores_needed <- total_cores
+    cores_needed <- workers
   }
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-  each_tissue <- floor( min(total_cores, cores_needed) / num_tissues)
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
-                 num_tissues ," tissue(s)." ) )
-  # message(str(qtl_peaks))
-  res_out <- foreach::foreach(tissue = names(qtl_peaks)) %dopar% {
-    multi_qtl_mediate(tissue,
-                      QTL.peaks    = qtl_peaks,
-                      med_annot    = med_annot,
-                      QTL.mediator = qtl_mediator,
-                      targ_covar   = targ_covar,
-                      QTL.target   = qtl_target,
-                      probs        = probs,
-                      mapDat       = map_dat2,
-                      cores        = each_tissue,
-                      pmap         = pmap
-    )
-  }
-  doParallel::stopImplicitCluster()
+
+  res_out <- lapply(names(qtl_peaks), function(tissue) {
+    multi_qtl_mediate(
+      tissue        = tissue,
+      QTL.peaks     = qtl_peaks,
+      med_annot     = med_annot,
+      QTL.mediator  = qtl_mediator,
+      targ_covar    = targ_covar,
+      QTL.target    = qtl_target,
+      probs         = probs,
+      mapDat        = map_dat2,
+      pmap          = pmap,
+      BPPARAM       = BPPARAM
+    )})
 
   res_list <- list()
   for (i in seq_len(length(res_out))) {

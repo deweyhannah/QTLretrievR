@@ -37,6 +37,8 @@
 #' @param save_t Indicates object return/save behavior. One of
 #' `c("sr", "so", "ro")`; save & return, save only, return only.
 #'  Default is "sr".
+#' @param min_cores Minimum number of cores to use in parallelization across phenotypes
+#' @param BPPARAM BiocParallel Parameter. Either SerialParam or SnowParam with type "SOCK".
 #'
 #' @return A list containing:
 #'    \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -50,6 +52,7 @@
 #'
 #'
 #' @importFrom tibble lst
+#' @importFrom BiocParallel SerialParam
 #'
 #'
 runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
@@ -58,7 +61,7 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
                    effects_out = "effects.rds", outdir = NULL, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, annots, tissues = c(),
                    gridFile = gridfile, total_cores = NULL,
-                   save_t = "sr", ...) {
+                   save_t = "sr", min_cores = 4, BPPARAM = BiocParallel::SerialParam(), ...) {
   ## Check outdir
   if(save_t %in% c("sr", "so")) {
     if (is.null(outdir)) {
@@ -110,6 +113,11 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
   } else {
     sigLOD <- opt_args$sigLOD
   }
+  if("suggLOD" %notin% names(opt_args)) {
+    suggLOD <- 6
+  } else {
+    suggLOD <- opt_args$suggLOD
+  }
   ## Check if object or file location is passed. If object assign to genoprobs,
   ## if file location run geoprobably
   if (is.list(gbrs_fileLoc)) {
@@ -152,7 +160,8 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
     localRange    = localRange,
     rz            = rz,
     phys          = phys,
-    ...
+    min_cores     = min_cores,
+    BPPARAM       = BPPARAM
     )
 
   peaks_list <- map_peaks$peaks_list
@@ -169,16 +178,18 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
                          annots      = annots,
                          med_out     = med_out,
                          total_cores = total_cores,
-                         save        = save_t)
+                         save        = save_t,
+                         BPPARAM     = BPPARAM)
 
   message("running effects")
   effects_res <- qtl_effects(mapping         = maps_list,
                              peaks           = peaks_list,
-                             suggLOD         = sigLOD,
+                             suggLOD         = suggLOD,
                              outdir          = outdir,
                              effects_out     = effects_out,
                              total_cores     = total_cores,
-                             save            = save_t)
+                             save            = save_t,
+                             BPPARAM         = BPPARAM)
 
   save_t <- save_og
 

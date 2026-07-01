@@ -2,7 +2,7 @@
 #'
 #' @param mapping Mapping list from `mapQTL`.
 #' @param feats List of phenotypes to include.
-#' Individual/Candidate Mediator Only: Local to hotspot. PC: Targets of hotspot.
+#' Individual/Candidate Mediator Only: Individual phenotype. PC: Targets of hotspot.
 #' @param tbands List of transband locations (`bands.rna` list from
 #'  `transbands` function).
 #' @param chromosome Chromosome that the transband (hotspot) is present on.
@@ -40,6 +40,11 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
   if (!pc & is.null(candidateMed)) {
     stop("If plotting a whole hotspot either a candidate mediator must be
          provided or ask to plot PC1")
+  }
+  if (!pc & !is.null(candidateMed) & length(feats) > 1) {
+    warning("Multiple features provided, but not plotting the principle component.
+            Plotting only mediator peak.")
+    feats <- candidateMed$id
   }
   if (psave & is.null(pname)) {
     if (!wag & pc) {
@@ -90,6 +95,9 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
     top_genes <- loadings_pc1 |>
       dplyr::slice_max(prop = topPC, order_by = abs(PC1)) |>
       rownames()
+    if (!is.null(candidateMed)) {
+      feat_rz <- mapping$exprZ_list[[tissue]][,candidateMed$id, drop = FALSE]
+    }
     # return(pca_rz)
   } else {
     feat_rz <- mapping$exprZ_list[[tissue]][,feats, drop = FALSE]
@@ -97,17 +105,24 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
 
   ## Perform phenotype scans
   if (pc) {
-    scan_out <- qtl2::scan1(pheno     = pca_rz,
-                            genoprobs = mapping$qtlprobs[[tissue]],
-                            kinship   = mapping$kinship_loco[[tissue]],
-                            addcovar  = mapping$covar_list[[tissue]])
-    # return(scan_out)
+    if (is.null(candidateMed)) {
+      scan_out <- qtl2::scan1(pheno     = pca_rz,
+                              genoprobs = mapping$qtlprobs[[tissue]],
+                              kinship   = mapping$kinship_loco[[tissue]],
+                              addcovar  = mapping$covar_list[[tissue]])
+    } else {
+      scan_out <- qtl2::scan1(pheno     = cbind(pca_rz, feat_rz),
+                              genoprobs = mapping$qtlprobs[[tissue]],
+                              kinship   = mapping$kinship_loco[[tissue]],
+                              addcovar  = mapping$covar_list[[tissue]])
+    }
   } else {
     scan_out <- qtl2::scan1(pheno     = feat_rz,
                             genoprobs = mapping$qtlprobs[[tissue]],
                             kinship   = mapping$kinship_loco[[tissue]],
                             addcovar  = mapping$covar_list[[tissue]])
   }
+  # return(scan_out)
 
   if (!is.null(candidateMed)) {
 
@@ -142,12 +157,19 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
         addcovar  = mapping$covar_list[[tissue]],
         cores     = cores_use)
     } else if (pc & !is.null(candidateMed)) {
-      effects_out <- qtl2::scan1blup(
+      effects_med <- qtl2::scan1blup(
         pheno     = mapping$exprZ_list[[tissue]][, medID, drop = FALSE],
         genoprobs = mapping$qtlprobs[[tissue]][, as.character(chromosome)],
         kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
         addcovar  = mapping$covar_list[[tissue]],
         cores     = cores_use)
+      effects_pc <- qtl2::scan1blup(
+        pheno     = pca_rz,
+        genoprobs = mapping$qtlprobs[[tissue]][, as.character(chromosome)],
+        kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
+        addcovar  = mapping$covar_list[[tissue]],
+        cores     = cores_use)
+      effects_out <- rbind(effects_med, effects_pc)
     } else {
       effects_out <- qtl2::scan1blup(
         pheno     = feat_rz[, medID],
@@ -204,7 +226,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                            show.legend = FALSE) +
       ggplot2::geom_line( linewidth = 1.5) +
       ggplot2::theme_minimal(base_size = 18) +
-      ggplot2::scale_color_manual(values = color) +
+      ggplot2::scale_color_manual(values = color, name = "Phenotype") +
       ggplot2::xlab(paste0("Chr ",chromosome," location (Mbp)")) +
       ggplot2::ylab("LOD score") +
       ggplot2::ylim(0,maxY) +
@@ -212,6 +234,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       ggplot2::theme(legend.position = "none")
   } else if (pc & !is.null(candidateMed)) {
     maxY <- ceiling(max(scan_out[, "PC1"] / 5)) * 5
+    med_col <- shift_hue(color)
     p1 <- scan_out |>
       tibble::as_tibble( rownames = "marker") |>
       dplyr::left_join(mapping$map_dat2) |>
@@ -237,18 +260,21 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                             y = 0,
                             yend = 1,
                             size = 2,
-                            ggplot2::aes(col = type)) +
+                            color = med_col) +
       ggplot2::annotate("text", x= ((medStart/1e06) + (medEnd/1e06)) / 2,
                         y = -0.65, label = medSym, size = 4,
                         fontface = "italic") +
       ggplot2::theme_minimal(base_size = 18) +
-      ggplot2::scale_color_manual(values = color) +
+      ggplot2::scale_color_manual(values = color, name = "Phenotype") +
       ggplot2::xlab(paste0("Chr ",chromosome," location (Mbp)")) +
       ggplot2::ylab("LOD score") +
       ggplot2::ylim(-0.8, maxY) +
       ggplot2::xlim(minX / 1e06, maxX / 1e06) +
       ggplot2::theme(legend.position = "none")
 
+    if (!wag) {
+      p1 <- p1 + theme(legend.position = "top")
+    }
 
   } else {
     maxY <- ceiling(max(scan_out[,c(feats[feats != medID], medSym)] / 5)) * 5
@@ -285,7 +311,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                         y = -0.5, label = medSym, size =4,
                         fontface = "italic") +
       ggplot2::theme_minimal( base_size = 18) +
-      ggplot2::scale_color_manual(values = color) +
+      ggplot2::scale_color_manual(values = color, name = "Phenotype") +
       ggplot2::xlab(paste0("Chr ",chromosome ," location (Mbp)")) +
       ggplot2::ylab( "LOD score") +
       ggplot2::labs(col = "Gene") +
@@ -293,6 +319,10 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       ggplot2::xlim(minX / 1e06,
                     maxX / 1e06) +
       ggplot2::theme(legend.position = "none")
+
+    if (!wag) {
+      p1 <- p1 + theme(legend.position = "top")
+    }
   }
 
   if (wag) {
@@ -304,35 +334,65 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       peaks <- qtl2::find_peaks(scan1_output = scan_og, map = mapping$pmap,
                                 threshold = sigLOD, prob = 0.95)
     }
+    # return(peaks)
     peaks <- peaks |>
       dplyr::select(-lodindex) |>
-      dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_bp = pos)
+      dplyr::rename(phenotype = lodcolumn, peak_chr = chr, peak_bp = pos) |>
+      dplyr::filter(peak_chr == chromosome)
 
     if (!is.null(candidateMed) & !pc) {
       peaks <- peaks |>
         dplyr::filter(phenotype == medID)
     }
 
+    #
+    # correct_marker <- mapping$map_dat2 |>
+    #   dplyr::filter(chr == chromosome) |>
+    #   dplyr::slice_min(abs(pos_bp - as.numeric(peaks$peak_bp)), n = 1)
+    #
+    # peaks$marker <- correct_marker$marker
+    # effects_out <- effects_out[correct_marker$marker, , drop = FALSE]
 
-    correct_marker <- mapping$map_dat2 |>
-      dplyr::filter(chr == chromosome) |>
-      dplyr::slice_min(abs(pos_bp - as.numeric(peaks$peak_bp)), n = 1)
+    peaks <- peaks |>
+      dplyr::rowwise() |>
+      dplyr::mutate(marker = mapping$map_dat2 |>
+                      dplyr::filter(chr == chromosome) |>
+                      dplyr::slice_min(abs(pos_bp - as.numeric(peak_bp)), n = 1) |>
+                      dplyr::pull(marker)) |>
+      dplyr::ungroup()
 
-    peaks$marker <- correct_marker$marker
-    effects_out <- effects_out[correct_marker$marker, , drop = FALSE]
+    # Extract effects at each phenotype's peak marker
+    effects_out <- do.call(rbind, lapply(seq_len(nrow(peaks)), function(i) {
+      effects_out[peaks$marker[i], , drop = FALSE]
+    }))
 
     effects <- tibble::lst(peaks = setNames(list(peaks), tissue),
                            effects_blup = setNames(list(effects_out), tissue))
 
+    # return(effects)
+
     if (!pc & !is.null(candidateMed)) {
-      p2 <- tailWag(effects = effects, tissue = tissue, feat = medID,
-                    chromosome = chromosome, psave = FALSE, symbol = FALSE, ...)
+      effects$peaks[[tissue]]$phenotype[which(effects$peaks[[tissue]]$phenotype == medID)] <- medSym
+      p2 <- tailWag(effects = effects, tissue = tissue, feat = medSym,
+                    chromosome = chromosome, psave = FALSE, symb = TRUE, ...)
+    } else if (pc & !is.null(candidateMed)) {
+      effects$peaks[[tissue]]$phenotype[which(effects$peaks[[tissue]]$phenotype == medID)] <- medSym
+      # return(effects)
+      p2 <- tailWag(effects    = effects,
+                    tissue     = tissue,
+                    feat       = c("PC1", medSym),   # vector of both features
+                    chromosome = chromosome,
+                    color      = color,
+                    psave      = FALSE,
+                    symb       = TRUE, ...)
+
     } else {
       p2 <- tailWag(effects = effects, tissue = tissue, feat = "PC1",
-                    chromosome = chromosome, psave = FALSE, symbol = FALSE,...)
+                    chromosome = chromosome, psave = FALSE, symb = FALSE,...)
     }
-    pwork <- patchwork::wrap_plots(p1 + ggplot2::theme(legend.position = "top"),
-                                   p2, nrow = 1, widths = c(1, 0.5))
+    pwork <- patchwork::wrap_plots(p1,
+                                   p2 + ggplot2::theme(legend.position = "top"),
+                                   nrow = 1, widths = c(1, 0.5))
   }
 
   if (psave) {

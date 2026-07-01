@@ -20,6 +20,8 @@ runQTL(
   gridFile = gridfile,
   total_cores = NULL,
   save_t = "sr",
+  min_cores = 4,
+  BPPARAM = BiocParallel::SerialParam(),
   ...
 )
 }
@@ -75,6 +77,10 @@ Default is \code{NULL}.}
 \item{save_t}{Indicates object return/save behavior. One of
 \code{c("sr", "so", "ro")}; save & return, save only, return only.
 Default is "sr".}
+
+\item{min_cores}{Minimum number of cores to use in parallelization across phenotypes}
+
+\item{BPPARAM}{BiocParallel Parameter. Either SerialParam or SnowParam with type "SOCK".}
 }
 \value{
 A list containing:

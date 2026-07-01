@@ -25,7 +25,10 @@ mapQTL(
   save = "sr",
   rz = FALSE,
   phys = TRUE,
-  ...
+  BPPARAM = BiocParallel::SerialParam(),
+  xcov = TRUE,
+  x_factor = "sex",
+  min_cores = 4
 )
 ```
 
@@ -111,6 +114,15 @@ mapQTL(
 
   Logical. if `TRUE`, use the physical map for peak calling; otherwise
   use the genomic map. Default is `TRUE`.
+
+- BPPARAM:
+
+  BiocParallel Parameter
+
+- min_cores:
+
+  Minimum number of cores to use for phenotype parallelization. Default
+  is 4.
 
 ## Value
 

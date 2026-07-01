@@ -20,4 +20,5 @@ utils::globalVariables(c( "chr", "Chromosome.scaffold.name", "end",
                           "local", "midpoint_offset", "n", "pos_bp_end",
                           "pos_bp_start", "pos_cM_end", "pos_cM_start",
                           "seqnames", "std", "l2p_wide", "sd", "PC1", "ranks",
-                          "feature", "effect", "value", "chroms", "sigLOD"))
+                          "feature", "effect", "value", "chroms", "sigLOD",
+                          "BPPARAM", "total_cores", "workers"))

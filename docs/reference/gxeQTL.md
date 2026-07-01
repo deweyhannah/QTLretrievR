@@ -26,8 +26,9 @@ gxeQTL(
   delta = FALSE,
   ctrl,
   env,
-  rz = FALSE,
-  min_cores = 4
+  phys = TRUE,
+  min_cores = 4,
+  BPPARAM = BiocParallel::SerialParam()
 )
 ```
 
@@ -47,7 +48,8 @@ gxeQTL(
 
   List of normalized count matrices (objects), or character paths to the
   file. One matrix per tissue. The order *must match* the tissue order
-  in `genoprobs`.
+  in `genoprobs`. These *cannot* be rankZ transformed phenotypes, but
+  they should be normalized and not raw.
 
 - covar_factors:
 
@@ -119,15 +121,19 @@ gxeQTL(
   String indicating your exposed/treated samples (ex: "trt" or "treated"
   or "\<your_treatment_here\>").
 
-- rz:
+- phys:
 
-  Logical. Set to `TRUE` if expression data is already
-  rankZ-transformed. Default is `FALSE`.
+  Logical. if `TRUE`, use the physical map for peak calling; otherwise
+  use the genomic map. Default is `TRUE`.
 
 - min_cores:
 
   Numeric. The minimum number of cores to be used in each process for
   mapping.
+
+- BPPARAM:
+
+  BiocParallel Parameter
 
 ## Value
 

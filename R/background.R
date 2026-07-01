@@ -1,8 +1,7 @@
 #' Background functions for QTLretrievR that will be called by the primary functions
-#' @importFrom foreach foreach %dopar%
 #' @importFrom dplyr rename select arrange
 #' @importFrom DT datatable
-#' @importFrom doParallel registerDoParallel
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #' @importFrom stats setNames
 #' @import qtl2
 #' @importFrom intermediate mediation.scan
@@ -41,12 +40,12 @@ probs_3d_to_qtl2 <- function(probs) {
   # Convert to qtl2 genoprobs format
   # Similar to qtl2convert::probs_doqtl_to_qtl2()
   markers <- dimnames(probs)[[3]]
-  vapply(strsplit(markers, "_"), function(x) x[[1]], character(1))
+  chroms <- vapply(strsplit(markers, "_"), function(x) x[[1]], character(1))
   newprobs <- vector("list", length(uchroms))
   names(newprobs) <- uchroms
   for (chrom in uchroms) newprobs[[chrom]] <- probs[, , chroms == chrom]
   attr(newprobs, "is_x_chr") <- c(rep(FALSE, length(uchroms) - 1), TRUE)
-  attr(newprobs, "crosstype") <- "DO"
+  attr(newprobs, "crosstype") <- "do"
   attr(newprobs, "alleles") <- c("A", "B", "C", "D", "E", "F", "G", "H")
   attr(newprobs, "alleleprobs") <- TRUE
   class(newprobs) <- c("calc_genoprob", "list")
@@ -78,63 +77,6 @@ standardize <- function(expr, details, tissues = c()) {
   return(std)
 }
 
-batchmediate <- function(n, z_thres = -2, pos_thres = 10, QTL.peaks, med_annot,
-                         QTL.mediator, targ_covar, QTL.target, probs, ...) {
-  message("mediating the mediation of mediators")
-  med.scan <- list()
-
-  start <- ss[n] + 1
-  end <- ss[n + 1]
-  lod.peaks <- QTL.peaks[start:end, ]
-  cat(sprintf("batch %d: %d-%d\n", n, start, end))
-
-  for (i in seq_along(lod.peaks)) {
-    marker <- map_dat2 |>
-      dplyr::mutate(pos = as.numeric(pos_bp)) |>
-      dplyr::filter(abs(pos - lod.peaks$peak_bp[i]) ==
-                      min(abs(pos - lod.peaks$peak_bp[i])))
-    qtl.chr <- marker$chr
-    qtl.pos <- marker$pos_bp / 1e06
-    annot <- med_annot |> mutate(middle_point = pos)
-    geno <- qtl2::pull_genoprobpos(probs, marker$marker)
-    geno <- geno[rownames(geno) %in% rownames(QTL.target), ]
-    target <- lod.peaks$phenotype[i]
-
-    med <- intermediate::mediation.scan(
-      target = QTL.target[, target, drop = FALSE],
-      mediator = QTL.mediator,
-      annotation = annot,
-      qtl.geno = geno,
-      covar = targ_covar,
-      verbose = FALSE,
-      method = "double-lod-diff"
-    )
-
-    med <- med |>
-      mutate(
-        target_id = lod.peaks$phenotype[i],
-        qtl_lod = lod.peaks$lod[i],
-        qtl_chr = lod.peaks$peak_chr[i]
-      ) |>
-      select(
-        target_id,
-        qtl_lod,
-        qtl_chr,
-        mediator = symbol,
-        mediator_id,
-        mediator_chr = chr,
-        mediator_midpoint = middle_point,
-        LOD
-      )
-
-    med.scan[[i]] <- med
-
-    print(i)
-  }
-
-  return(med.scan)
-}
-
 subset_probs <- function(this_probs, this_chrom, this_markers) {
   att <- attributes(this_probs)
   att$names <- this_chrom
@@ -148,21 +90,48 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
+peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, xcovar, tissue, gmap,
                      thrA = 5, thrX = 5, n.cores = 4, phys) {
+
   # message("Started mapping")
   # message(timestamp())
   start <- ss[i] + 1
   end <- ss[i + 1]
-  out <- qtl2::scan1(
-    genoprobs,
-    exprZ[,start:end,drop=F],
-    kinship_loco,
-    addcovar = covar[, , drop = FALSE],
-    cores = n.cores
-  )
+  # out <- qtl2::scan1(
+  #   genoprobs,
+  #   exprZ[,start:end,drop=F],
+  #   kinship_loco,
+  #   addcovar = covar[, , drop = FALSE],
+  #   cores = n.cores
+  # )
+
+  # return(tibble::lst(genoprobs, exprZ, kinship_loco, covar))
+
+  # message(sprintf("Running batch %d: cols %d-%d with %d cores", i, start, end, n.cores))
+  # message(timestamp())
+
+  out <- tryCatch({
+    qtl2::scan1(
+      genoprobs,
+      exprZ[, start:end, drop = FALSE],
+      kinship_loco,
+      addcovar = covar[, , drop = FALSE],
+      Xcovar = xcovar[, , drop = FALSE],
+      cores = n.cores
+    )
+  }, error = function(e) {
+    message("ERROR in batch: ", i)
+    message("Slice: ", start, "-", end)
+    message("Expr dims: ", paste(dim(exprZ[, start:end, drop=FALSE]), collapse=" x "))
+    message("Any NA in expr: ", any(is.na(exprZ[, start:end])))
+    message("Covar dims: ", paste(dim(covar), collapse=" x "))
+    message("Xcovar dims: ", if (!is.null(xcovar)) paste(dim(xcovar), collapse=" x ") else "NULL")
+    stop(e)
+  })
+
   # message("Finished mapping")
   # message(timestamp())
+
   peaks <- qtl2::find_peaks(scan1_output = out,
                             map          = gmap,
                             prob         = 0.95,
@@ -183,7 +152,9 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
-                       covar_list, gmap, thrA, thrX, cores, phys, min_cores = 4) {
+                       covar_list, xcovar_list, gmap, thrA, thrX, BPPARAM, phys, min_cores = 4) {
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
 
   num.batches <- max(c(round(ncol(exprZ_list[[tissue]])/1000), 2))
   nn <- ncol(exprZ_list[[tissue]])
@@ -191,17 +162,17 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
 
   # Calculate the maximum number of concurrent batches
   # Each batch should at least have 4 cores.
-  max_concurrent_batches <- max(1, floor(cores / min_cores) )
+  max_concurrent_batches <- max(1, floor(workers / min_cores) )
   # if the #of batches > max_concurrent_batches adjust the cores
   if( num.batches > max_concurrent_batches){
     # Adjust the number of cores to use based on concurrency limit
-    cores_to_use <- min(cores, max_concurrent_batches * min_cores)
+    cores_to_use <- min(workers, max_concurrent_batches * min_cores)
     # get the cores to use per batch, minimum 4
     cores_per_batch <- max(min_cores,
                            floor(cores_to_use/max_concurrent_batches))
   } else{
     # can use all the cores
-    cores_to_use <- cores
+    cores_to_use <- workers
     # get the cores to use per batch
     cores_per_batch <- floor(cores_to_use/num.batches)
   }
@@ -214,72 +185,71 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
     current_batches <- i:min(i + max_concurrent_batches - 1, num.batches)
 
     # Run the current batch of tasks in parallel
-    current_results <- foreach::foreach( i = current_batches)  %dopar% {
-      peak_fun(i,
-               ss,
-               exprZ_list[[tissue]],
-               kinship_loco[[tissue]],
-               qtlprobs[[tissue]],
-               covar_list[[tissue]],
-               tissue = tissue,
-               gmap = gmap,
-               thrA = thrA,
-               thrX = thrX,
-               n.cores = cores_per_batch,
-               phys)
-    }
+
+    current_results <- BiocParallel::bplapply(current_batches,
+                                              FUN = peak_fun,
+                                              ss = ss,
+                                              exprZ = exprZ_list[[tissue]],
+                                              kinship_loco = kinship_loco[[tissue]],
+                                              genoprobs = qtlprobs[[tissue]],
+                                              covar = covar_list[[tissue]],
+                                              xcovar = xcovar_list[[tissue]],
+                                              tissue = tissue,
+                                              gmap = gmap,
+                                              thrA = thrA,
+                                              thrX = thrX,
+                                              n.cores = cores_per_batch,
+                                              phys = phys,
+                                              BPPARAM = BPPARAM)
 
     # Append the current results to the overall results
     all_results <- c(all_results, current_results)
   }
 
 
-  peaks <- do.call("rbind", all_results)
 
-  # message(paste0(colnames(peaks), sep = " "))
+  peaks <- do.call("rbind", all_results)
 
   tissue_peaks2 <- tibble::lst(tissue, peaks)
 
   return(tissue_peaks2)
-
 }
 
-
+## Changes to this function made by Sam Widmayer (sam-widmayer)
 get_cores <- function(){
-  if (Sys.getenv("SLURM_NTASKS") != "" &&
-      Sys.getenv("SLURM_CPUS_PER_TASK") != "") {
-    # Get the number of tasks and the number of CPUs per task
-    num_tasks <- as.numeric(Sys.getenv("SLURM_NTASKS"))
-    cpus_per_task <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK"))
+  ntasks        <- Sys.getenv("SLURM_NTASKS")
+  cpus_per_task <- Sys.getenv("SLURM_CPUS_PER_TASK")
+  job_cpus      <- Sys.getenv("SLURM_JOB_CPUS_PER_NODE")
 
-    # Calculate total number of cores
-    num_cores <- num_tasks * cpus_per_task
-    message(paste0("SLURM job detected, using ", num_cores,
-                   " cores (", num_tasks, " tasks, ", cpus_per_task,
-                   " cores per task)."))
-
-  }
-  else {
-    # get the total number of cores that are available for each OS
-    if (Sys.info()['sysname'] == "Windows") {
-      num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
-      message(paste0("Working in Windows and there are ", num_cores,
-                     " cores in total."))
-    }
-    else if (Sys.info()['sysname'] == "Linux"){
-      num_cores <- as.numeric(system("nproc", intern = TRUE))
-      message(paste0("Working in Linux and there are ", num_cores,
-                     " cores in total."))
-    }
-    else if(Sys.info()['sysname'] == "Darwin" ){
-      num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
-      message(paste0("Working in MacOS and there are ", num_cores,
-                     " cores in total."))
-    }
-    else{
-      num_cores <- 1
-      message(paste0("Unknown OS using only 1 core."))
-    }
+  if (ntasks != "" && cpus_per_task != "") {
+    num_cores <- as.numeric(ntasks) * as.numeric(cpus_per_task)
+    message(paste0("SLURM job detected (ntasks * cpus-per-task), using ",
+                   num_cores, " cores."))
+  } else if (cpus_per_task != "") {
+    # Most common SLURM case: --cpus-per-task without explicit --ntasks
+    num_cores <- as.numeric(cpus_per_task)
+    message(paste0("SLURM job detected (cpus-per-task), using ",
+                   num_cores, " cores."))
+  } else if (job_cpus != "") {
+    # SLURM_JOB_CPUS_PER_NODE can be formatted as "16(x2)" — take the number
+    num_cores <- as.numeric(gsub("\\(.*", "", job_cpus))
+    message(paste0("SLURM job detected (job-cpus-per-node), using ",
+                   num_cores, " cores."))
+  } else if (Sys.info()['sysname'] == "Windows") {
+    num_cores <- as.numeric(Sys.getenv("NUMBER_OF_PROCESSORS"))
+    message(paste0("Working in Windows and there are ", num_cores,
+                   " cores in total."))
+  } else if (Sys.info()['sysname'] == "Linux") {
+    num_cores <- as.numeric(system("nproc", intern = TRUE))
+    message(paste0("Working in Linux and there are ", num_cores,
+                   " cores in total."))
+  } else if (Sys.info()['sysname'] == "Darwin") {
+    num_cores <- as.numeric(system("sysctl -n hw.ncpu", intern = TRUE))
+    message(paste0("Working in MacOS and there are ", num_cores,
+                   " cores in total."))
+  } else {
+    num_cores <- 1
+    message("Unknown OS, using only 1 core.")
   }
   return(num_cores)
 }
@@ -300,8 +270,7 @@ filter_peaks <- function(peaks_df, bands_df) {
 ## This is essentially the same as qtl2convert::cbind_smother with one
 ## difference to fix an issue with replacement
 
-cbind_smother_fix <-
-  function(mat1, mat2)
+cbind_smother_fix <- function(mat1, mat2)
   {
     cn1 <- colnames(mat1)
     cn2 <- colnames(mat2)

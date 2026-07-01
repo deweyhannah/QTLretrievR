@@ -19,7 +19,7 @@
 #' @param thrA Minimum reported LOD threshold for autosomes. Default is 5.
 #' @param thrX Minimum reported LOD threshold for X chromosome. Default is 5.
 #' @param gridFile Genome Grid. Path to location or object. Defaults to
-#' 75k grid loaded with package.
+#'  75k grid loaded with package.
 #' @param localRange Definition of "local" in bp. Default is 2e6.
 #' @param outdir Directory to save output files. Default is `NULL`.
 #' @param peaks_out String indicating the name for output peaks file. This file
@@ -36,9 +36,12 @@
 #'  `c("sr", "so", "ro")`; save & return, save only, return only.
 #'   Default is "sr".
 #' @param rz Logical. Set to `TRUE` if expression data is already
-#' rankZ-transformed. Default is `FALSE`.
+#'  rankZ-transformed. Default is `FALSE`.
 #' @param phys Logical. if `TRUE`, use the physical map for peak calling;
-#' otherwise use the genomic map. Default is `TRUE`.
+#'  otherwise use the genomic map. Default is `TRUE`.
+#' @param BPPARAM BiocParallel Parameter
+#' @param min_cores Minimum number of cores to use for phenotype parallelization.
+#'  Default is 4.
 #'
 #'
 #' @return A list containing:
@@ -68,14 +71,32 @@
 #' @importFrom tibble as_tibble remove_rownames column_to_rownames lst
 #' @importFrom utils read.delim
 #' @importFrom stats model.matrix formula
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #'
 mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    thrX = 5, gridFile = gridfile, localRange = 2e6,
                    outdir = NULL, peaks_out = "peaks.rds", map_out = "map.rds",
                    annots = NULL, total_cores = NULL, save = "sr",
-                   rz = FALSE, phys = TRUE, ...) {
+                   rz = FALSE, phys = TRUE, BPPARAM = BiocParallel::SerialParam(),
+                   xcov = TRUE, x_factor = "sex", min_cores = 4) {
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::SnowParam(workers = workers, type = "SOCK")
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- BiocParallel::SnowParam(workers = total_cores, type = "SOCK")
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
+
+  if (xcov) {
+    message(paste0("Correcting X Chromosome Mapping with ", x_factor))
+  } else {
+    x_factor <- NULL
+  }
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -105,13 +126,6 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
            id, symbol, chr, start, end. Please check annotations to include all
            these columns, or run mapQTL without annotations.")
     }
-  }
-
-  opt_args <- list(...)
-  if("min_cores" %notin% names(opt_args)) {
-    min_cores <- 4
-  } else {
-    min_cores <- opt_args$min_cores
   }
 
   # message(paste0("passing ", min_cores, " to each scan1 process. If this doesn't look right, please check your inputs."))
@@ -229,7 +243,12 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     stop("Chosen factors are not in sample metadata. Please check factors and
          sample metadata for missing or misspelled elements")
   }
-  for (fact in covar_factors) {
+  if (xcov & (x_factor %notin% colnames(sample_details))) {
+    stop(paste0(x_factor, " not found in sample metadata. Please check that ",
+                x_factor, " is a valid column in metadata, or correct the `x_factor`
+                to be the variable representing 'sex'."))
+  }
+  for (fact in unique(c(covar_factors, x_factor))) {
     sample_details[, fact] <- as.factor(sample_details[[fact]])
   }
 
@@ -262,6 +281,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   message("rankZ normalized")
 
   ## Calculate covariate matrices
+
   covar_list <- list()
 
   if (is.list(covar_factors)) {
@@ -289,9 +309,38 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     }
   }
 
+  ## Xcovar
+  xcovar_list <- list()
+  for (tissue in names(tissue_samp)) {
+    xcovar_list[[tissue]] <- model.matrix(
+      formula(paste0("~", x_factor)),
+      data = tissue_samp[[tissue]]
+    )
+    rownames(xcovar_list[[tissue]]) <- tissue_samp[[tissue]]$ID
+
+    # Drop intercept
+    xcovar_list[[tissue]] <- xcovar_list[[tissue]][,
+                                                   colnames(xcovar_list[[tissue]]) != "(Intercept)", drop = FALSE]
+
+    # Simplify column name if binary (same pattern as covar_list)
+    if (length(levels(tissue_samp[[tissue]][, x_factor])) == 2) {
+      colnames(xcovar_list[[tissue]])[grepl(
+        x_factor, colnames(xcovar_list[[tissue]]))] <- x_factor
+    }
+  }
+
+
   message("covariates calculated")
 
-  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list,
+  for (t in names(exprZ_list)) {
+    samp_order <- rownames(exprZ_list[[t]])
+    qtlprobs[[t]] <- qtlprobs[[t]][samp_order, ]
+    exprZ_list[[t]] <- exprZ_list[[t]][samp_order, , drop = F]
+    covar_list[[t]] <- covar_list[[t]][samp_order, , drop = F]
+    xcovar_list[[t]] <- xcovar_list[[t]][samp_order, , drop = F]
+  }
+
+  maps_list <- tibble::lst(qtlprobs, covar_list, xcovar_list, expr_list, exprZ_list,
                            kinship_loco, gmap, map_dat2, pmap, tissue_samp)
 
   if(save %in% c("sr","so")) {
@@ -305,49 +354,39 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   peaks_list <- list()
 
-  available_cores <- get_cores()
-  if( is.null(total_cores)) total_cores <- available_cores
-  if( total_cores > available_cores) total_cores <- available_cores
+  # available_cores <- get_cores()
+  # if( is.null(total_cores)) total_cores <- available_cores
+  # if( total_cores > available_cores) total_cores <- available_cores
   max_genes <- max(vapply(exprZ_list, ncol, integer(1)))
   num_tissues <-  length(names(exprZ_list))
-  if( max_genes < 1000){
-    cores_needed <- 8 # Limiting # of cores if there are <1000 genes in total
-  }else{
-    cores_needed <- total_cores
-  }
+  # if( max_genes < 1000){
+  #   cores_needed <- 8 # Limiting # of cores if there are <1000 genes in total
+  # }else{
+  #   cores_needed <- workers
+  # }
 
   if (phys) {
     map <- pmap
   } else {
     map <- gmap
   }
+  min_cores <- min(min_cores,workers)
 
-  doParallel::registerDoParallel(cores = min(total_cores, cores_needed))
-
-  ## Divide available cores evenly across tissues for parallel peak calling
-  each_tissue <- floor(  min(total_cores, cores_needed) / num_tissues )
-
-  message(paste0("Registering ", min(total_cores, cores_needed),
-                 " cores and passing ", each_tissue ," cores per tissue to ",
-                 num_tissues ," tissue(s). Does that look right? If not please
-                 set total_cores parameter to the number of available cores."))
-
-  peak_tmp <- foreach::foreach(tissue = names(exprZ_list)) %dopar% {
+  peak_tmp <- lapply(names(exprZ_list), function(tissue) {
     batch_wrap(
-      tissue,
-      exprZ_list,
-      kinship_loco,
-      qtlprobs,
-      covar_list,
-      map,
-      thrA,
-      thrX,
-      each_tissue,
-      phys,
-      min_cores
-    )
-  }
-  doParallel::stopImplicitCluster()
+      tissue = tissue,
+      exprZ_list = exprZ_list,
+      kinship_loco = kinship_loco,
+      qtlprobs = qtlprobs,
+      covar_list = covar_list,
+      xcovar_list = xcovar_list,
+      gmap = map,
+      thrA = thrA,
+      thrX = thrX,
+      BPPARAM = BPPARAM,
+      phys = phys,
+      min_cores = min_cores)
+  })
 
   for (i in seq_len(length(peak_tmp))) {
     tissue <- peak_tmp[[i]]$tissue

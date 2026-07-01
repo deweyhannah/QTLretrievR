@@ -13,7 +13,7 @@ data and covariates."><meta property="og:image" content="https://deweyhannah.git
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,8 +73,9 @@ data and covariates.</p>
 <span>  delta <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">ctrl</span>,</span>
 <span>  <span class="va">env</span>,</span>
-<span>  rz <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  min_cores <span class="op">=</span> <span class="fl">4</span></span>
+<span>  phys <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  min_cores <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">SerialParam</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,7 +96,8 @@ the object itself.</p></dd>
 <dt id="arg-expr-mats">expr_mats<a class="anchor" aria-label="anchor" href="#arg-expr-mats"></a></dt>
 <dd><p>List of normalized count matrices (objects), or character
 paths to the file. One matrix per tissue. The order <em>must match</em> the
-tissue order in <code>genoprobs</code>.</p></dd>
+tissue order in <code>genoprobs</code>. These <em>cannot</em> be rankZ transformed phenotypes,
+but they should be normalized and not raw.</p></dd>
 
 
 <dt id="arg-covar-factors">covar_factors<a class="anchor" aria-label="anchor" href="#arg-covar-factors"></a></dt>
@@ -168,14 +170,18 @@ should be used. Default is <code>FALSE</code>.</p></dd>
 (ex: "trt" or "treated" or "&lt;your_treatment_here&gt;").</p></dd>
 
 
-<dt id="arg-rz">rz<a class="anchor" aria-label="anchor" href="#arg-rz"></a></dt>
-<dd><p>Logical. Set to <code>TRUE</code> if expression data is already
-rankZ-transformed. Default is <code>FALSE</code>.</p></dd>
+<dt id="arg-phys">phys<a class="anchor" aria-label="anchor" href="#arg-phys"></a></dt>
+<dd><p>Logical. if <code>TRUE</code>, use the physical map for peak calling;
+otherwise use the genomic map. Default is <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-min-cores">min_cores<a class="anchor" aria-label="anchor" href="#arg-min-cores"></a></dt>
 <dd><p>Numeric. The minimum number of cores to be used in each
 process for mapping.</p></dd>
+
+
+<dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
+<dd><p>BiocParallel Parameter</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -14,6 +14,9 @@
 #' @param n.gene Number of phenotypes to run permutations on. Default is 75.
 #' @param n.perm Number of permutations to run per phenotype.  Default is 750.
 #' @param batch.size Number of genes in each parallelized batch.
+#' @param BPPARAM BiocParallel Parameter
+#' @param total_cores Total number of cores available for parallelization (if `BPPARAM`
+#' is set to serial, then this will just be for passing to `qtl2`)
 #'
 #' @return A list containing:
 #' \describe{
@@ -28,14 +31,26 @@
 #' @export
 #'
 #' @importFrom qtl2 scan1perm
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
+#' @importFrom BiocParallel SerialParam MulticoreParam bpnworkers
 #' @importFrom dplyr filter select slice_sample
 #' @importFrom tibble lst
 #'
 LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 75, n.perm = 750,
-                     batch.size = 5) {
-  ## Check that mapping object is valid
+                     batch.size = 5, BPPARAM = BiocParallel::SerialParam(), total_cores = NULL) {
+
+  if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
+    message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
+    n_cores <- get_cores()
+    workers <- max(1, n_cores - 1)
+    BPPARAM <- BiocParallel::SnowParam(workers = workers, type = "SOCK")
+  }
+  if (!is.null(total_cores)) {
+    BPPARAM <- BiocParallel::SnowParam(workers = total_cores, type = "SOCK")
+  }
+
+  workers <- BiocParallel::bpnworkers(BPPARAM)
+
+  # Check that mapping object is valid
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
@@ -59,17 +74,11 @@ LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 75, n.perm = 750,
   rm(mapping)
 
   ## Parallelization calculations
-  tot_cores <- get_cores()
+  # tot_cores <- get_cores()
 
   num_batches <- ceiling(n.gene / batch.size)
 
-  cores_per_batch <- min(8, floor(tot_cores / num_batches))
-
-  if (tot_cores <= 8 * num_batches) {
-    reg_cores <- tot_cores
-  } else {
-    reg_cores <- 8 * num_batches
-  }
+  cores_per_batch <- min(8, floor(workers / num_batches))
 
   ## Prepare for permutation calculations
   if (!is.null(annots)) {
@@ -92,16 +101,21 @@ LOD_thld <- function(mapping, tissue, annots = NULL, n.gene = 75, n.perm = 750,
                  num_batches, " batches."))
 
   ## Run permutation calculations
-  doParallel::registerDoParallel(cores = reg_cores)
-  perms_out2 <- foreach::foreach(gene = batch_genes) %dopar% {
-    qtl2::scan1perm(genoprobs = qtlprobs[[tissue]],
-                    pheno     = exprZ_list[[tissue]][, gene],
-                    kinship   = kinship_loco[[tissue]],
-                    addcovar  = covar_list[[tissue]],
-                    n_perm    = n.perm,
-                    cores     = cores_per_batch)
-  }
-  doParallel::stopImplicitCluster()
+
+
+  perms_out2 <- BiocParallel::bplapply(batch_genes, FUN = function(gene) {
+      qtl2::scan1perm(
+        genoprobs = qtlprobs[[tissue]],
+        pheno     = exprZ_list[[tissue]][, gene, drop = FALSE],
+        kinship   = kinship_loco[[tissue]],
+        addcovar  = covar_list[[tissue]],
+        n_perm    = n.perm,
+        cores     = cores_per_batch
+      )
+    },
+    BPPARAM = BPPARAM
+  )
+
 
   ## Prepare data for return
   perms_df <- do.call(cbind, perms_out2)

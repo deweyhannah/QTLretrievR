@@ -14,7 +14,8 @@ modiFinder(
   total_cores = NULL,
   save = "sr",
   distOnly = TRUE,
-  hsOnly = FALSE
+  hsOnly = FALSE,
+  BPPARAM = BiocParallel::SerialParam()
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ Default is "sr".}
 
 \item{hsOnly}{Logical. Mediate only on peaks identified within a hotspot.
 Default is \code{FALSE}.}
+
+\item{BPPARAM}{BiocParallel Parameter}
 }
 \value{
 A list containing mediation results for each tissue

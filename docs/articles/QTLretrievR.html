@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -125,6 +125,8 @@ than expression matrices. Are you missing any expression inputs?”</p>
 <span><span class="co">## Using internal data for expr, gridFile, metadata, annots</span></span>
 <span><span class="co">## Unevaluated Code Chunk</span></span>
 <span></span>
+<span><span class="va">param</span> <span class="op">&lt;-</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SnowParam-class.html" class="external-link">SnowParam</a></span><span class="op">(</span>workers <span class="op">=</span> <span class="fl">12</span>, type <span class="op">=</span> <span class="st">"SOCK"</span>, stop.on.error <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">qtl_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/runQTL.html">runQTL</a></span><span class="op">(</span>outdir <span class="op">=</span> <span class="st">"../../vignette/"</span>, </span>
 <span>                  gbrs_fileLoc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"mESC"</span> <span class="op">=</span> <span class="va">demo_probs</span><span class="op">)</span>,</span>
 <span>                  geno_out <span class="op">=</span> <span class="st">"mESC_mm10_probs.rds"</span>, </span>
@@ -138,7 +140,8 @@ than expression matrices. Are you missing any expression inputs?”</p>
 <span>                  covar_factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span>
 <span>                  metadata <span class="op">=</span> <span class="va">demo_meta</span>, </span>
 <span>                  annots <span class="op">=</span> <span class="va">demo_annot</span>, </span>
-<span>                  save_t <span class="op">=</span> <span class="st">"ro"</span><span class="op">)</span></span></code></pre></div>
+<span>                  save_t <span class="op">=</span> <span class="st">"ro"</span>,</span>
+<span>                  BPPARAM <span class="op">=</span> <span class="va">param</span><span class="op">)</span></span></code></pre></div>
 <p>This can be alternatively submitted as follows:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="do">## Unevaluated Code Chunk</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
@@ -155,8 +158,8 @@ than expression matrices. Are you missing any expression inputs?”</p>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>                  <span class="at">covar_factors =</span> <span class="fu">c</span>(<span class="st">"Covariates"</span>),</span>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>                  <span class="at">metadata =</span> <span class="sc">&lt;</span>path<span class="sc">/</span>to<span class="sc">/</span>sample<span class="sc">/</span>metadata<span class="sc">&gt;</span>, </span>
 <span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>                  <span class="at">annots =</span> <span class="sc">&lt;</span>path<span class="sc">/</span>to<span class="sc">/</span>annotations<span class="sc">&gt;</span>, </span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                  <span class="at">save =</span> <span class="st">"ro"</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>                  )</span></code></pre></div>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>                  <span class="at">save =</span> <span class="st">"ro"</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>                  <span class="at">BPPARAM =</span> param)</span></code></pre></div>
 <p>This returns the mapping object, original peaks object, mediation
 object, and effects object. The peaks, effects and mediation objects can
 be used for additional plotting and analysis.</p>
@@ -393,7 +396,8 @@ calling using <code><a href="https://rdrr.io/pkg/qtl2/man/scan1.html" class="ext
 <span>                    covar_factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span>
 <span>                    gridFile      <span class="op">=</span> <span class="va">gridfile</span>, </span>
 <span>                    annots        <span class="op">=</span> <span class="va">demo_annot</span>,                  <span class="co"># See the Annotations section above for notes on this</span></span>
-<span>                    save          <span class="op">=</span> <span class="st">"ro"</span><span class="op">)</span>                        <span class="co"># return only - other options are "so" (save only) and "sr" (save and return)</span></span>
+<span>                    save          <span class="op">=</span> <span class="st">"ro"</span>,                        <span class="co"># return only - other options are "so" (save only) and "sr" (save and return)</span></span>
+<span>                    BPPARAM       <span class="op">=</span> <span class="va">param</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">## Passing file locations</span></span>
 <span><span class="va">map_peaks</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mapQTL.html">mapQTL</a></span><span class="op">(</span>outdir        <span class="op">=</span> <span class="st">"../../vignette/"</span>, </span>
@@ -405,7 +409,8 @@ calling using <code><a href="https://rdrr.io/pkg/qtl2/man/scan1.html" class="ext
 <span>                    covar_factors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span><span class="op">)</span>,</span>
 <span>                    gridFile      <span class="op">=</span> <span class="st">"path/to/custom/grid"</span>,</span>
 <span>                    annots        <span class="op">=</span> <span class="st">"path/to/annotations"</span>,</span>
-<span>                    save          <span class="op">=</span> <span class="st">"ro"</span><span class="op">)</span></span></code></pre></div>
+<span>                    save          <span class="op">=</span> <span class="st">"ro"</span>,</span>
+<span>                    BPPARAM       <span class="op">=</span> <span class="va">param</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="mediation">Mediation<a class="anchor" aria-label="anchor" href="#mediation"></a>
@@ -417,13 +422,14 @@ above a suggestive LOD. This is done using
 <code><a href="https://rdrr.io/pkg/intermediate/man/mediation.scan.html" class="external-link">intermediate::mediation.scan</a></code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Unevaluated Code Chunk</span></span>
-<span><span class="va">med_res</span> <span class="op">&lt;-</span> <span class="fu">run_mediate</span><span class="op">(</span>peaks   <span class="op">=</span> <span class="va">map_peaks</span><span class="op">$</span><span class="va">peaks_list</span>, </span>
-<span>                       mapping <span class="op">=</span> <span class="va">map_peaks</span><span class="op">$</span><span class="va">maps_list</span>,</span>
-<span>                       outdir  <span class="op">=</span> <span class="st">"../../vignette"</span>, </span>
-<span>                       annots  <span class="op">=</span> <span class="va">demo_annot</span>,</span>
-<span>                       suggLOD <span class="op">=</span> <span class="fl">7</span>, </span>
-<span>                       med_out <span class="op">=</span> <span class="st">"mm39_mediation.rds"</span>, </span>
-<span>                       save    <span class="op">=</span> <span class="st">"ro"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">med_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/modiFinder.html">modiFinder</a></span><span class="op">(</span>peaks   <span class="op">=</span> <span class="va">map_peaks</span><span class="op">$</span><span class="va">peaks_list</span>, </span>
+<span>                      mapping <span class="op">=</span> <span class="va">map_peaks</span><span class="op">$</span><span class="va">maps_list</span>,</span>
+<span>                      outdir  <span class="op">=</span> <span class="st">"../../vignette"</span>, </span>
+<span>                      annots  <span class="op">=</span> <span class="va">demo_annot</span>,</span>
+<span>                      suggLOD <span class="op">=</span> <span class="fl">7</span>, </span>
+<span>                      med_out <span class="op">=</span> <span class="st">"mm39_mediation.rds"</span>, </span>
+<span>                      save    <span class="op">=</span> <span class="st">"ro"</span>,</span>
+<span>                      BPPARAM <span class="op">=</span> <span class="va">param</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="effects">Effects<a class="anchor" aria-label="anchor" href="#effects"></a>
@@ -439,26 +445,9 @@ done using <code><a href="https://rdrr.io/pkg/qtl2/man/scan1blup.html" class="ex
 <span>                       suggLOD <span class="op">=</span> <span class="fl">7</span>, </span>
 <span>                       outdir  <span class="op">=</span> <span class="st">"../../vignette"</span>, </span>
 <span>                       outfile <span class="op">=</span> <span class="st">"mm39_effects.rds"</span>, </span>
-<span>                       save    <span class="op">=</span> <span class="st">"ro"</span><span class="op">)</span></span></code></pre></div>
+<span>                       save    <span class="op">=</span> <span class="st">"ro"</span>,</span>
+<span>                       BPPARAM <span class="op">=</span> <span class="va">param</span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
-<div class="section level2">
-<h2 id="submitting-to-a-job-scheduler">Submitting to a Job Scheduler<a class="anchor" aria-label="anchor" href="#submitting-to-a-job-scheduler"></a>
-</h2>
-<p>Currently, <code>QTLretrievR</code> is set up to identify available
-cores in a linux, mac, or windows environment. It is also able to
-identify the number of cores if you are submitting a job through a SLURM
-scheduler. Just make sure to include both of the following lines in your
-<code>SBATCH</code>:</p>
-<pre><code><span><span class="co">#SBATCH --ntasks=N</span></span>
-<span><span class="co">#SBATCH --cpus-per-task=X</span></span></code></pre>
-<p>When the number of cores is calculated for parallelization purposes,
-the total number of cores that are identified are <code>N*X</code>. If
-you don’t include both, and are submitting with a SLURM scheduler, it
-may not identify the correct number of cores.</p>
-<p>If you are using any other scheduler, make sure that you specify the
-total number of cpus for the whole job. If applicable the number of
-processes should be 1.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

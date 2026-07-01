@@ -27,7 +27,7 @@ hsPeakPlot(
 \item{mapping}{Mapping list from \code{mapQTL}.}
 
 \item{feats}{List of phenotypes to include.
-Individual/Candidate Mediator Only: Local to hotspot. PC: Targets of hotspot.}
+Individual/Candidate Mediator Only: Individual phenotype. PC: Targets of hotspot.}
 
 \item{tbands}{List of transband locations (\code{bands.rna} list from
 \code{transbands} function).}

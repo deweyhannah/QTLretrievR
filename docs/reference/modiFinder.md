@@ -15,7 +15,8 @@ modiFinder(
   total_cores = NULL,
   save = "sr",
   distOnly = TRUE,
-  hsOnly = FALSE
+  hsOnly = FALSE,
+  BPPARAM = BiocParallel::SerialParam()
 )
 ```
 
@@ -70,6 +71,10 @@ modiFinder(
 
   Logical. Mediate only on peaks identified within a hotspot. Default is
   `FALSE`.
+
+- BPPARAM:
+
+  BiocParallel Parameter
 
 ## Value
 

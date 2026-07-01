@@ -13,7 +13,7 @@ covariates."><meta property="og:image" content="https://deweyhannah.github.io/QT
 
     <a class="navbar-brand me-2" href="../index.html">QTLretrievR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,7 +72,10 @@ covariates.</p>
 <span>  save <span class="op">=</span> <span class="st">"sr"</span>,</span>
 <span>  rz <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  phys <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  BPPARAM <span class="op">=</span> <span class="fu">BiocParallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocParallel/man/SerialParam-class.html" class="external-link">SerialParam</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  xcov <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  x_factor <span class="op">=</span> <span class="st">"sex"</span>,</span>
+<span>  min_cores <span class="op">=</span> <span class="fl">4</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -159,6 +162,15 @@ rankZ-transformed. Default is <code>FALSE</code>.</p></dd>
 <dt id="arg-phys">phys<a class="anchor" aria-label="anchor" href="#arg-phys"></a></dt>
 <dd><p>Logical. if <code>TRUE</code>, use the physical map for peak calling;
 otherwise use the genomic map. Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
+<dd><p>BiocParallel Parameter</p></dd>
+
+
+<dt id="arg-min-cores">min_cores<a class="anchor" aria-label="anchor" href="#arg-min-cores"></a></dt>
+<dd><p>Minimum number of cores to use for phenotype parallelization.
+Default is 4.</p></dd>
 
 </dl></div>
     <div class="section level2">

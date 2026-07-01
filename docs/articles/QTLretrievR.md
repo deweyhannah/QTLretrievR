@@ -52,6 +52,8 @@ than expression matrices. Are you missing any expression inputs?”
 ## Using internal data for expr, gridFile, metadata, annots
 ## Unevaluated Code Chunk
 
+param <- BiocParallel::SnowParam(workers = 12, type = "SOCK", stop.on.error = TRUE)
+
 qtl_res <- runQTL(outdir = "../../vignette/", 
                   gbrs_fileLoc = list("mESC" = demo_probs),
                   geno_out = "mESC_mm10_probs.rds", 
@@ -65,7 +67,8 @@ qtl_res <- runQTL(outdir = "../../vignette/",
                   covar_factors = c("sex"),
                   metadata = demo_meta, 
                   annots = demo_annot, 
-                  save_t = "ro")
+                  save_t = "ro",
+                  BPPARAM = param)
 ```
 
 This can be alternatively submitted as follows:
@@ -86,8 +89,8 @@ qtl_res <- runQTL(outdir = <path/to/output/dir>,
                   covar_factors = c("Covariates"),
                   metadata = <path/to/sample/metadata>, 
                   annots = <path/to/annotations>, 
-                  save = "ro"
-                  )
+                  save = "ro",
+                  BPPARAM = param)
 ```
 
 This returns the mapping object, original peaks object, mediation
@@ -331,7 +334,8 @@ map_peaks <- mapQTL(outdir        = "../../vignette/",
                     covar_factors = c("sex"),
                     gridFile      = gridfile, 
                     annots        = demo_annot,                  # See the Annotations section above for notes on this
-                    save          = "ro")                        # return only - other options are "so" (save only) and "sr" (save and return)
+                    save          = "ro",                        # return only - other options are "so" (save only) and "sr" (save and return)
+                    BPPARAM       = param)
 
 ## Passing file locations
 map_peaks <- mapQTL(outdir        = "../../vignette/", 
@@ -343,7 +347,8 @@ map_peaks <- mapQTL(outdir        = "../../vignette/",
                     covar_factors = c("sex"),
                     gridFile      = "path/to/custom/grid",
                     annots        = "path/to/annotations",
-                    save          = "ro")
+                    save          = "ro",
+                    BPPARAM       = param)
 ```
 
 ### Mediation
@@ -356,13 +361,14 @@ above a suggestive LOD. This is done using
 
 ``` r
 ## Unevaluated Code Chunk
-med_res <- run_mediate(peaks   = map_peaks$peaks_list, 
-                       mapping = map_peaks$maps_list,
-                       outdir  = "../../vignette", 
-                       annots  = demo_annot,
-                       suggLOD = 7, 
-                       med_out = "mm39_mediation.rds", 
-                       save    = "ro")
+med_res <- modiFinder(peaks   = map_peaks$peaks_list, 
+                      mapping = map_peaks$maps_list,
+                      outdir  = "../../vignette", 
+                      annots  = demo_annot,
+                      suggLOD = 7, 
+                      med_out = "mm39_mediation.rds", 
+                      save    = "ro",
+                      BPPARAM = param)
 ```
 
 ### Effects
@@ -379,24 +385,6 @@ effects <- qtl_effects(mapping = map_peaks$maps_list,
                        suggLOD = 7, 
                        outdir  = "../../vignette", 
                        outfile = "mm39_effects.rds", 
-                       save    = "ro")
+                       save    = "ro",
+                       BPPARAM = param)
 ```
-
-## Submitting to a Job Scheduler
-
-Currently, `QTLretrievR` is set up to identify available cores in a
-linux, mac, or windows environment. It is also able to identify the
-number of cores if you are submitting a job through a SLURM scheduler.
-Just make sure to include both of the following lines in your `SBATCH`:
-
-    #SBATCH --ntasks=N
-    #SBATCH --cpus-per-task=X
-
-When the number of cores is calculated for parallelization purposes, the
-total number of cores that are identified are `N*X`. If you don’t
-include both, and are submitting with a SLURM scheduler, it may not
-identify the correct number of cores.
-
-If you are using any other scheduler, make sure that you specify the
-total number of cpus for the whole job. If applicable the number of
-processes should be 1.

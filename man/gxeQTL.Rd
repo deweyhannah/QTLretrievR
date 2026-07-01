@@ -22,8 +22,9 @@ gxeQTL(
   delta = FALSE,
   ctrl,
   env,
-  rz = FALSE,
-  min_cores = 4
+  phys = TRUE,
+  min_cores = 4,
+  BPPARAM = BiocParallel::SerialParam()
 )
 }
 \arguments{
@@ -35,7 +36,8 @@ the object itself.}
 
 \item{expr_mats}{List of normalized count matrices (objects), or character
 paths to the file. One matrix per tissue. The order \emph{must match} the
-tissue order in \code{genoprobs}.}
+tissue order in \code{genoprobs}. These \emph{cannot} be rankZ transformed phenotypes,
+but they should be normalized and not raw.}
 
 \item{covar_factors}{Additive covariate factors. These need to be columns
 in the factor metadata.}
@@ -79,11 +81,13 @@ should be used. Default is \code{FALSE}.}
 \item{env}{String indicating your exposed/treated samples
 (ex: "trt" or "treated" or "<your_treatment_here>").}
 
-\item{rz}{Logical. Set to \code{TRUE} if expression data is already
-rankZ-transformed. Default is \code{FALSE}.}
+\item{phys}{Logical. if \code{TRUE}, use the physical map for peak calling;
+otherwise use the genomic map. Default is \code{TRUE}.}
 
 \item{min_cores}{Numeric. The minimum number of cores to be used in each
 process for mapping.}
+
+\item{BPPARAM}{BiocParallel Parameter}
 }
 \value{
 A list containing:
