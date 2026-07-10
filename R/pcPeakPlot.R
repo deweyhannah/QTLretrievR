@@ -169,7 +169,8 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
         kinship   = mapping$kinship_loco[[tissue]][[as.character(chromosome)]],
         addcovar  = mapping$covar_list[[tissue]],
         cores     = cores_use)
-      effects_out <- rbind(effects_med, effects_pc)
+      # effects_out <- rbind(effects_med, effects_pc)
+      effects_out <- list(med = effects_med, pc = effects_pc)
     } else {
       effects_out <- qtl2::scan1blup(
         pheno     = feat_rz[, medID],
@@ -362,9 +363,19 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
       dplyr::ungroup()
 
     # Extract effects at each phenotype's peak marker
-    effects_out <- do.call(rbind, lapply(seq_len(nrow(peaks)), function(i) {
-      effects_out[peaks$marker[i], , drop = FALSE]
-    }))
+    # effects_out <- do.call(rbind, lapply(seq_len(nrow(peaks)), function(i) {
+    #   effects_out[peaks$marker[i], , drop = FALSE]
+    # }))
+    if (pc & !is.null(candidateMed)) {
+      effects_out <- do.call(rbind, lapply(seq_len(nrow(peaks)), function(i) {
+        src <- if (peaks$phenotype[i] == "PC1") effects_out$pc else effects_out$med
+        src[peaks$marker[i], , drop = FALSE]
+      }))
+    } else {
+      effects_out <- do.call(rbind, lapply(seq_len(nrow(peaks)), function(i) {
+        effects_out[peaks$marker[i], , drop = FALSE]
+      }))
+    }
 
     effects <- tibble::lst(peaks = setNames(list(peaks), tissue),
                            effects_blup = setNames(list(effects_out), tissue))
