@@ -153,7 +153,7 @@ hsHapEffects <- function(effects, tbands, chromosome, tissue, sigLOD, hsNum = 1,
   }
   if (vert) {
     col_annot <- ComplexHeatmap::columnAnnotation(df = data.frame(Founders = founders),
-                                               col = list(Founders = palette))
+                                               col = list(Founders = setNames(palette, founders)))
     hs_mat <- t(hs_mat)
     ht <- ComplexHeatmap::Heatmap(hs_mat,
                                   col = palette_to_use,

@@ -7,11 +7,17 @@
 #'  Default is 7.5
 #' @param suggLOD Suggestive LOD threshold to use for filtering phenotypes.
 #' Default is 6.
+#' @param sigX Significant LOD threshold for filtering X chromosome phenotypes
+#'  separately from autosomes. Default 7.5.
+#' @param window Number of markers to cover ~ 1 cM. Default 50
+#' @param step Number of markers for step size (~ 0.2 cM, 1/5 of window). Default 10.
+#' @param bar Bar width for plot. Default 50.
 #' @param psave Logical. Save the plot as `.png`. Default `TRUE`.
 #' @param pname File name to save plot (needs to end in `.png`).
 #'  Default is `hotspots_<tissue>.png`
 #' @param outdir Directory to save plots. Default is `NULL`.
-#' @param color Plot color. Default is "#0073C2FF".
+#' @param color Plot color, also accepts a vector for processing multiple
+#'  tissues. Default is "#0073C2FF".
 #'
 #' @return A list containing:
 #'   \item{bands.rna}{
@@ -40,7 +46,8 @@
 #' @importFrom GenomicRanges GRanges countOverlaps seqnames start end
 #' slidingWindows nearest
 #'
-transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
+transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, sigX = 7.5,
+                       window = 50, step = 10, bar = 50, psave = TRUE,
                        pname = NULL, outdir = NULL, color = "#0073C2FF") {
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
@@ -85,8 +92,8 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
     GenomicRanges::GRanges()
 
   ## Sliding windows of chromosome based markers - 50 <> windows 10 <> step
-  windows <- unlist(GenomicRanges::slidingWindows(chrom_markers, width = 50,
-                                                  step = 10))
+  windows <- unlist(GenomicRanges::slidingWindows(chrom_markers, width = window,
+                                                  step = step))
 
   ## Start per tissue analysis with annotated peaks (suggestive only)
 
@@ -94,12 +101,22 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
   bands.rna <- list()
   for (tissue in names(peaks)) {
     ## Significant distant peaks
-    distant_rna <- peaks[[tissue]] |>
-      dplyr::filter(lod > sigLOD, local == 0) |>
-      dplyr::select(peak_chr, peak_bp) |>
-      dplyr::rename(chrom = peak_chr, end = peak_bp) |>
-      dplyr::mutate(start = end) |>
-      GenomicRanges::GRanges()
+    if (sigLOD == sigX) {
+      distant_rna <- peaks[[tissue]] |>
+        dplyr::filter(lod > sigLOD, local == 0) |>
+        dplyr::select(peak_chr, peak_bp) |>
+        dplyr::rename(chrom = peak_chr, end = peak_bp) |>
+        dplyr::mutate(start = end) |>
+        GenomicRanges::GRanges()
+    } else {
+      distant_rna <- peaks[[tissue]] |>
+        dplyr::filter(if_else(peak_chr == "X", lod > sigX, lod > sigLOD),
+                      local == 0) |>
+        dplyr::select(peak_chr, peak_bp) |>
+        dplyr::rename(chrom = peak_chr, end = peak_bp) |>
+        dplyr::mutate(start = end) |>
+        GenomicRanges::GRanges()
+    }
 
     ## Suggestive distant peaks
     distant_rna_sugg <- peaks[[tissue]] |>
@@ -190,11 +207,17 @@ transbands <- function(map_dat, peaks, sigLOD = 7.5, suggLOD = 6, psave = TRUE,
     # message(paste0(eqtl_counts$midpoint_offset[which(
     #   eqtl_counts$distant_rna != 0)], sep = " "))
 
+    if (length(color) > 1) {
+      col_idx <- which(names(peaks) == tissue)
+      tissue_color <- color[col_idx]
+    } else {
+      tissue_color <- color
+    }
     trans_band_plot[[tissue]] <- eqtl_counts |>
       ggplot2::ggplot() +
       ggplot2::aes(x = midpoint_offset, y = distant_rna) +
-      ggplot2::geom_bar(stat = "identity", width = 50, col = color,
-                        fill = color) +
+      ggplot2::geom_bar(stat = "identity", width = bar, col = tissue_color,
+                        fill = tissue_color) +
       ggpubr::theme_pubclean(base_size = 16) +
       ggplot2::scale_x_continuous(
         name = "Chr",

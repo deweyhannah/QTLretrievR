@@ -90,25 +90,12 @@ subset_probs <- function(this_probs, this_chrom, this_markers) {
 
 `%notin%` <- Negate(`%in%`)
 
-peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, xcovar, tissue, gmap,
+peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, tissue, gmap,
                      thrA = 5, thrX = 5, n.cores = 4, phys) {
 
-  # message("Started mapping")
-  # message(timestamp())
   start <- ss[i] + 1
   end <- ss[i + 1]
-  # out <- qtl2::scan1(
-  #   genoprobs,
-  #   exprZ[,start:end,drop=F],
-  #   kinship_loco,
-  #   addcovar = covar[, , drop = FALSE],
-  #   cores = n.cores
-  # )
 
-  # return(tibble::lst(genoprobs, exprZ, kinship_loco, covar))
-
-  # message(sprintf("Running batch %d: cols %d-%d with %d cores", i, start, end, n.cores))
-  # message(timestamp())
 
   out <- tryCatch({
     qtl2::scan1(
@@ -116,7 +103,7 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, xcovar, tissue
       exprZ[, start:end, drop = FALSE],
       kinship_loco,
       addcovar = covar[, , drop = FALSE],
-      Xcovar = xcovar[, , drop = FALSE],
+      # Xcovar = xcovar[, , drop = FALSE],
       cores = n.cores
     )
   }, error = function(e) {
@@ -125,12 +112,10 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, xcovar, tissue
     message("Expr dims: ", paste(dim(exprZ[, start:end, drop=FALSE]), collapse=" x "))
     message("Any NA in expr: ", any(is.na(exprZ[, start:end])))
     message("Covar dims: ", paste(dim(covar), collapse=" x "))
-    message("Xcovar dims: ", if (!is.null(xcovar)) paste(dim(xcovar), collapse=" x ") else "NULL")
+    # message("Xcovar dims: ", if (!is.null(xcovar)) paste(dim(xcovar), collapse=" x ") else "NULL")
     stop(e)
   })
 
-  # message("Finished mapping")
-  # message(timestamp())
 
   peaks <- qtl2::find_peaks(scan1_output = out,
                             map          = gmap,
@@ -152,7 +137,7 @@ peak_fun <- function(i,ss, exprZ, kinship_loco, genoprobs, covar, xcovar, tissue
 }
 
 batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
-                       covar_list, xcovar_list, gmap, thrA, thrX, BPPARAM, phys, min_cores = 4) {
+                       covar_list, gmap, thrA, thrX, BPPARAM, phys, min_cores = 4) {
 
   workers <- BiocParallel::bpnworkers(BPPARAM)
 
@@ -193,7 +178,7 @@ batch_wrap <- function(tissue, exprZ_list, kinship_loco, qtlprobs,
                                               kinship_loco = kinship_loco[[tissue]],
                                               genoprobs = qtlprobs[[tissue]],
                                               covar = covar_list[[tissue]],
-                                              xcovar = xcovar_list[[tissue]],
+                                              # xcovar = xcovar_list[[tissue]],
                                               tissue = tissue,
                                               gmap = gmap,
                                               thrA = thrA,

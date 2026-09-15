@@ -17,7 +17,8 @@ medPlot_hotSpot(
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
-  showTarg = T
+  showTarg = T,
+  buffer = 0
 )
 }
 \arguments{
@@ -54,6 +55,10 @@ statistic should be plotted in the heatmap. Default "padj".}
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
 \item{showTarg}{Logical. Show target names in resulting plot. Default \code{TRUE}.}
+
+\item{buffer}{Number of bp to widen hotspot by for mediator inclusion. Default
+is 0. \emph{NB} If mediation was run using hsOnly without setting the buffer,
+this will \emph{only} include potential mediators that fall within the hotspot.}
 }
 \value{
 A list containing a dataframe representing the ranking of each

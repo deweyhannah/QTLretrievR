@@ -340,7 +340,10 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     xcovar_list[[t]] <- xcovar_list[[t]][samp_order, , drop = F]
   }
 
-  maps_list <- tibble::lst(qtlprobs, covar_list, xcovar_list, expr_list, exprZ_list,
+  # maps_list <- tibble::lst(qtlprobs, covar_list, xcovar_list, expr_list, exprZ_list,
+  #                          kinship_loco, gmap, map_dat2, pmap, tissue_samp)
+
+  maps_list <- tibble::lst(qtlprobs, covar_list, expr_list, exprZ_list,
                            kinship_loco, gmap, map_dat2, pmap, tissue_samp)
 
   if(save %in% c("sr","so")) {
@@ -379,7 +382,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       kinship_loco = kinship_loco,
       qtlprobs = qtlprobs,
       covar_list = covar_list,
-      xcovar_list = xcovar_list,
+      # xcovar_list = xcovar_list,
       gmap = map,
       thrA = thrA,
       thrX = thrX,

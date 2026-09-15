@@ -9,6 +9,10 @@ transbands(
   peaks,
   sigLOD = 7.5,
   suggLOD = 6,
+  sigX = 7.5,
+  window = 50,
+  step = 10,
+  bar = 50,
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
@@ -27,6 +31,15 @@ Default is 7.5}
 \item{suggLOD}{Suggestive LOD threshold to use for filtering phenotypes.
 Default is 6.}
 
+\item{sigX}{Significant LOD threshold for filtering X chromosome phenotypes
+separately from autosomes. Default 7.5.}
+
+\item{window}{Number of markers to cover ~ 1 cM. Default 50}
+
+\item{step}{Number of markers for step size (~ 0.2 cM, 1/5 of window). Default 10.}
+
+\item{bar}{Bar width for plot. Default 50.}
+
 \item{psave}{Logical. Save the plot as \code{.png}. Default \code{TRUE}.}
 
 \item{pname}{File name to save plot (needs to end in \code{.png}).
@@ -34,7 +47,8 @@ Default is \verb{hotspots_<tissue>.png}}
 
 \item{outdir}{Directory to save plots. Default is \code{NULL}.}
 
-\item{color}{Plot color. Default is "#0073C2FF".}
+\item{color}{Plot color, also accepts a vector for processing multiple
+tissues. Default is "#0073C2FF".}
 }
 \value{
 A list containing:

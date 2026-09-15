@@ -21,6 +21,9 @@
 #'  "mediation_plot_chr<chromosome>_<start>_<stop>_top_<top_n>.png".
 #' @param outdir Directory to save plots. Default is `NULL`.
 #' @param showTarg Logical. Show target names in resulting plot. Default `TRUE`.
+#' @param buffer Number of bp to widen hotspot by for mediator inclusion. Default
+#'  is 0. *NB* If mediation was run using hsOnly without setting the buffer,
+#'  this will _only_ include potential mediators that fall within the hotspot.
 #'
 #' @return A list containing a dataframe representing the ranking of each
 #'  mediator within the hotspot for each target of the hotspot and the
@@ -40,7 +43,7 @@
 medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
                             top_n = 5, plot = "padj", topFeats = NULL,
                             psave = TRUE, pname = NULL, outdir = NULL,
-                            showTarg = T) {
+                            showTarg = T, buffer = 0) {
   if (psave & is.null(outdir)) {
     stop("Plot to be saved, but no directory provided")
   }
@@ -73,8 +76,8 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
   }
 
   peak_med <- hs_sig(df    = meds,
-                     start = hsStart,
-                     stop  = hsEnd,
+                     start = hsStart - buffer,
+                     stop  = hsEnd + buffer,
                      feat  = feats,
                      chr   = chromosome)
 
@@ -87,6 +90,7 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
     dplyr::mutate(padj = dplyr::if_else(padj == 0.0000, 1e-15, padj)) |>
     dplyr::arrange(mediator_midpoint) |>
     dplyr::select(target, mediator, as.name(plot)) |>
+    unique() |>
     tidyr::pivot_wider(names_from = mediator, values_from = as.name(plot)) |>
     tibble::column_to_rownames(var = "target") |>
     as.matrix()

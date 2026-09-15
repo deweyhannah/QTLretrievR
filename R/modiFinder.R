@@ -21,6 +21,8 @@
 #' @param distOnly Logical. Mediate only the distal peaks? Default is `TRUE`.
 #' @param hsOnly Logical. Mediate only on peaks identified within a hotspot.
 #'  Default is `FALSE`.
+#' @param buffer Number of bp to expand hotspot bounds by for mediator selection.
+#'  Default is 0. This number should not be negative.
 #' @param BPPARAM BiocParallel Parameter
 #'
 #' @return A list containing mediation results for each tissue
@@ -33,7 +35,7 @@
 #'
 modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
                        med_out = "mediation.rds", total_cores = NULL,
-                       save = "sr", distOnly = TRUE, hsOnly = FALSE,
+                       save = "sr", distOnly = TRUE, hsOnly = FALSE, buffer = 0,
                        BPPARAM = BiocParallel::SerialParam()) {
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -53,6 +55,11 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
   }
 
   workers <- BiocParallel::bpnworkers(BPPARAM)
+
+  if(buffer < 0 & hsOnly) {
+    message("Buffer set to shrink mediator boundaries instead of expanding them. Resetting buffer to 0.")
+    buffer <- 0
+  }
 
   message("load annotations")
   if (is.character(annots)) {
@@ -120,16 +127,47 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
       dplyr::mutate(midpoint = (start + stop) / 2)
   }
 
+  # if (hsOnly) {
+  #   tbands <- transbands(map_dat = map_dat2,
+  #                        peaks   = peaks_list,
+  #                        sigLOD  = sigLOD,
+  #                        psave   = FALSE)
+  #
+  #   peaks_og <- peaks_list
+  #   for (tissue in names(peaks_list)) {
+  #     peaks_list[[tissue]] <- filter_peaks(peaks_list[[tissue]],
+  #                                          tbands$bands.rna[[tissue]])
+  #   }
+  #
+  #   hotspot_target_ids <- list()
+  #   for (tissue in names(peaks_list)) {
+  #     hotspot_target_ids[[tissue]] <- peaks_list[[tissue]] |>
+  #       dplyr::filter(dplyr::between(peak_bp, hsStart, hsEnd)) |>  # this specific band only
+  #       dplyr::pull(phenotype) |>
+  #       unique()
+  #   }
+  # }
   if (hsOnly) {
-    tbands <- transbands(map_dat = map_dat2,
-                         peaks   = peaks_list,
-                         sigLOD  = sigLOD,
-                         psave   = FALSE)
+    tbands <- transbands(map_dat = map_dat2, peaks = peaks_list, sigLOD = sigLOD, psave = FALSE)
 
     peaks_og <- peaks_list
+    peaks_by_band <- list()
+    targets_by_band <- list()
+
     for (tissue in names(peaks_list)) {
-      peaks_list[[tissue]] <- filter_peaks(peaks_list[[tissue]],
-                                           tbands$bands.rna[[tissue]])
+      bands_df <- tbands$bands.rna[[tissue]]
+
+      peaks_by_band[[tissue]] <- purrr::map(seq_len(nrow(bands_df)), function(i) {
+        band <- bands_df[i, ]
+        peaks_og[[tissue]] |>
+          dplyr::filter(
+            as.character(peak_chr) == as.character(band$chr),
+            dplyr::between(peak_bp, band$start, band$end)
+          ) |>
+          dplyr::filter(local == 0)
+      })
+
+      targets_by_band[[tissue]] <- purrr::map(peaks_by_band[[tissue]], function(pk) unique(pk$phenotype))
     }
   }
 
@@ -166,6 +204,12 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
   for (tissue in names(exprZ_list)) {
     med_annot[[tissue]] <- targ_annot[[tissue]] |>
       dplyr::rename(mediator_id = target_id)
+
+    # if (hsOnly) {
+    #   med_annot[[tissue]] <- med_annot[[tissue]] |>
+    #     dplyr::filter(!(mediator_id %in% hotspot_target_ids[[tissue]]))
+    # }
+
     qtl_mediator[[tissue]] <- exprZ_list[[tissue]][,
                                                    annots_list[[tissue]]$id]
     qtl_mediator[[tissue]] <- qtl_mediator[[tissue]][,
@@ -193,6 +237,74 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
     cores_needed <- workers
   }
 
+    # res_out <- lapply(names(qtl_peaks), function(tissue) {
+    #   qtl_mediate(
+    #     tissue        = tissue,
+    #     QTL.peaks     = qtl_peaks,
+    #     med_annot     = med_annot,
+    #     QTL.mediator  = qtl_mediator,
+    #     targ_covar    = targ_covar,
+    #     QTL.target    = qtl_target,
+    #     probs         = probs,
+    #     mapDat        = map_dat2,
+    #     pmap          = pmap,
+    #     BPPARAM       = BPPARAM
+    #   )
+    # })
+  if (hsOnly) {
+    res_out <- list()
+
+    for (tissue in names(qtl_peaks)) {
+      n_bands <- length(peaks_by_band[[tissue]])
+
+      band_res <- lapply(seq_len(n_bands), function(i) {
+        band <- tbands$bands.rna[[tissue]][i, ]
+        this_band_targets <- targets_by_band[[tissue]][[i]]
+        this_band_peak_ids <- peaks_by_band[[tissue]][[i]]$phenotype
+
+        # subset qtl_peaks to just this band's targets
+        peaks_band <- list()
+        peaks_band[[tissue]] <- qtl_peaks[[tissue]] |>
+          dplyr::filter(target_id %in% this_band_peak_ids)
+
+        if (nrow(peaks_band[[tissue]]) == 0) return(NULL)
+
+        # exclude only this band's own targets from the mediator pool
+        med_annot_band <- list()
+        med_annot_band[[tissue]] <- med_annot[[tissue]] |>
+          dplyr::filter(as.character(chrom) == as.character(band$chr),
+                        dplyr::between(pos, band$start - buffer, band$end + buffer)) |>
+          dplyr::filter(!(mediator_id %in% this_band_targets))
+
+        qtl_mediator_band <- list()
+        qtl_mediator_band[[tissue]] <- qtl_mediator[[tissue]][, med_annot_band$mediator_id, drop = FALSE]
+
+        out <- qtl_mediate(
+          tissue        = tissue,
+          QTL.peaks     = peaks_band,
+          med_annot     = med_annot_band,
+          QTL.mediator  = qtl_mediator_band,
+          targ_covar    = targ_covar,
+          QTL.target    = qtl_target,
+          probs         = probs,
+          mapDat        = map_dat2,
+          pmap          = pmap,
+          BPPARAM       = BPPARAM
+        )
+        out$res_list$band_id <- i   # record which band, for output traceability only
+        out
+      })
+
+      band_res <- purrr::compact(band_res)  # drop any NULL (empty) bands
+
+      res_out[[tissue]] <- list(
+        tissue   = tissue,
+        res_list = dplyr::bind_rows(lapply(band_res, function(x) x$res_list))
+      )
+    }
+    res_out <- unname(res_out)
+
+  } else {
     res_out <- lapply(names(qtl_peaks), function(tissue) {
       qtl_mediate(
         tissue        = tissue,
@@ -207,6 +319,7 @@ modiFinder <- function(peaks, mapping, sigLOD = 7.5, annots, outdir = NULL,
         BPPARAM       = BPPARAM
       )
     })
+  }
 
 
 

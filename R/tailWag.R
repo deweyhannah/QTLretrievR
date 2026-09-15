@@ -38,19 +38,19 @@ tailWag <- function(effects, tissue, feat, chromosome, color = "#0073C2FF",
 
   # message(colnames(peak_effects), sep = "\t")
 
-  # if (symb) {
-  #   feat_effects <- peak_effects |>
-  #     dplyr::filter(symbol %in% feat,
-  #                   peak_chr == chromosome) |>
-  #     dplyr::rename(feature = symbol) |>
-  #     dplyr::select(feature, LETTERS[seq_len(length(founders))])
-  # } else {
+  if (symb) {
+    feat_effects <- peak_effects |>
+      dplyr::filter(symbol %in% feat,
+                    peak_chr == chromosome) |>
+      dplyr::rename(feature = symbol) |>
+      dplyr::select(feature, LETTERS[seq_len(length(founders))])
+  } else {
     feat_effects <- peak_effects |>
       dplyr::filter(phenotype %in% feat,
                     peak_chr == chromosome) |>
       dplyr::rename(feature = phenotype) |>
       dplyr::select(feature, LETTERS[seq_len(length(founders))])
-  # }
+  }
 
   colnames(feat_effects) <- c("feature", founders)
 

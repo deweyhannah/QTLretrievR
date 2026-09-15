@@ -5,6 +5,8 @@
 #'  (annotated).
 #' @param sigLOD Significant LOD threshold to use for filtering phenotypes.
 #'  Default is 7.5
+#' @param sigX Significant LOD threshold for X chromosome phenotypes, if calculated
+#'  separately from autosomes.
 #' @param psave Logical. Save the plot as `.png`. Default `TRUE`.
 #' @param pname File name to save plot (needs to end in `.png`).
 #'  Default is "eqtl_map_LOD<sigLOD>_<tissue>.png".
@@ -24,7 +26,7 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr select rename filter mutate
 #'
-plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
+plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, sigX = sigLOD, outdir = NULL,
                          pname = NULL, psave = TRUE, unit = "bp",
                          map_col = "#0073C2FF") {
   if (psave & is.null(outdir)) {
@@ -109,6 +111,11 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
     } else {
       sig_lod <- sigLOD
     }
+    if (length(sigX) > 1) {
+      sig_x <- sigX[iter]
+    } else {
+      sig_x <- sigX
+    }
 
     if (length(map_col) > 1) {
       map_col2 <- map_col[iter]
@@ -126,7 +133,7 @@ plot_eqtlmap <- function(map_dat, peaks, sigLOD = 7.5, outdir = NULL,
       ## Add peaks data and filter to significant
       ggplot2::geom_point(
         data = peaks[[tissue]] |>
-          dplyr::filter(lod > sig_lod),
+          dplyr::filter(ifelse(peak_chr == "X", lod > sig_x, lod > sig_lod)),
         ggplot2::aes(x = cumsum_bp_peak, y = cumsum_bp_gene),
         size = 2,
         col = map_col2,
