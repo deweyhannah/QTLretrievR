@@ -15,7 +15,9 @@ peak_plot(
   chromosome = NULL,
   effects = FALSE,
   founders = NULL,
-  palette = NULL
+  palette = NULL,
+  thlds = NULL,
+  thld_cols = c("red", "blue")
 )
 }
 \arguments{

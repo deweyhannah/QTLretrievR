@@ -24,7 +24,8 @@
 #'
 peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
                       pname = NULL, psave = TRUE, chromosome = NULL,
-                      effects = FALSE, founders = NULL, palette = NULL) {
+                      effects = FALSE, founders = NULL, palette = NULL,
+                      thlds = NULL, thld_cols = c("red", "blue")) {
   if (is.list(mapping)) {
     tmp_map <- check_data(mapping)
 
@@ -123,7 +124,7 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
         if (is.null(pname)) {
           pname <- paste0(tissue, "_", pheno, "_effects.png")
         }
-        if(!is.null(paltte)) {
+        if(!is.null(palette)) {
           png(paste0(outdir, "/", tissue, "_", pheno, "_effects.png"),
               width = 1024, height = 1024)
           print(p)
@@ -159,15 +160,23 @@ peak_plot <- function(mapping, tissue, pheno, pop = "do", outdir = NULL,
     }
 
   } else {
-    p <- plot(scan1_out, pmap)
-    if(psave) {
-      if(is.null(pname)) {
-        pname <- paste0(tissue, "_", pheno, "_LOD.png")
+    draw_lod <- function() {
+      ymax <- max(c(scan1_out[, 1], thlds), na.rm = TRUE) * 1.05
+      plot(scan1_out, pmap, ylim = c(0, ymax))
+      if (!is.null(thlds)) {
+        abline(h = thlds, col = thld_cols[seq_along(thlds)],
+               lty = 2, lwd = 1.5)
       }
+      recordPlot()
+    }
+
+    if (psave) {
+      if (is.null(pname)) pname <- paste0(tissue, "_", pheno, "_LOD.png")
       png(paste0(outdir, "/", pname), width = 1024, height = 730)
-      print(p)
+      draw_lod()
       dev.off()
     }
+    p <- draw_lod()
   }
-  return(p)
+  return(invisible(p))
 }

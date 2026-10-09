@@ -75,11 +75,25 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
     feats <- intersect(feats, topFeats)
   }
 
+  ## Test
+  local_meds <- peaks$phenotype[which(peaks$peak_chr == chromosome &
+                                        peaks$local == 1 &
+                                        peaks$peak_bp < hsEnd &
+                                        peaks$peak_bp > hsStart)]
+
   peak_med <- hs_sig(df    = meds,
                      start = hsStart - buffer,
                      stop  = hsEnd + buffer,
                      feat  = feats,
                      chr   = chromosome)
+
+  if (length(intersect(peak_med$mediator_id, feats)) != 0) {
+    message(paste0("Filtering out ",
+                   length(intersect(peak_med$mediator_id, feats)),
+                   " mediators that are also targets of the hotspot"))
+  }
+  peak_med <- peak_med |> dplyr::filter(# mediator_id %in% local_meds,
+                                     !(mediator_id %in% feats))
 
   l2p_wide <- peak_med |>
     dplyr::group_by(target_id) |>
