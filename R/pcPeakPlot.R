@@ -388,6 +388,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                     chromosome = chromosome, psave = FALSE, symb = TRUE, ...)
     } else if (pc & !is.null(candidateMed)) {
       effects$peaks[[tissue]]$phenotype[which(effects$peaks[[tissue]]$phenotype == medID)] <- medSym
+      message(medSym)
       # return(effects)
       p2 <- tailWag(effects    = effects,
                     tissue     = tissue,
@@ -395,7 +396,7 @@ hsPeakPlot <- function(mapping, feats, tbands, chromosome, tissue,
                     chromosome = chromosome,
                     color      = color,
                     psave      = FALSE,
-                    symb       = TRUE, ...)
+                    symb       = FALSE, ...)
 
     } else {
       p2 <- tailWag(effects = effects, tissue = tissue, feat = "PC1",

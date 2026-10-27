@@ -28,7 +28,8 @@ mapQTL(
   BPPARAM = BiocParallel::SerialParam(),
   xcov = TRUE,
   x_factor = "sex",
-  min_cores = 4
+  min_cores = 4,
+  isNorm = TRUE
 )
 ```
 
@@ -123,6 +124,10 @@ mapQTL(
 
   Minimum number of cores to use for phenotype parallelization. Default
   is 4.
+
+- isNorm:
+
+  Logical. Are the counts already normalized? Default is `TRUE`
 
 ## Value
 

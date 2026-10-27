@@ -39,6 +39,7 @@
 #'  Default is "sr".
 #' @param min_cores Minimum number of cores to use in parallelization across phenotypes
 #' @param BPPARAM BiocParallel Parameter. Either SerialParam or SnowParam with type "SOCK".
+#' @param isNorm Logical. Are the count data already normalized? Default is `TRUE`.
 #'
 #' @return A list containing:
 #'    \item{peaks_list}{Unfiltered peaks for each tissue.}
@@ -61,7 +62,8 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
                    effects_out = "effects.rds", outdir = NULL, gbrs_fileLoc,
                    metadata, expr_mats, covar_factors, annots, tissues = c(),
                    gridFile = gridfile, total_cores = NULL,
-                   save_t = "sr", min_cores = 4, BPPARAM = BiocParallel::SerialParam(), ...) {
+                   save_t = "sr", min_cores = 4, BPPARAM = BiocParallel::SerialParam(),
+                   isNorm = TRUE, ...) {
   ## Check outdir
   if(save_t %in% c("sr", "so")) {
     if (is.null(outdir)) {
@@ -161,7 +163,8 @@ runQTL <- function(geno_out = "gbrs_interpolated_genoprobs.rds",
     rz            = rz,
     phys          = phys,
     min_cores     = min_cores,
-    BPPARAM       = BPPARAM
+    BPPARAM       = BPPARAM,
+    isNorm        = isNorm
     )
 
   peaks_list <- map_peaks$peaks_list

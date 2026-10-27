@@ -9,6 +9,7 @@ plot_eqtlmap(
   map_dat,
   peaks,
   sigLOD = 7.5,
+  sigX = sigLOD,
   outdir = NULL,
   pname = NULL,
   psave = TRUE,
@@ -31,6 +32,11 @@ plot_eqtlmap(
 
   Significant LOD threshold to use for filtering phenotypes. Default is
   7.5
+
+- sigX:
+
+  Significant LOD threshold for X chromosome phenotypes, if calculated
+  separately from autosomes.
 
 - outdir:
 

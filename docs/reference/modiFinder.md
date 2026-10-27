@@ -16,6 +16,7 @@ modiFinder(
   save = "sr",
   distOnly = TRUE,
   hsOnly = FALSE,
+  buffer = 0,
   BPPARAM = BiocParallel::SerialParam()
 )
 ```
@@ -71,6 +72,11 @@ modiFinder(
 
   Logical. Mediate only on peaks identified within a hotspot. Default is
   `FALSE`.
+
+- buffer:
+
+  Number of bp to expand hotspot bounds by for mediator selection.
+  Default is 0. This number should not be negative.
 
 - BPPARAM:
 

@@ -148,6 +148,8 @@ Functions run during mapQTL that may be useful after the factt
 - [`split_map()`](https://deweyhannah.github.io/QTLretrievR/reference/split_map.md)
   : Background functions for QTLretrievR that will be called by the
   primary functions
+- [`uqn()`](https://deweyhannah.github.io/QTLretrievR/reference/uqn.md)
+  : Upper Quartile Normalization
 
 # Articles
 

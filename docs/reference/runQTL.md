@@ -23,6 +23,7 @@ runQTL(
   save_t = "sr",
   min_cores = 4,
   BPPARAM = BiocParallel::SerialParam(),
+  isNorm = TRUE,
   ...
 )
 ```
@@ -119,6 +120,10 @@ runQTL(
 
   BiocParallel Parameter. Either SerialParam or SnowParam with type
   "SOCK".
+
+- isNorm:
+
+  Logical. Are the count data already normalized? Default is `TRUE`.
 
 ## Value
 

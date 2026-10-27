@@ -97,15 +97,18 @@ medPlot_hotSpot <- function(peaks, meds, tbands, chromosome, sigLOD, hsNum = 1,
 
   l2p_wide <- peak_med |>
     dplyr::group_by(target_id) |>
-    dplyr::mutate(ranks = rank(-LOD_drop, ties.method = "average")) |>
+    dplyr::mutate(ranks = rank(-LOD_drop, ties.method = "average"),
+                  per_drop = LOD_drop / qtl_lod) |>
     dplyr::ungroup() |>
     dplyr::mutate(padj = dplyr::case_when(ranks <= top_n ~ padj,
-                                          ranks > top_n ~ NA)) |>
+                                          .default = NA),
+                  !!plot := dplyr::case_when(ranks <= top_n ~ .data[[plot]],
+                                          .default = NA)) |>
     dplyr::mutate(padj = dplyr::if_else(padj == 0.0000, 1e-15, padj)) |>
     dplyr::arrange(mediator_midpoint) |>
-    dplyr::select(target, mediator, as.name(plot)) |>
+    dplyr::select(target, mediator, dplyr::all_of(plot)) |>
     unique() |>
-    tidyr::pivot_wider(names_from = mediator, values_from = as.name(plot)) |>
+    tidyr::pivot_wider(names_from = mediator, values_from = dplyr::all_of(plot)) |>
     tibble::column_to_rownames(var = "target") |>
     as.matrix()
 

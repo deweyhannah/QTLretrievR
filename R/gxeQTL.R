@@ -48,6 +48,10 @@
 #' @param min_cores Numeric. The minimum number of cores to be used in each
 #'  process for mapping.
 #' @param BPPARAM BiocParallel Parameter
+#' @param isNorm Logical. Have the counts already been normalized? default is `TRUE`.
+#'  If `FALSE`, Upper Quartile Normalization will be applied
+#' @param logNorm Logical. If the counts have already been normalized, were they
+#'  log transformed? e.g. log1p or VST normalization? Default is `TRUE`.
 #'
 #' @return A list containing:
 #' \item{maps_list}{
@@ -84,7 +88,8 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    outdir = NULL, peaks_out = "gxe_peaks.rds",
                    map_out = "gxe_map.rds", annots = NULL, total_cores = NULL,
                    save = "sr", delta = FALSE, ctrl, env, phys = TRUE,
-                   min_cores = 4, BPPARAM = BiocParallel::SerialParam()) {
+                   min_cores = 4, BPPARAM = BiocParallel::SerialParam(),
+                   isNorm = TRUE, logNorm = TRUE) {
 
   ## Check save conflicts
   if (save %in% c("sr", "so")) {
@@ -101,6 +106,14 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }
   if (!is.null(total_cores)) {
     BPPARAM <- BiocParallel::SnowParam(workers = total_cores, type = "SOCK")
+  }
+
+  if (isNorm) {
+    message("Proceeding as if data has already been normalized or does not need
+            to be. If this is not the case, please normalize phenotype with
+            method of choice and re-run, or switch the `isNorm` flag to `FALSE`.")
+  } else {
+    message("Upper Quartile Normalization will be applied to count matrices.")
   }
 
   workers <- BiocParallel::bpnworkers(BPPARAM)
@@ -138,6 +151,11 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
   }
   if (length(covar_factors) == 0) {
     stop("Please provide at least one covariate for model")
+  }
+  if (!isNorm & logNorm & delta) {
+    stop("Counts have not been normalized, but have been log transformed. To run
+         in `delta` mode if data has not already been normalized, please set
+         `logNorm` to FALSE`.")
   }
 
   ## Convert genotype probabilities and calculate LOCO kinship matrices for
@@ -195,6 +213,19 @@ gxeQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
       message(paste0("passing dataframe with: ", ncol(expr), " samples, and ",
                        nrow(expr), " genes"))
       expr_list[[tissue]] <- as.matrix(expr)
+    }
+  }
+  if (!isNorm) {
+    message("Normalizing counts with Upper Quartile Normalization.")
+    for (tissue in names(expr_list)) {
+      expr_list[[tissue]] <- uqn(expr_list[[tissue]])
+    }
+
+  }
+  if (delta & !logNorm) {
+    message("log2 transforming counts prior to delta calculation")
+    for (tissue in names(expr_list)) {
+      expr_list[[tissue]] <- log2(expr_list[[tissue]])
     }
   }
 

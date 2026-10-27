@@ -22,6 +22,7 @@ runQTL(
   save_t = "sr",
   min_cores = 4,
   BPPARAM = BiocParallel::SerialParam(),
+  isNorm = TRUE,
   ...
 )
 }
@@ -81,6 +82,8 @@ Default is "sr".}
 \item{min_cores}{Minimum number of cores to use in parallelization across phenotypes}
 
 \item{BPPARAM}{BiocParallel Parameter. Either SerialParam or SnowParam with type "SOCK".}
+
+\item{isNorm}{Logical. Are the count data already normalized? Default is \code{TRUE}.}
 }
 \value{
 A list containing:

@@ -24,7 +24,9 @@ gxeQTL(
   env,
   phys = TRUE,
   min_cores = 4,
-  BPPARAM = BiocParallel::SerialParam()
+  BPPARAM = BiocParallel::SerialParam(),
+  isNorm = TRUE,
+  logNorm = TRUE
 )
 }
 \arguments{
@@ -88,6 +90,12 @@ otherwise use the genomic map. Default is \code{TRUE}.}
 process for mapping.}
 
 \item{BPPARAM}{BiocParallel Parameter}
+
+\item{isNorm}{Logical. Have the counts already been normalized? default is \code{TRUE}.
+If \code{FALSE}, Upper Quartile Normalization will be applied}
+
+\item{logNorm}{Logical. If the counts have already been normalized, were they
+log transformed? e.g. log1p or VST normalization? Default is \code{TRUE}.}
 }
 \value{
 A list containing:

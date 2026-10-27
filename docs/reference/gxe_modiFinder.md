@@ -16,7 +16,6 @@ gxe_modiFinder(
   total_cores = NULL,
   save = "sr",
   distOnly = TRUE,
-  hsOnly = FALSE,
   BPPARAM = BiocParallel::SerialParam()
 )
 ```
@@ -73,11 +72,6 @@ gxe_modiFinder(
 - distOnly:
 
   Logical. Mediate only the distal peaks? Default is `TRUE`.
-
-- hsOnly:
-
-  Logical. Mediate only on peaks identified within a hotspot. Default is
-  `FALSE`.
 
 - BPPARAM:
 

@@ -42,6 +42,7 @@
 #' @param BPPARAM BiocParallel Parameter
 #' @param min_cores Minimum number of cores to use for phenotype parallelization.
 #'  Default is 4.
+#' @param isNorm Logical. Are the counts already normalized? Default is `TRUE`
 #'
 #'
 #' @return A list containing:
@@ -78,7 +79,7 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
                    outdir = NULL, peaks_out = "peaks.rds", map_out = "map.rds",
                    annots = NULL, total_cores = NULL, save = "sr",
                    rz = FALSE, phys = TRUE, BPPARAM = BiocParallel::SerialParam(),
-                   xcov = TRUE, x_factor = "sex", min_cores = 4) {
+                   xcov = TRUE, x_factor = "sex", min_cores = 4, isNorm=TRUE) {
 
   if (inherits(BPPARAM, "SerialParam") && is.null(total_cores)) {
     message("No BPPARAM provided - Detecting core availabiltiy to run parallel processes")
@@ -92,10 +93,17 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
 
   workers <- BiocParallel::bpnworkers(BPPARAM)
 
-  if (xcov) {
-    message(paste0("Correcting X Chromosome Mapping with ", x_factor))
+  # if (xcov) {
+  #   message(paste0("Correcting X Chromosome Mapping with ", x_factor))
+  # } else {
+  #   x_factor <- NULL
+  # }
+  if (isNorm) {
+    message("Proceeding as if data has already been normalized or does not need
+            to be. If this is not the case, please normalize phenotype with
+            method of choice and re-run, or switch the `isNorm` flag to `FALSE`.")
   } else {
-    x_factor <- NULL
+    message("Upper Quartile Normalization will be applied to count matrices.")
   }
 
   ## Check save conflicts
@@ -205,6 +213,13 @@ mapQTL <- function(genoprobs, samp_meta, expr_mats, covar_factors, thrA = 5,
     }
     else {
       expr_list[[tissue]] <- expr[[tissue]]
+    }
+  }
+
+  if (!isNorm) {
+    message("Normalizing counts with Upper Quartile Normalization")
+    for (tissue in names(expr_list)) {
+      expr_list[[tissue]] <- uqn(mat == expr_list[[tissue]])
     }
   }
 

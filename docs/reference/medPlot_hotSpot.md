@@ -18,7 +18,8 @@ medPlot_hotSpot(
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
-  showTarg = T
+  showTarg = T,
+  buffer = 0
 )
 ```
 
@@ -83,6 +84,13 @@ medPlot_hotSpot(
 - showTarg:
 
   Logical. Show target names in resulting plot. Default `TRUE`.
+
+- buffer:
+
+  Number of bp to widen hotspot by for mediator inclusion. Default is 0.
+  *NB* If mediation was run using hsOnly without setting the buffer,
+  this will *only* include potential mediators that fall within the
+  hotspot.
 
 ## Value
 

@@ -104,6 +104,7 @@ Collate:
     'runQTL.R'
     'tailWag.R'
     'transbands.R'
+    'uqn.R'
     'plot_map.R'
     'QTLretrievR-package.R'
 Depends: 

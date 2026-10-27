@@ -28,7 +28,9 @@ gxeQTL(
   env,
   phys = TRUE,
   min_cores = 4,
-  BPPARAM = BiocParallel::SerialParam()
+  BPPARAM = BiocParallel::SerialParam(),
+  isNorm = TRUE,
+  logNorm = TRUE
 )
 ```
 
@@ -134,6 +136,16 @@ gxeQTL(
 - BPPARAM:
 
   BiocParallel Parameter
+
+- isNorm:
+
+  Logical. Have the counts already been normalized? default is `TRUE`.
+  If `FALSE`, Upper Quartile Normalization will be applied
+
+- logNorm:
+
+  Logical. If the counts have already been normalized, were they log
+  transformed? e.g. log1p or VST normalization? Default is `TRUE`.
 
 ## Value
 

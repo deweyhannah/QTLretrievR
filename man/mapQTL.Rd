@@ -24,7 +24,8 @@ mapQTL(
   BPPARAM = BiocParallel::SerialParam(),
   xcov = TRUE,
   x_factor = "sex",
-  min_cores = 4
+  min_cores = 4,
+  isNorm = TRUE
 )
 }
 \arguments{
@@ -81,6 +82,8 @@ otherwise use the genomic map. Default is \code{TRUE}.}
 
 \item{min_cores}{Minimum number of cores to use for phenotype parallelization.
 Default is 4.}
+
+\item{isNorm}{Logical. Are the counts already normalized? Default is \code{TRUE}}
 }
 \value{
 A list containing:

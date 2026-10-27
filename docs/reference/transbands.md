@@ -10,6 +10,10 @@ transbands(
   peaks,
   sigLOD = 7.5,
   suggLOD = 6,
+  sigX = 7.5,
+  window = 50,
+  step = 10,
+  bar = 50,
   psave = TRUE,
   pname = NULL,
   outdir = NULL,
@@ -37,6 +41,23 @@ transbands(
   Suggestive LOD threshold to use for filtering phenotypes. Default is
   6.
 
+- sigX:
+
+  Significant LOD threshold for filtering X chromosome phenotypes
+  separately from autosomes. Default 7.5.
+
+- window:
+
+  Number of markers to cover ~ 1 cM. Default 50
+
+- step:
+
+  Number of markers for step size (~ 0.2 cM, 1/5 of window). Default 10.
+
+- bar:
+
+  Bar width for plot. Default 50.
+
 - psave:
 
   Logical. Save the plot as `.png`. Default `TRUE`.
@@ -52,7 +73,8 @@ transbands(
 
 - color:
 
-  Plot color. Default is "#0073C2FF".
+  Plot color, also accepts a vector for processing multiple tissues.
+  Default is "#0073C2FF".
 
 ## Value
 
